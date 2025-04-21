@@ -1,4 +1,7 @@
 #pragma once
-#include "../core/base/log.h"
-#include "../core/window/window.h"
-#include "../core/error/error.h"
+
+#include "common.h"
+#include "base/log.h"
+#include "window/window.h"
+#include "error/error.h"
+#include "audio/audio.h"
