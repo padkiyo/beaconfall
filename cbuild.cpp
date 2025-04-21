@@ -5,6 +5,15 @@ namespace fs = std::filesystem;
 
 int main(int argc, char** argv) {
 	cbuild_rebuild(argc, argv);
+	CBuild glad_build("gcc");
+	glad_build
+		.src({
+				"vendors/glad/src/gl.c"
+		})
+	.inc_paths({
+			"vendors/glad/include"
+		})
+	.compile();
 
 	CBuild build("g++");
 	build
@@ -16,6 +25,7 @@ int main(int argc, char** argv) {
 		.inc_paths({
 			".",
 			"./game/",
+			"./vendors/glad/include",
 		})
 #if defined(__linux__)
 		.libs({
@@ -29,6 +39,9 @@ int main(int argc, char** argv) {
 			// TODO: Add libs for windows
 		})
 #endif
+		.objs({
+				"./vendors/glad/src/gl.o"
+		})
 		.src({
 			"game/main.cpp",
 		})
