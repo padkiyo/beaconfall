@@ -6,18 +6,23 @@ namespace fs = std::filesystem;
 int main(int argc, char** argv) {
 	cbuild_rebuild(argc, argv);
 
+	FileRecords records;
+	read_file_records(records);
+
 	CBuild glad_build("gcc");
 	glad_build
+		.set_file_records(&records)
 		.src({
-				"vendors/glad/src/gl.c"
+			"vendors/glad/src/gl.c"
 		})
-	.inc_paths({
+		.inc_paths({
 			"vendors/glad/include"
 		})
-	.compile();
+		.compile();
 
 	CBuild build("g++");
 	build
+		.set_file_records(&records)
 		.out("bin", "game")
 		.flags({
 			"-std=c++20",
@@ -43,7 +48,7 @@ int main(int argc, char** argv) {
 		})
 #endif
 		.objs({
-				"./vendors/glad/src/gl.o"
+				"./objs/gl.o"
 		})
 		.src({
 			"./core/window/window.cpp",
@@ -51,8 +56,7 @@ int main(int argc, char** argv) {
 			"./core/audio/audio.cpp",
 			"./game/main.cpp",
 		})
-		.build()
-		.clean();
+		.build();
 
 #if defined(__linux__)
 
@@ -69,6 +73,8 @@ int main(int argc, char** argv) {
 #elif defined(_WIN32)
 	// TODO: Implement copying for windows
 #endif
+
+	save_file_records(records);
 
 	return 0;
 }

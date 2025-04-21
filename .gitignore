@@ -1,2 +1,4 @@
 bin
 cbuild
+objs
+records.txt
