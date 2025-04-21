@@ -1,65 +1,62 @@
+#include <glad/gl.h>
 #include <SDL2/SDL.h>
-#include <stdio.h>
+#include "../core/base/log.h"
 
 int main(int argc, char* argv[]) {
-    // Initialize SDL
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        printf("SDL_Init Error: %s\n", SDL_GetError());
-        return 1;
-    }
+	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+		log::panic("Unable to initialize SDL");
+	}
 
-    // Create a window
-    SDL_Window* window = SDL_CreateWindow(
-        "SDL2 Wayland Window",
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
-        800, 600,
-        SDL_WINDOW_SHOWN
-    );
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 4);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-    if (!window) {
-        printf("SDL_CreateWindow Error: %s\n", SDL_GetError());
-        SDL_Quit();
-        return 1;
-    }
 
-    // Create a renderer
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    if (!renderer) {
-        printf("SDL_CreateRenderer Error: %s\n", SDL_GetError());
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return 1;
-    }
+	SDL_Window* window = SDL_CreateWindow(
+			"Test window",
+			SDL_WINDOWPOS_CENTERED,
+			SDL_WINDOWPOS_CENTERED,
+			640, 480,
+			SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN
+	);
 
-    // Main loop flag
-    int running = 1;
-    SDL_Event event;
+	if(!window){
+		SDL_Quit();
+		log::panic("Unable to create a SDL window");
+	}
 
-    // Main loop
-    while (running) {
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
-                running = 0;
-            }
-        }
+	SDL_GLContext gl_context = SDL_GL_CreateContext(window);
 
-        // Set the clear color (RGBA)
-        SDL_SetRenderDrawColor(renderer, 135, 206, 235, 255);  // Sky blue
+	SDL_GL_SetSwapInterval(1);
 
-        // Clear the screen with the color
-        SDL_RenderClear(renderer);
+	int version = gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress);
 
-        // Present the cleared frame
-        SDL_RenderPresent(renderer);
+	if(version == 0){
+		SDL_DestroyWindow(window);
+		SDL_Quit();
+		log::panic("Unable to create GLAD context");
+	}
 
-        SDL_Delay(16); // ~60 FPS
-    }
+	printf("GL %d.%d\n", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
 
-    // Cleanup
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
+	bool running = true;
+	SDL_Event event;
 
-    return 0;
+	// Main loop
+	while(running){
+		while(SDL_PollEvent(&event)){
+			if(event.type == SDL_QUIT){
+				running = false;
+			}
+		}
+
+		glClearColor(0.7f, 0.9f, 0.1f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		SDL_GL_SwapWindow(window);
+	}
+	SDL_GL_DeleteContext(gl_context);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
+	return 0;
 }
