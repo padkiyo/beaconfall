@@ -26,6 +26,7 @@ int main(int argc, char** argv) {
 			".",
 			"./game/",
 			"./vendors/glad/include",
+			"./core",
 		})
 #if defined(__linux__)
 		.libs({
@@ -44,6 +45,7 @@ int main(int argc, char** argv) {
 		})
 		.src({
 			"game/main.cpp",
+			"core/window/window.cpp",
 		})
 		.build()
 		.clean();
