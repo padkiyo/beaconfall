@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
 			}
 		}
 
-		glClearColor(0.7f, 0.9f, 0.1f, 1.0f);
+		glc(glClearColor(1.0f, 0.9f, 0.1f, 1.0f));
 		window_swap(window);
 	}
 	window_destroy(&window);

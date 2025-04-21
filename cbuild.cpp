@@ -46,6 +46,7 @@ int main(int argc, char** argv) {
 		.src({
 			"game/main.cpp",
 			"core/window/window.cpp",
+			"core/error/error.cpp",
 		})
 		.build()
 		.clean();
