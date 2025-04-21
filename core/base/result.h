@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <source_location>
 
 enum class ResultStatus {
 	OK,
@@ -19,18 +20,31 @@ public:
 		{}
 
 	// Tries to get the value else crashes if error is found
-	V unwrap() {
+	V unwrap(const std::source_location& loc = std::source_location::current()) {
 		if (m_status == ResultStatus::ERROR) {
-			std::cerr << "[UNWRAP PANIC]: Tried unwrapping an errored result" << std::endl;
+			std::cerr
+				<< "\033[31m[UNWRAP PANIC]: "
+				<< loc.file_name() << ":" << loc.line() << ": "
+				<< "Tried unwrapping an errored result\033[0m"
+				<< std::endl;
+			std::cerr
+				<< "\033[31m[UNWRAP PANIC]: "
+				<< loc.file_name() << ":" << loc.line() << ": "
+				<< m_error << "\033[0m"
+				<< std::endl;
 			exit(1);
 		}
 		return m_value;
 	}
 
 	// Tries to get the error else crashes if value is found
-	E unwrap_err() {
+	E unwrap_err(const std::source_location& loc = std::source_location::current()) {
 		if (m_status == ResultStatus::OK) {
-			std::cerr << "[UNWRAP PANIC]: The result is not an error" << std::endl;
+			std::cerr
+				<< "\033[31m[UNWRAP PANIC]: "
+				<< loc.file_name() << ":" << loc.line() << ": "
+				<< "The result is not an error\033[0m"
+				<< std::endl;
 			exit(1);
 		}
 		return m_error;

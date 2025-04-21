@@ -71,6 +71,10 @@ void audio_pause_music() {
 	Mix_PauseMusic();
 }
 
+b32 audio_paused_music() {
+	return Mix_PausedMusic() == 1;
+}
+
 void audio_resume_music() {
 	Mix_ResumeMusic();
 }

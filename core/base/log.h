@@ -1,48 +1,49 @@
 #pragma once
-#include <cstdio>
-#include <cstdarg>
-#include <cstdlib>
-#include <source_location>
+#include <stdio.h>
 
-// A struct is used instead of namespace cuz fking c already took log as a function
-struct log {
-	static inline void log_internal(
-		const char* level,
-		const char* fmt,
-		va_list args,
-		const std::source_location location = std::source_location::current()
-	) {
-		std::fprintf(stderr, "[%s] %s:%d: ", level, location.file_name(), location.line());
-		std::vfprintf(stderr, fmt, args);
-		std::fprintf(stderr, "\n");
-	}
+#define panic(x, ...) \
+	do {\
+		if (!(x)) {\
+			fprintf(stderr, "\033[31m[ASSERTION]: %s:%d:\033[0m ", __FILE__, __LINE__);\
+			fprintf(stderr, " " __VA_ARGS__);\
+			fprintf(stderr, "\n");\
+			exit(1);\
+		}\
+	} while(0)
 
-	static inline void info(const char* fmt, const std::source_location loc = std::source_location::current(), ...) {
-		va_list args;
-		va_start(args, loc);
-		log_internal("INFO", fmt, args, loc);
-		va_end(args);
-	}
+#define LOG_NORMAL 0
+#define LOG_ERROR  91
+#define LOG_SUCESS 92
+#define LOG_WARN   93
+#define LOG_INFO   95
 
-	static inline void success(const char* fmt, const std::source_location loc = std::source_location::current(), ...) {
-		va_list args;
-		va_start(args, loc);
-		log_internal("SUCCESS", fmt, args, loc);
-		va_end(args);
-	}
+#define log_typed(type, ...)         \
+	({                                 \
+		printf("\033[%dm", type);        \
+		printf(__VA_ARGS__);             \
+		printf("\033[%dm", LOG_NORMAL);  \
+	})
 
-	static inline void error(const char* fmt, const std::source_location loc = std::source_location::current(), ...) {
-		va_list args;
-		va_start(args, loc);
-		log_internal("ERROR", fmt, args, loc);
-		va_end(args);
-	}
+#define log_sucess(...)                   \
+	({                                      \
+		log_typed(LOG_SUCESS, "[SUCESS]: ");  \
+		log_typed(LOG_SUCESS, __VA_ARGS__);   \
+	})
 
-	static inline void panic(const char* fmt, const std::source_location loc = std::source_location::current(), ...) {
-		va_list args;
-		va_start(args, loc);
-		log_internal("PANIC", fmt, args, loc);
-		va_end(args);
-		std::exit(EXIT_FAILURE);
-	}
-};
+#define log_warn(...)                     \
+	({                                      \
+		log_typed(LOG_WARN,   "[WARN]:   ");  \
+		log_typed(LOG_WARN, __VA_ARGS__);     \
+	})
+
+#define log_error(...)                    \
+	({                                      \
+		log_typed(LOG_ERROR,  "[ERROR]:  ");  \
+		log_typed(LOG_ERROR, __VA_ARGS__);    \
+	})
+
+#define log_info(...)                     \
+	({                                      \
+		log_typed(LOG_INFO,   "[INFO]:   ");  \
+		log_typed(LOG_INFO, __VA_ARGS__);     \
+	})

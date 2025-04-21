@@ -1,6 +1,55 @@
-#include <stdio.h>
+#include "core.h"
+
+enum AudioID {
+	JUMP,
+	MUSIC,
+};
 
 int main(int argc, char* argv[]) {
-	printf("Hello world\n");
+	Window window = window_create(640, 480, "Game6 v0.0").unwrap();
+	Audio* audio = audio_create().unwrap();
+
+	audio_register_chunk(audio, JUMP, "./jump.wav");
+	audio_register_music(audio, MUSIC, "./music.mp3");
+
+	bool running = true;
+	SDL_Event event;
+
+	log_info("Opengl Version: %s\n", window_gl_version(window).c_str());
+
+	// Main loop
+	while(running){
+		while(SDL_PollEvent(&event)) {
+			if(event.type == SDL_QUIT) {
+				running = false;
+			}
+
+			if (event.type == SDL_KEYDOWN) {
+				switch (event.key.keysym.sym) {
+					case SDLK_j:
+						audio_play_chunk(audio, JUMP);
+						break;
+
+					case SDLK_SPACE:
+						if (!audio_is_music_playing()) {
+							audio_play_music(audio, MUSIC);
+						} else {
+							if (audio_paused_music()) {
+								audio_resume_music();
+							} else {
+								audio_pause_music();
+							}
+						}
+						break;
+				}
+			}
+		}
+
+		glc(glClearColor(1.0f, 0.9f, 0.1f, 1.0f));
+		window_swap(window);
+	}
+
+	audio_destroy(audio);
+	window_destroy(&window);
 	return 0;
 }
