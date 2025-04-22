@@ -8,6 +8,7 @@ enum AudioID {
 int main(int argc, char* argv[]) {
 	Window window = window_create(640, 480, "Game6 v0.0").unwrap();
 	Audio* audio = audio_create().unwrap();
+	imgui_create(window.sdl_window, window.gl_context);
 
 	audio_register_chunk(audio, JUMP, "./jump.wav");
 	audio_register_music(audio, MUSIC, "./music.mp3");
@@ -20,6 +21,7 @@ int main(int argc, char* argv[]) {
 	// Main loop
 	while(running){
 		while(SDL_PollEvent(&event)) {
+			ImGui_ImplSDL2_ProcessEvent(&event);
 			if(event.type == SDL_QUIT) {
 				running = false;
 			}
@@ -46,9 +48,22 @@ int main(int argc, char* argv[]) {
 		}
 
 		glc(glClearColor(1.0f, 0.9f, 0.1f, 1.0f));
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		imgui_begin_frame();
+			ImGui::Begin("Hello");
+			ImGui::Text("Hello");
+			ImGui::End();
+
+			ImGui::Begin("World");
+			ImGui::Text("World");
+			ImGui::End();
+		imgui_end_frame();
+
 		window_swap(window);
 	}
 
+	imgui_destroy();
 	audio_destroy(audio);
 	window_destroy(&window);
 	return 0;

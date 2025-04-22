@@ -10,17 +10,17 @@ Result<Window, const char*> window_create(i32 width, i32 height, const char* tit
 		return "Unable to initialize SDL";
 	}
 
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 4);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
 	SDL_Window* window = SDL_CreateWindow(
-			title,
-			SDL_WINDOWPOS_CENTERED,
-			SDL_WINDOWPOS_CENTERED,
-			width, height,
-			SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN
-			);
+		title,
+		SDL_WINDOWPOS_CENTERED,
+		SDL_WINDOWPOS_CENTERED,
+		width, height,
+		SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN
+	);
 
 	// Checking if window is created
 	if(!window){
@@ -50,7 +50,6 @@ Result<Window, const char*> window_create(i32 width, i32 height, const char* tit
 
 // Swaps window after rendering
 void window_swap(Window window){
-	glClear(GL_COLOR_BUFFER_BIT);
 	SDL_GL_SwapWindow(window.sdl_window);
 }
 
@@ -59,7 +58,7 @@ std::string  window_gl_version(Window window){
 
 	// Weird code ahead! Pls Ignore :D
 	std::string version;
-	version += std::to_string( GLAD_VERSION_MAJOR(window.version));
+	version += std::to_string(GLAD_VERSION_MAJOR(window.version));
 	version += ".";
 	version += std::to_string(GLAD_VERSION_MINOR(window.version));
 
