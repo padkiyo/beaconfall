@@ -1,6 +1,7 @@
 #pragma onc
 
 #include <glad/gl.h>
+#include <GL/glu.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
 #include <imgui.h>
