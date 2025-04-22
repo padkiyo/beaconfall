@@ -3,8 +3,8 @@
 
 #define glc(x)\
 	(\
-	 gl_clear_error(),\
-	 x\
+		gl_clear_error(),\
+		x\
 	);\
 	gl_get_error(#x, __FILE__, __LINE__);\
 
