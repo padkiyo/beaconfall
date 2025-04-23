@@ -73,6 +73,7 @@ int main(int argc, char** argv) {
 			"./core/error/error.cpp",
 			"./core/audio/audio.cpp",
 			"./core/imgui/core_imgui.cpp",
+			"./core/shader/shader.cpp",
 
 			"./game/main.cpp",
 		})
