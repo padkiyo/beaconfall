@@ -16,15 +16,17 @@ int main(int argc, char** argv) {
 	FileRecords records;
 	read_file_records(records);
 
-	// Building the glad
-	CBuild glad_build("gcc");
-	glad_build
+	// Building the C vendors
+	CBuild build_c("gcc");
+	build_c
 		.set_file_records(&records)
 		.src({
-			"vendors/glad/src/gl.c"
+			"vendors/glad/src/gl.c",
+			"vendors/stb/stb_image.c",
 		})
 		.inc_paths({
-			"vendors/glad/include"
+			"vendors/glad/include",
+			"vendors/stb",
 		})
 		.compile();
 
@@ -41,6 +43,7 @@ int main(int argc, char** argv) {
 			".",
 			"./vendors/glad/include",
 			"./vendors/imgui/include",
+			"./vendors/stb",
 			"./core",
 			"./game/",
 		})
@@ -58,7 +61,8 @@ int main(int argc, char** argv) {
 		})
 #endif
 		.objs({
-			"./objs/gl.o"
+			"./objs/gl.o",
+			"./objs/stb_image.o",
 		})
 		.src({
 			"./vendors/imgui/src/imgui.cpp",
@@ -74,6 +78,7 @@ int main(int argc, char** argv) {
 			"./core/audio/audio.cpp",
 			"./core/imgui/core_imgui.cpp",
 			"./core/shader/shader.cpp",
+			"./core/texture/texture.cpp",
 
 			"./game/main.cpp",
 		})
