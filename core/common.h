@@ -11,7 +11,10 @@
 #include <unordered_map>
 #include <string>
 #include <stdio.h>
+#include <sstream>
+#include <fstream>
 
 #include "base/types.h"
 #include "base/result.h"
 #include "base/log.h"
+#include "error/error.h"

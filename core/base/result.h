@@ -3,6 +3,28 @@
 #include <iostream>
 #include <source_location>
 
+
+/*
+ * This macro extracts the result if it has value
+ * OR returns out the error from the function
+ * just like rusts '?' syntax.
+ *
+ * eg:
+ * Result<V, E> bar() {
+ *   u32 i = xx(foo(..));
+ *   ...
+ * }
+ *
+ * if foo returns OK then i = value
+ * if foo returns ERROR then it returns E from bar
+ */
+
+#define xx(expr) ({\
+	if (expr.is_err()) return expr.unwrap_err();\
+	expr.unwrap();\
+})
+
+
 enum class ResultStatus {
 	OK,
 	ERROR,
