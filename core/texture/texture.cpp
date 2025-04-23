@@ -55,13 +55,13 @@ Texture texture_create_from_data(i32 width, i32 height, u32* data, GLenum intern
 	u32 id;
 	glc(glGenTextures(1, &id));
 	glc(glBindTexture(GL_TEXTURE_2D, id));
-	
+
 	// Setting up some basic modes to display texture
 	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
 	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
 	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-	
+
 	// Sending the pixel data to opengl
 	glc(glTexImage2D(GL_TEXTURE_2D, 0, internal_format, width, height, 0, format, GL_UNSIGNED_BYTE, data));
 	glc(glBindTexture(GL_TEXTURE_2D, 0));

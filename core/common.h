@@ -8,12 +8,15 @@
 #include <imgui_impl_sdl2.h>
 #include <imgui_impl_opengl3.h>
 #include <stb_image.h>
+#include <glm.hpp>
 
 #include <unordered_map>
 #include <string>
 #include <stdio.h>
 #include <sstream>
 #include <fstream>
+#include <vector>
+#include <iostream>
 
 #include "base/types.h"
 #include "base/result.h"
