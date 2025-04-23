@@ -44,6 +44,7 @@ int main(int argc, char** argv) {
 			"./vendors/glad/include",
 			"./vendors/imgui/include",
 			"./vendors/stb",
+			"./vendors/glm",
 			"./core",
 			"./game/",
 		})
@@ -79,6 +80,7 @@ int main(int argc, char** argv) {
 			"./core/imgui/core_imgui.cpp",
 			"./core/shader/shader.cpp",
 			"./core/texture/texture.cpp",
+			"./core/renderer/renderer.cpp",
 
 			"./game/main.cpp",
 		})
