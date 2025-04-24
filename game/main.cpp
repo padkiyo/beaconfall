@@ -21,8 +21,9 @@ int main(int argc, char* argv[]) {
 	RenderPipelineSpecs specs = {
 		.format = {
 			{ .type = GL_FLOAT, .count = 3 },
+			{ .type = GL_FLOAT, .count = 4 },
 		},
-		.max_vertices = 100000,
+		.max_vertices = 3,
 		.shaders = { .vertex_shader = "./game/vertex.vert", .fragment_shader = "./game/fragment.frag"},
 	};
 
@@ -58,11 +59,12 @@ int main(int argc, char* argv[]) {
 		}
 
 
-
 		glc(glClearColor(1.0f, 0.9f, 0.1f, 1.0f));
 		glc(glClear(GL_COLOR_BUFFER_BIT));
+
 		rp_begin(&rp);
-		rp_push_quad(&rp, glm::vec2(1.0f, 0.0f), 0.5f, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+		Vertices v = rp_create_quad(glm::vec3(0, 0, 0), glm::vec2(0.5, 0.5), glm::vec4(1, 0, 0, 1));
+		rp_push_vertices(&rp, v);
 		rp_end(&rp);
 
 		imgui_begin_frame();
@@ -81,6 +83,7 @@ int main(int argc, char* argv[]) {
 
 	imgui_destroy();
 	audio_destroy(audio);
+	rp_destroy(&rp);
 	window_destroy(&window);
 	return 0;
 }
