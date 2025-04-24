@@ -50,6 +50,9 @@ Result<RenderPipeline, std::string> rp_create(RenderPipelineSpecs* specs) {
 	rp.white_texture = texture_create_from_data(1, 1, &data);
 	texture_bind(rp.white_texture);
 
+	// Enabling depth testing
+	glc(glEnable(GL_DEPTH_TEST));
+
 	return rp;
 }
 

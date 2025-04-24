@@ -9,3 +9,4 @@
 #include "shader/shader.h"
 #include "texture/texture.h"
 #include "renderer/renderer.h"
+#include "camera/camera.h"

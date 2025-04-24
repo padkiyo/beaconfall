@@ -1,4 +1,4 @@
-#pragma onc
+#pragma once
 
 #include <glad/gl.h>
 #include <GL/glu.h>
@@ -9,6 +9,7 @@
 #include <imgui_impl_opengl3.h>
 #include <stb_image.h>
 #include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
 
 #include <unordered_map>
 #include <string>
