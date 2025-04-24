@@ -1,5 +1,6 @@
 #define CBUILD_IMPLEMENTATION
 #include "cbuild.h"
+#include <chrono>
 
 namespace fs = std::filesystem;
 
@@ -11,6 +12,8 @@ std::unordered_map<std::string, std::string> linux_libs = {
 
 int main(int argc, char** argv) {
 	cbuild_rebuild(argc, argv);
+
+	auto start = std::chrono::high_resolution_clock::now();
 
 	// This holds the file name with its updated time
 	FileRecords records;
@@ -81,6 +84,7 @@ int main(int argc, char** argv) {
 			"./core/shader/shader.cpp",
 			"./core/texture/texture.cpp",
 			"./core/renderer/renderer.cpp",
+			"./core/camera/camera.cpp",
 
 			"./game/main.cpp",
 		})
@@ -100,6 +104,10 @@ int main(int argc, char** argv) {
 #endif
 
 	save_file_records(records);
+
+	auto end = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> duration = end - start;
+	std::cout << "[LOG]: Build took: " << duration.count() << " seconds" << std::endl;
 
 	return 0;
 }
