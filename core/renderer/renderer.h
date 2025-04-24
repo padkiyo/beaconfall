@@ -6,16 +6,22 @@
 #include "shader/shader.h"
 #include "texture/texture.h"
 
+// Calling array of floats as vertices
+typedef std::vector<f32> Vertices;
+
+// Sepcifications for shader
 struct ShaderSpec {
 	const char* vertex_shader;
 	const char* fragment_shader;
 };
 
-struct FormatSpec{
+// Sepcifications for vertex format
+struct FormatSpec {
 	u32 type;
 	i32 count;
 };
 
+// Sepcifications for render pipeline
 struct RenderPipelineSpecs {
 	std::vector<FormatSpec> format;
 	i32 max_vertices;
@@ -26,23 +32,27 @@ struct RenderPipeline {
 	u32 vbo;
 	u32 vao;
 	u32 shader;
+
+	i32 max_vertices;
+	i32 vertex_size; // No of items in a vertex
+
 	f32* buffer;
 	u32 buffer_size;
 	u32 buffer_index;
-	u32 buffer_actual_size;
-	u32 frame_buffer;
-	Texture frame_texture;
+
+	Texture white_texture;
 };
 
-Result<RenderPipeline, const char*>  rp_create(RenderPipelineSpecs* specs);
+Result<RenderPipeline, std::string> rp_create(RenderPipelineSpecs* specs);
+void rp_destroy(RenderPipeline* rp);
 
 void rp_begin(RenderPipeline* rp);
-void rp_push_vertex(RenderPipeline* rp,  std::vector<f32> vertices);
-void rp_push_quad(RenderPipeline* rp, glm::vec2 pos, f32 size, glm::vec4 color);
-void rp_push_quad_tex(RenderPipeline* rp, glm::vec2 pos, f32 size, std::vector<glm::vec2> texture_coords);
 void rp_end(RenderPipeline* rp);
+void rp_push_vertices(RenderPipeline* rp, const Vertices& vertices);
 
+Vertices rp_create_quad(glm::vec3 pos, glm::vec2 size, glm::vec4 color);
+Vertices rp_create_quad(glm::vec3 pos, glm::vec2 size, glm::vec4 color, u32 tex_id, glm::vec4 tex_coord);
 
-void rp_push_quad(RenderPipeline* rp, glm::vec2 pos, f32 size, glm::vec4 color, glm::mat4 rot);
-void rp_push_quad(RenderPipeline* rp, glm::vec2 pos, f32 size, u32 texture_id, glm::vec4 tex_cord, glm::mat4 rot);
+// Utils
+size_t sizeof_gl_type(GLenum gl_type);
 

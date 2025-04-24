@@ -1,19 +1,21 @@
 #include "renderer.h"
 
-Result<RenderPipeline, const char*>  rp_create(RenderPipelineSpecs* specs) {
+Result<RenderPipeline, std::string> rp_create(RenderPipelineSpecs* specs) {
 	RenderPipeline rp;
+	rp.max_vertices = specs->max_vertices;
 
-	u32 vector_stride = 0; // Size of a single vector
+	u32 vertex_stride = 0; // Size of a single vector
+	rp.vertex_size = 0; // No of items in a vertex
 	u32 vb_size = 0; // Total Size of The Vertex Buffer
-	u32 offset = 0; // Vertex Attrib Offset Value
+	i32 offset = 0; // Vertex Attrib Offset Value
 
 	// Calculating Vertex Size
-	for (auto i = begin(specs->format); i != end(specs->format); ++i) {
-		vector_stride += sizeof(i->type) * i->count;
+	for (auto& i : specs->format) {
+		vertex_stride += sizeof_gl_type(i.type) * i.count;
 	}
 
-	// TODO rename vector_stride to vertex_stride :D
-	vb_size = vector_stride * specs->max_vertices;
+	// Calculating max vertex buffer size
+	vb_size = vertex_stride * specs->max_vertices;
 
 	// Creating vertex array objects
 	glc(glGenVertexArrays(1, &rp.vao));
@@ -26,129 +28,132 @@ Result<RenderPipeline, const char*>  rp_create(RenderPipelineSpecs* specs) {
 
 	// Creating Adding Vertex Attrib Layout
 	u32 id = 0;
-	for (auto i = begin(specs->format); i != end(specs->format); ++i) {
-
+	for (auto& i : specs->format) {
 		glc(glEnableVertexAttribArray(id));
-		glc(glVertexAttribPointer(id, i->count, i->type, GL_FALSE, vector_stride, (const void*) offset));
-
-		offset += i->count * sizeof(i->type);
-		id += 1;
+		glc(glVertexAttribPointer(id, i.count, i.type, GL_FALSE, vertex_stride, reinterpret_cast<const void*>(static_cast<uintptr_t>(offset))));
+		offset += i.count * sizeof_gl_type(i.type);
+		rp.vertex_size += i.count;
+		id++;
 	}
 
-	rp.buffer = (f32*) calloc(specs->max_vertices, vector_stride);
+	// Allocating the buffer in memory
+	rp.buffer = (f32*) calloc(specs->max_vertices, vertex_stride);
 	rp.buffer_index = 0;
-	rp.buffer_actual_size = 0;
-
-	std::string vs = specs->shaders.vertex_shader;
-	std::string fs = specs->shaders.fragment_shader;
 
 	// Will crash the whole system! TODO do error handling here
-	rp.shader = shader_create(vs, fs).unwrap();
+	std::string vs = specs->shaders.vertex_shader;
+	std::string fs = specs->shaders.fragment_shader;
+	rp.shader = xx(shader_create(vs, fs));
+
+	// Generating white texture
+	u32 data = 0xffffffff;
+	rp.white_texture = texture_create_from_data(1, 1, &data);
+	texture_bind(rp.white_texture);
+
 	return rp;
 }
 
-void rp_begin(RenderPipeline* rp){
+void rp_destroy(RenderPipeline* rp) {
+	glc(glDeleteVertexArrays(1, &rp->vao));
+	glc(glDeleteBuffers(1, &rp->vbo));
+	texture_destroy(rp->white_texture);
+	shader_destroy(rp->shader);
+	free(rp->buffer);
+}
+
+void rp_begin(RenderPipeline* rp) {
+	texture_bind(rp->white_texture);
 	glc(glBindVertexArray(rp->vao));
 	glc(glBindBuffer(GL_ARRAY_BUFFER, rp->vbo));
 	glc(glUseProgram(rp->shader));
+
+	// Reseting the buffer pointer
+	rp->buffer_index = 0;
 }
 
-void rp_push_vertex(RenderPipeline* rp, std::vector<f32> vertices) {
-	u32 index = rp->buffer_index;
-	// TODO add a buffer overflow mechanism
+void rp_end(RenderPipeline* rp) {
+	glc(glBufferSubData(GL_ARRAY_BUFFER, 0, rp->buffer_index * sizeof(f32), rp->buffer));
+	glc(glDrawArrays(GL_TRIANGLES, 0, rp->buffer_index / rp->vertex_size));
+}
 
+void rp_push_vertices(RenderPipeline* rp, const Vertices& vertices) {
 	// Manually copying data to the buffer
-	for (auto i = begin(vertices); i != end(vertices); ++i) {
-		rp->buffer[index] = *i;
-		rp->buffer_actual_size += sizeof(*i);
-		++index;
+	for (auto i : vertices) {
+
+		// Handling buffer overflow
+		if (rp->buffer_index / rp->vertex_size >= rp->max_vertices) {
+			rp_end(rp);
+			rp_begin(rp);
+		}
+
+		rp->buffer[rp->buffer_index++] = i;
 	}
-	rp->buffer_index = index;
 }
 
-std::vector<float> create_quad(float x, float y, float size, glm::vec4 color){
-		std::vector<float> vertices = {};
+Vertices rp_create_quad(glm::vec3 pos, glm::vec2 size, glm::vec4 color) {
+	glm::vec3 p1, p2, p3, p4, p5, p6;
 
-		vertices.push_back(x);
-		vertices.push_back(y);
-		vertices.push_back(0.0f);
-		vertices.push_back(color.x);
-		vertices.push_back(color.y);
-		vertices.push_back(color.z);
-		vertices.push_back(color.w);
+	p1 = { pos.x, pos.y, pos.z };
+	p2 = { pos.x + size.x, pos.y, pos.z };
+	p3 = { pos.x + size.x, pos.y + size.y, pos.z };
+	p4 = { pos.x + size.x, pos.y + size.y, pos.z };
+	p5 = { pos.x, pos.y + size.y, pos.z };
+	p6 = { pos.x, pos.y, pos.z };
 
+	Vertices vertices = {
+		p1.x, p1.y, p1.z, color.r, color.g, color.b, color.a,
+		p2.x, p2.y, p2.z, color.r, color.g, color.b, color.a,
+		p3.x, p3.y, p3.z, color.r, color.g, color.b, color.a,
+		p4.x, p4.y, p4.z, color.r, color.g, color.b, color.a,
+		p5.x, p5.y, p5.z, color.r, color.g, color.b, color.a,
+		p6.x, p6.y, p6.z, color.r, color.g, color.b, color.a,
+	};
 
-		vertices.push_back(x + size);
-		vertices.push_back(y);
-		vertices.push_back(0.0f);
-		vertices.push_back(color.x);
-		vertices.push_back(color.y);
-		vertices.push_back(color.z);
-		vertices.push_back(color.w);
-
-		vertices.push_back(x + size);
-		vertices.push_back(y + size);
-		vertices.push_back(0.0f);
-		vertices.push_back(color.x);
-		vertices.push_back(color.y);
-		vertices.push_back(color.z);
-		vertices.push_back(color.w);
-
-
-		vertices.push_back(x);
-		vertices.push_back(y + size);
-		vertices.push_back(0.0f);
-		vertices.push_back(color.x);
-		vertices.push_back(color.y);
-		vertices.push_back(color.z);
-		vertices.push_back(color.w);
-
-		return vertices;
+	return vertices;
 }
 
-std::vector<float> create_quad_texture(float x, float y, float size, std::vector<glm::vec2> texture_coords){
-		std::vector<float> vertices = {};
+Vertices rp_create_quad(glm::vec3 pos, glm::vec2 size, glm::vec4 color, u32 tex_id, glm::vec4 tex_coord) {
+	// Creating positions
+	glm::vec3 p1, p2, p3, p4, p5, p6;
 
-		vertices.push_back(x);
-		vertices.push_back(y);
-		vertices.push_back(0.0f);
-		vertices.push_back(texture_coords[0].x);
-		vertices.push_back(texture_coords[0].y);
+	p1 = { pos.x, pos.y, pos.z };
+	p2 = { pos.x + size.x, pos.y, pos.z };
+	p3 = { pos.x + size.x, pos.y + size.y, pos.z };
+	p4 = { pos.x + size.x, pos.y + size.y, pos.z };
+	p5 = { pos.x, pos.y + size.y, pos.z };
+	p6 = { pos.x, pos.y, pos.z };
 
+	// Creating tex coords
+	glm::vec2 t1, t2, t3, t4, t5, t6, t7;
 
-		vertices.push_back(x + size);
-		vertices.push_back(y);
-		vertices.push_back(0.0f);
-		vertices.push_back(texture_coords[1].x);
-		vertices.push_back(texture_coords[1].y);
+	t1 = { tex_coord.x, tex_coord.y };
+	t2 = { tex_coord.x + tex_coord.z, tex_coord.y };
+	t3 = { tex_coord.x + tex_coord.z, tex_coord.y + tex_coord.w };
+	t4 = { tex_coord.x + tex_coord.z, tex_coord.y + tex_coord.w };
+	t5 = { tex_coord.x, tex_coord.y + tex_coord.w };
+	t6 = { tex_coord.x, tex_coord.y };
 
-		vertices.push_back(x + size);
-		vertices.push_back(y + size);
-		vertices.push_back(0.0f);
-		vertices.push_back(texture_coords[2].x);
-		vertices.push_back(texture_coords[2].y);
+	Vertices vertices = {
+		p1.x, p1.y, p1.z, color.r, color.g, color.b, color.a, t1.x, t1.y, (f32) tex_id,
+		p2.x, p2.y, p2.z, color.r, color.g, color.b, color.a, t2.x, t2.y, (f32) tex_id,
+		p3.x, p3.y, p3.z, color.r, color.g, color.b, color.a, t3.x, t3.y, (f32) tex_id,
+		p4.x, p4.y, p4.z, color.r, color.g, color.b, color.a, t4.x, t4.y, (f32) tex_id,
+		p5.x, p5.y, p5.z, color.r, color.g, color.b, color.a, t5.x, t5.y, (f32) tex_id,
+		p6.x, p6.y, p6.z, color.r, color.g, color.b, color.a, t6.x, t6.y, (f32) tex_id,
+	};
 
-
-		vertices.push_back(x);
-		vertices.push_back(y + size);
-		vertices.push_back(0.0f);
-		vertices.push_back(texture_coords[3].x);
-		vertices.push_back(texture_coords[3].y);
-
-		return vertices;
+	return vertices;
 }
 
-void rp_push_quad(RenderPipeline* rp, glm::vec2 pos, f32 size, glm::vec4 color){
-	rp_push_vertex(rp, create_quad(pos.x, pos.y, size, color));
-}
-
-void rp_push_quad_tex(RenderPipeline* rp, glm::vec2 pos, f32 size, std::vector<glm::vec2> texture_coords){
-	rp_push_vertex(rp, create_quad_texture(pos.x, pos.y, size, texture_coords));
-}
-
-void rp_end(RenderPipeline* rp)
-{
-	glc(glBufferSubData(GL_ARRAY_BUFFER, 0, rp->buffer_actual_size, rp->buffer));
-	glc(glDrawArrays(GL_TRIANGLES, 0, rp->buffer_index + 1));
+size_t sizeof_gl_type(GLenum gl_type) {
+	size_t sz = 0;
+	switch (gl_type) {
+		case GL_FLOAT        : sz = sizeof(f32); break;
+		case GL_INT          : sz = sizeof(i32); break;
+		case GL_UNSIGNED_INT : sz = sizeof(u32); break;
+		case GL_UNSIGNED_BYTE: sz = sizeof(u8); break;
+		default: panic(0, "Unhandled gl type", gl_type); break;
+	}
+	return sz;
 }
 
