@@ -8,6 +8,7 @@ namespace fs = std::filesystem;
 std::unordered_map<std::string, std::string> linux_libs = {
 	{ "./vendors/SDL2/lib/libSDL2-2.0.so.0", "./bin/libSDL2-2.0.so.0" },
 	{ "./vendors/SDL2/lib/libSDL2_mixer-2.0.so.0", "./bin/libSDL2_mixer-2.0.so.0" },
+	{ "./vendors/SDL2/lib/libSDL2_ttf-2.0.so.0", "./bin/libSDL2_ttf-2.0.so.0" },
 };
 
 int main(int argc, char** argv) {
@@ -58,6 +59,7 @@ int main(int argc, char** argv) {
 			"m",
 			"SDL2",
 			"SDL2_mixer",
+			"SDL2_ttf",
 		})
 #elif defined(_WIN32)
 		.libs({
@@ -77,6 +79,7 @@ int main(int argc, char** argv) {
 			"./vendors/imgui/src/imgui_tables.cpp",
 			"./vendors/imgui/src/imgui_widgets.cpp",
 
+			"./core/base/utils.cpp",
 			"./core/window/window.cpp",
 			"./core/error/error.cpp",
 			"./core/audio/audio.cpp",
@@ -85,6 +88,7 @@ int main(int argc, char** argv) {
 			"./core/texture/texture.cpp",
 			"./core/renderer/renderer.cpp",
 			"./core/camera/camera.cpp",
+			"./core/font/font.cpp",
 
 			"./game/main.cpp",
 		})

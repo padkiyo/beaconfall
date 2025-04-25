@@ -84,12 +84,23 @@ void texture_clear(Texture texture) {
 	glc(glClearTexImage(texture.id, 0, texture.format, GL_UNSIGNED_BYTE, &t));
 }
 
+void texture_update(Texture texture, i32 lod, i32 x_offset, i32 y_offset, u32 width, u32 height, void* data) {
+	texture_bind(texture);
+	glc(glTextureSubImage2D(
+		texture.id, lod, x_offset, y_offset,
+		width, height, texture.format,
+		GL_UNSIGNED_BYTE, data
+	));
+}
+
 void texture_bind(Texture texture) {
+	// glc(glBindTextureUnit(texture.id, texture.id));
 	glc(glActiveTexture(GL_TEXTURE0 + (i32) texture.id));
 	glc(glBindTexture(GL_TEXTURE_2D, texture.id));
 }
 
 void texture_unbind(Texture texture) {
+	// glc(glBindTextureUnit(texture.id, 0));
 	glc(glActiveTexture(GL_TEXTURE0 + (i32) texture.id));
 	glc(glBindTexture(GL_TEXTURE_2D, 0));
 }

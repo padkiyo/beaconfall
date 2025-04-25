@@ -13,6 +13,43 @@ int main(int argc, char* argv[]) {
 	Audio* audio = audio_create().unwrap();
 	imgui_create(window.sdl_window, window.gl_context);
 
+	RenderPipelineSpecs specs = {
+		.format = {
+			{ .type = GL_FLOAT, .count = 3 },
+			{ .type = GL_FLOAT, .count = 4 },
+			{ .type = GL_FLOAT, .count = 2 },
+			{ .type = GL_FLOAT, .count = 1 },
+		},
+		.max_vertices = 10000,
+		.shaders = {
+			.vertex_shader = "./game/vertex.vert",
+			.fragment_shader = "./game/fragment.frag"
+		},
+	};
+	RenderPipeline rp = rp_create(&specs).unwrap();
+
+	// Generating texture samples
+	i32 samplers[32];
+	for (i32 i = 0; i < 32; i++)
+		samplers[i] = i;
+
+	// Providing samplers to the shader
+	glc(glUseProgram(rp.shader));
+	i32 loc = glc(glGetUniformLocation(rp.shader, "textures"));
+	panic(loc != -1, "Cannot find uniform: textures\n");
+	glc(glUniform1iv(loc, 32, samplers));
+
+	Camera camera = camera_create(glm::vec3(0, 0, 0), {
+		.left = 0,
+		.right = WIN_WIDTH,
+		.top = 0,
+		.bottom = WIN_HEIGHT,
+		.near = -1.0f,
+		.far = 1000.0f
+	});
+
+	Font font = font_create("font.ttf", 32).unwrap();
+
 	audio_register_chunk(audio, JUMP, "./jump.wav");
 	audio_register_music(audio, MUSIC, "./music.mp3");
 
@@ -20,24 +57,6 @@ int main(int argc, char* argv[]) {
 	SDL_Event event;
 
 	log_info("Opengl Version: %s\n", window_gl_version(window).c_str());
-
-	RenderPipelineSpecs specs = {
-		.format = {
-			{ .type = GL_FLOAT, .count = 3 },
-			{ .type = GL_FLOAT, .count = 4 },
-		},
-		.max_vertices = 3,
-		.shaders = { .vertex_shader = "./game/vertex.vert", .fragment_shader = "./game/fragment.frag"},
-	};
-
-	RenderPipeline rp = rp_create(&specs).unwrap();
-
-	Camera camera = camera_create(glm::vec3(0, 0, -2), glm::vec3(0, 0, -1), {
-		.aspect_ratio = (f32) WIN_WIDTH / WIN_HEIGHT,
-		.fov = 45.0f,
-		.near = 0.1f,
-		.far = 1000.0f
-	});
 
 	// Main loop
 	while(running){
@@ -50,16 +69,16 @@ int main(int argc, char* argv[]) {
 			if (event.type == SDL_KEYDOWN) {
 				switch (event.key.keysym.sym) {
 					case SDLK_w:
-						camera.pos.z += 0.1f;
+						camera.pos.y -= 10.1f;
 						break;
 					case SDLK_s:
-						camera.pos.z -= 0.1f;
+						camera.pos.y += 10.1f;
 						break;
 					case SDLK_a:
-						camera.pos.x -= 0.1f;
+						camera.pos.x -= 10.1f;
 						break;
 					case SDLK_d:
-						camera.pos.x += 0.1f;
+						camera.pos.x += 10.1f;
 						break;
 					case SDLK_j:
 						audio_play_chunk(audio, JUMP);
@@ -81,29 +100,18 @@ int main(int argc, char* argv[]) {
 		}
 
 		glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT);
-		glc(glClearColor(1.0f, 0.9f, 0.1f, 1.0f));
+		glc(glClearColor(0.0f, 0.0f, 1.0f, 1.0f));
 		glc(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
 		rp_begin(&rp);
 
-		glm::mat4 mvp = camera_calc_mvp(camera);
-		i32 loc = glc(glGetUniformLocation(rp.shader, "mvp"));
+		// Updating camera matrix
+		glm::mat4 mvp = camera_calc_mvp(&camera);
+		loc = glc(glGetUniformLocation(rp.shader, "mvp"));
 		glc(glUniformMatrix4fv(loc, 1, GL_FALSE, &mvp[0][0]));
 
-		Vertices v1 = rp_create_quad(glm::vec3(0, -0.7, 1), glm::vec2(0.2, 0.3), glm::vec4(1, 0, 0, 1));
-		rp_push_vertices(&rp, v1);
-
-		Vertices v2 = rp_create_quad(glm::vec3(-2, -1, 1), glm::vec2(4, 0.3), glm::vec4(1, 0, 1, 1));
-		rp_push_vertices(&rp, v2);
-
-		Vertices v3 = rp_create_quad(glm::vec3(-0.5, -1.2, 2), glm::vec2(1, 2.5), glm::vec4(0, 1, 0, 1));
-		rp_push_vertices(&rp, v3);
-
-		Vertices v4 = rp_create_quad(glm::vec3(-1.6, -1.2, 2.5), glm::vec2(1, 2.5), glm::vec4(0, 1, 1, 1));
-		rp_push_vertices(&rp, v4);
-
-		Vertices v5 = rp_create_quad(glm::vec3(0.6, -1.2, 2), glm::vec2(1, 2), glm::vec4(0.1, 1, 0.5, 1));
-		rp_push_vertices(&rp, v5);
+		rp_push_quad(&rp, glm::vec3(0, 0, 0), glm::vec2(50, 50), glm::vec4(1, 0, 0, 1), rp.white_texture.id, glm::vec4(0, 0, 1, 1));
+		rp_push_text(&rp, &font, "Hello world", glm::vec3(100, 100, 0), glm::vec4(1, 1, 1, 1));
 
 		rp_end(&rp);
 
@@ -121,6 +129,7 @@ int main(int argc, char* argv[]) {
 		window_swap(window);
 	}
 
+	font_destroy(&font);
 	imgui_destroy();
 	audio_destroy(audio);
 	rp_destroy(&rp);

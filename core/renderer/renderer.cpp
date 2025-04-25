@@ -53,6 +53,10 @@ Result<RenderPipeline, std::string> rp_create(RenderPipelineSpecs* specs) {
 	// Enabling depth testing
 	glc(glEnable(GL_DEPTH_TEST));
 
+	// Enabling alpha blending
+	glc(glEnable(GL_BLEND));
+	glc(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
 	return rp;
 }
 
@@ -81,7 +85,7 @@ void rp_end(RenderPipeline* rp) {
 
 void rp_push_vertices(RenderPipeline* rp, const Vertices& vertices) {
 	// Manually copying data to the buffer
-	for (auto i : vertices) {
+	for (f32 i : vertices) {
 
 		// Handling buffer overflow
 		if (rp->buffer_index / rp->vertex_size >= rp->max_vertices) {
@@ -127,7 +131,7 @@ Vertices rp_create_quad(glm::vec3 pos, glm::vec2 size, glm::vec4 color, u32 tex_
 	p6 = { pos.x, pos.y, pos.z };
 
 	// Creating tex coords
-	glm::vec2 t1, t2, t3, t4, t5, t6, t7;
+	glm::vec2 t1, t2, t3, t4, t5, t6;
 
 	t1 = { tex_coord.x, tex_coord.y };
 	t2 = { tex_coord.x + tex_coord.z, tex_coord.y };
@@ -136,27 +140,36 @@ Vertices rp_create_quad(glm::vec3 pos, glm::vec2 size, glm::vec4 color, u32 tex_
 	t5 = { tex_coord.x, tex_coord.y + tex_coord.w };
 	t6 = { tex_coord.x, tex_coord.y };
 
+	f32 id = tex_id;
 	Vertices vertices = {
-		p1.x, p1.y, p1.z, color.r, color.g, color.b, color.a, t1.x, t1.y, (f32) tex_id,
-		p2.x, p2.y, p2.z, color.r, color.g, color.b, color.a, t2.x, t2.y, (f32) tex_id,
-		p3.x, p3.y, p3.z, color.r, color.g, color.b, color.a, t3.x, t3.y, (f32) tex_id,
-		p4.x, p4.y, p4.z, color.r, color.g, color.b, color.a, t4.x, t4.y, (f32) tex_id,
-		p5.x, p5.y, p5.z, color.r, color.g, color.b, color.a, t5.x, t5.y, (f32) tex_id,
-		p6.x, p6.y, p6.z, color.r, color.g, color.b, color.a, t6.x, t6.y, (f32) tex_id,
+		p1.x, p1.y, p1.z, color.r, color.g, color.b, color.a, t1.x, t1.y, id,
+		p2.x, p2.y, p2.z, color.r, color.g, color.b, color.a, t2.x, t2.y, id,
+		p3.x, p3.y, p3.z, color.r, color.g, color.b, color.a, t3.x, t3.y, id,
+		p4.x, p4.y, p4.z, color.r, color.g, color.b, color.a, t4.x, t4.y, id,
+		p5.x, p5.y, p5.z, color.r, color.g, color.b, color.a, t5.x, t5.y, id,
+		p6.x, p6.y, p6.z, color.r, color.g, color.b, color.a, t6.x, t6.y, id,
 	};
 
 	return vertices;
 }
 
-size_t sizeof_gl_type(GLenum gl_type) {
-	size_t sz = 0;
-	switch (gl_type) {
-		case GL_FLOAT        : sz = sizeof(f32); break;
-		case GL_INT          : sz = sizeof(i32); break;
-		case GL_UNSIGNED_INT : sz = sizeof(u32); break;
-		case GL_UNSIGNED_BYTE: sz = sizeof(u8); break;
-		default: panic(0, "Unhandled gl type", gl_type); break;
+Vertices rp_create_text(Font* font, const std::string& text, glm::vec3 pos, glm::vec4 color) {
+	Vertices buffer;
+
+	glm::vec3 quad_p = pos;
+	for (char c : text) {
+		panic(font->glyphs.find(c) != font->glyphs.end(), "Cannot find the character in glyph table: %c", c);
+
+		auto [uv, size] = font->glyphs[c];
+
+		// Generating quad for each character
+		Vertices v = rp_create_quad(quad_p, size, color, font->atlas.id, uv);
+		quad_p.x += size.x;
+
+		// Copying the vertices to buffer
+		buffer.insert(buffer.end(), v.begin(), v.end());
 	}
-	return sz;
+
+	return buffer;
 }
 
