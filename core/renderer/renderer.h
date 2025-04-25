@@ -59,7 +59,7 @@ Vertices rp_create_quad(glm::vec3 pos, glm::vec2 size, glm::vec4 color, u32 tex_
 #define rp_push_quad(rp, ...) do {\
 	Vertices x = rp_create_quad(__VA_ARGS__);\
 	rp_push_vertices((rp), x);\
-} while (0)\
+} while (0)
 
 // Text
 Vertices rp_create_text(Font* font, const std::string& text, glm::vec3 pos, glm::vec4 color);
@@ -67,4 +67,4 @@ Vertices rp_create_text(Font* font, const std::string& text, glm::vec3 pos, glm:
 #define rp_push_text(rp, ...) do {\
 	Vertices x = rp_create_text(__VA_ARGS__);\
 	rp_push_vertices((rp), x);\
-} while (0)\
+} while (0)

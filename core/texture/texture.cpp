@@ -1,6 +1,6 @@
 #include "texture.h"
 
-Result<Texture, std::string> texture_create_from_file(const char* filepath, b32 flip) {
+Result<Texture, std::string> texture_create_from_file(const char* filepath, b32 flip, TextureFilter filter) {
 	stbi_set_flip_vertically_on_load(flip);
 
 	i32 w, h, c;
@@ -17,10 +17,10 @@ Result<Texture, std::string> texture_create_from_file(const char* filepath, b32 
 	glc(glBindTexture(GL_TEXTURE_2D, id));
 
 	// Setting up some basic modes to display texture
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter.min_filter));
+	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter.mag_filter));
+	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, filter.wrap_s));
+	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, filter.wrap_t));
 
 	// Sending the pixel data to opengl
 	GLenum internal_format, format;
@@ -51,16 +51,16 @@ Result<Texture, std::string> texture_create_from_file(const char* filepath, b32 
 	};
 }
 
-Texture texture_create_from_data(i32 width, i32 height, u32* data, GLenum internal_format, GLenum format) {
+Texture texture_create_from_data(i32 width, i32 height, u32* data, GLenum internal_format, GLenum format, TextureFilter filter) {
 	u32 id;
 	glc(glGenTextures(1, &id));
 	glc(glBindTexture(GL_TEXTURE_2D, id));
 
 	// Setting up some basic modes to display texture
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter.min_filter));
+	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter.mag_filter));
+	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, filter.wrap_s));
+	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, filter.wrap_t));
 
 	// Sending the pixel data to opengl
 	glc(glTexImage2D(GL_TEXTURE_2D, 0, internal_format, width, height, 0, format, GL_UNSIGNED_BYTE, data));

@@ -56,8 +56,14 @@ Result<Font, std::string> font_create(const std::string& path, i32 size) {
 	std::unordered_map<char, SDL_Surface*> surfs = load_char_set(ttf_font, &atlas_width, &atlas_height);
 
 	// Creating an atlas and a glyph table
-	Texture atlas = texture_create_from_data(atlas_width, atlas_height, NULL);
-	texture_bind(atlas);
+	TextureFilter filter = {
+		.min_filter = GL_LINEAR,
+		.mag_filter = GL_LINEAR,
+		.wrap_s = GL_CLAMP_TO_EDGE,
+		.wrap_t = GL_CLAMP_TO_EDGE
+	};
+
+	Texture atlas = texture_create_from_data(atlas_width, atlas_height, NULL, GL_RGBA8, GL_RGBA, filter);
 
 	std::unordered_map<char, std::pair<glm::vec4, glm::vec2>> glyphs;
 
@@ -87,6 +93,8 @@ Result<Font, std::string> font_create(const std::string& path, i32 size) {
 		SDL_FreeSurface(surf);
 	}
 
+	texture_bind(atlas);
+
 	return (Font) {
 		.size = size,
 		.ttf_font = ttf_font,
@@ -99,4 +107,8 @@ void font_destroy(Font* font) {
 	TTF_CloseFont(font->ttf_font);
 	texture_destroy(font->atlas);
 	font->glyphs.clear();
+}
+
+void font_bind(Font* font) {
+	texture_bind(font->atlas);
 }

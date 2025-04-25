@@ -48,7 +48,8 @@ int main(int argc, char* argv[]) {
 		.far = 1000.0f
 	});
 
-	Font font = font_create("font.ttf", 32).unwrap();
+	Font small_font = font_create("font.ttf", 32).unwrap();
+	Font big_font = font_create("font.ttf", 100).unwrap();
 
 	audio_register_chunk(audio, JUMP, "./jump.wav");
 	audio_register_music(audio, MUSIC, "./music.mp3");
@@ -105,13 +106,19 @@ int main(int argc, char* argv[]) {
 
 		rp_begin(&rp);
 
+		// Dont forget to bind those fonts
+		font_bind(&small_font);
+		font_bind(&big_font);
+
 		// Updating camera matrix
 		glm::mat4 mvp = camera_calc_mvp(&camera);
 		loc = glc(glGetUniformLocation(rp.shader, "mvp"));
 		glc(glUniformMatrix4fv(loc, 1, GL_FALSE, &mvp[0][0]));
 
 		rp_push_quad(&rp, glm::vec3(0, 0, 0), glm::vec2(50, 50), glm::vec4(1, 0, 0, 1), rp.white_texture.id, glm::vec4(0, 0, 1, 1));
-		rp_push_text(&rp, &font, "Hello world", glm::vec3(100, 100, 0), glm::vec4(1, 1, 1, 1));
+
+		rp_push_text(&rp, &small_font, "Hello world", glm::vec3(100, 100, 0), glm::vec4(1, 1, 1, 1));
+		rp_push_text(&rp, &big_font, "Hello world", glm::vec3(100, 200, 0), glm::vec4(1, 1, 1, 1));
 
 		rp_end(&rp);
 
@@ -129,7 +136,9 @@ int main(int argc, char* argv[]) {
 		window_swap(window);
 	}
 
-	font_destroy(&font);
+	font_destroy(&small_font);
+	font_destroy(&big_font);
+
 	imgui_destroy();
 	audio_destroy(audio);
 	rp_destroy(&rp);

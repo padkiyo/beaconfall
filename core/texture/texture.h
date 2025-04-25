@@ -2,24 +2,33 @@
 
 #include "common.h"
 
-typedef struct {
+struct Texture {
 	u32 id;
 	i32 width, height;
 	GLenum internal_format, format;
-} Texture;
+};
 
-/*
- * NOTE: The filter parameter for the textures are hard coded for now.
- * Introduce custom filter handlers when needed
- */
+struct TextureFilter {
+	GLenum min_filter;
+	GLenum mag_filter;
+	GLenum wrap_s;
+	GLenum wrap_t;
+};
 
-Result<Texture, std::string> texture_create_from_file(const char* filepath, b32 flip = false);
+static TextureFilter DefaultFilter = {
+	.min_filter = GL_NEAREST,
+	.mag_filter = GL_NEAREST,
+	.wrap_s = GL_CLAMP_TO_EDGE,
+	.wrap_t = GL_CLAMP_TO_EDGE
+};
+
+Result<Texture, std::string> texture_create_from_file(const char* filepath, b32 flip = false, TextureFilter filter = DefaultFilter);
 
 /*
  * NOTE: The 'data' parameter is always of type GL_UNSIGNED_BYTE thats why its a (u32*)
  * If texture of different data type is ever needed maybe we need to convert this function to a template
  */
-Texture texture_create_from_data(i32 width, i32 height, u32* data, GLenum internal_format = GL_RGBA8, GLenum format = GL_RGBA);
+Texture texture_create_from_data(i32 width, i32 height, u32* data, GLenum internal_format = GL_RGBA8, GLenum format = GL_RGBA, TextureFilter filter = DefaultFilter);
 
 void texture_destroy(Texture texture);
 
