@@ -12,3 +12,4 @@ struct Font {
 
 Result<Font, std::string> font_create(const std::string& path, i32 size);
 void font_destroy(Font* font);
+void font_bind(Font* font);
