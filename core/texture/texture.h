@@ -26,6 +26,8 @@ void texture_destroy(Texture texture);
 // Memsets the texture data to 0 in GPU
 void texture_clear(Texture texture);
 
+void texture_update(Texture texture, i32 lod, i32 x_offset, i32 y_offset, u32 width, u32 height, void* data);
+
 /*
  * NOTE: Bindings are done using glActiveTexture with glBindTexture
  */

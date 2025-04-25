@@ -5,6 +5,8 @@
 #include "error/error.h"
 #include "shader/shader.h"
 #include "texture/texture.h"
+#include "font/font.h"
+#include "base/utils.h"
 
 // Calling array of floats as vertices
 typedef std::vector<f32> Vertices;
@@ -50,9 +52,19 @@ void rp_begin(RenderPipeline* rp);
 void rp_end(RenderPipeline* rp);
 void rp_push_vertices(RenderPipeline* rp, const Vertices& vertices);
 
+// Quads
 Vertices rp_create_quad(glm::vec3 pos, glm::vec2 size, glm::vec4 color);
 Vertices rp_create_quad(glm::vec3 pos, glm::vec2 size, glm::vec4 color, u32 tex_id, glm::vec4 tex_coord);
 
-// Utils
-size_t sizeof_gl_type(GLenum gl_type);
+#define rp_push_quad(rp, ...) do {\
+	Vertices x = rp_create_quad(__VA_ARGS__);\
+	rp_push_vertices((rp), x);\
+} while (0)\
 
+// Text
+Vertices rp_create_text(Font* font, const std::string& text, glm::vec3 pos, glm::vec4 color);
+
+#define rp_push_text(rp, ...) do {\
+	Vertices x = rp_create_text(__VA_ARGS__);\
+	rp_push_vertices((rp), x);\
+} while (0)\

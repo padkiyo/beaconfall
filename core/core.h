@@ -10,3 +10,4 @@
 #include "texture/texture.h"
 #include "renderer/renderer.h"
 #include "camera/camera.h"
+#include "font/font.h"
