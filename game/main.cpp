@@ -42,6 +42,8 @@ int main(int argc, char* argv[]) {
 
 	RenderPipeline frame_rp = rp_create(&frame_specs).unwrap();
 
+	FrameBuffer fb = fb_create(WIN_WIDTH, WIN_HEIGHT);
+
 	// Generating texture samples
 	i32 samplers[32];
 	for (i32 i = 0; i < 32; i++)
@@ -53,11 +55,13 @@ int main(int argc, char* argv[]) {
 	panic(loc != -1, "Cannot find uniform: textures\n");
 	glc(glUniform1iv(loc, 32, samplers));
 
+	// Frame buffer shader
 	glc(glUseProgram(frame_rp.shader));
 	loc = glc(glGetUniformLocation(frame_rp.shader, "textures"));
 	panic(loc != -1, "Cannto find uniform: texture\n");
-	glc(glUniform1i(loc, 0));
+	glc(glUniform1i(loc, fb.color_texture.id));
 
+	// Code for black and white trigger
 	i32 bnw_loc = glc(glGetUniformLocation(frame_rp.shader, "bnw"));
 	panic(loc != -1, "Cannot find unfirom: bnw");
 	float bnw = 0.0f;
@@ -81,24 +85,6 @@ int main(int argc, char* argv[]) {
 	SDL_Event event;
 
 	log_info("Opengl Version: %s\n", window_gl_version(window).c_str());
-
-	u32 fbo;
-	glc(glGenFramebuffers(1, &fbo));
-	glc(glBindFramebuffer(GL_FRAMEBUFFER, fbo));
-
-	u32 frame_texture;
-	glc(glGenTextures(1, &frame_texture));
-	glc(glBindTexture(GL_TEXTURE_2D, frame_texture));
-	glc(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WIN_WIDTH, WIN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL));
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-	glc(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, frame_texture, 0));
-
-	auto frame_buffer_status = glc(glCheckFramebufferStatus(GL_FRAMEBUFFER));
-	if (frame_buffer_status != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "Framebuffererror: " << frame_buffer_status << std::endl;
 
 	// Main loop
 	while(running){
@@ -152,31 +138,14 @@ int main(int argc, char* argv[]) {
 
 		glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT);
 
-		Vertices frame_vert  = {
-
-    // First triangle
-    // Position           // Texture Coordinates
-    -1.0f,  1.0f, 0.0f,  0.0f, 1.0f,  // Top-left
-    -1.0f, -1.0f, 0.0f,  0.0f, 0.0f,  // Bottom-left
-     1.0f,  1.0f, 0.0f,  1.0f, 1.0f,  // Top-right
-
-    // Second triangle
-     1.0f,  1.0f, 0.0f,  1.0f, 1.0f,  // Top-right
-    -1.0f, -1.0f, 0.0f,  0.0f, 0.0f,  // Bottom-left
-     1.0f, -1.0f, 0.0f,  1.0f, 0.0f   // Bottom-right
-		};
-
-		glc(glActiveTexture(GL_TEXTURE0));
-		glc(glBindTexture(GL_TEXTURE_2D, frame_texture));
-
-		glc(glBindFramebuffer(GL_FRAMEBUFFER, fbo));
+		// Binding Frame Buffer
+		fb_bind(&fb);
 
 		glc(glClearColor(1.0f, 0.0f, 1.0f, 1.0f));
 		glc(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 		glc(glEnable(GL_DEPTH_TEST));
 
 		rp_begin(&rp);
-
 
 		// Dont forget to bind those fonts
 		font_bind(&small_font);
@@ -195,12 +164,24 @@ int main(int argc, char* argv[]) {
 		rp_end(&rp);
 
 		rp_begin(&frame_rp);
-		glc(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-		glc(glDisable(GL_DEPTH_TEST));
 
-		rp_push_vertices(&frame_rp,  frame_vert);
-	//	glc(glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
-	//	glc(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+		// UNBINDING FRAME BUFFEr
+		fb_unbind(&fb);
+
+		glc(glClearColor(1.0f, 0.0f, 1.0f, 1.0f));
+		glc(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+
+		rp_push_vertices(&frame_rp,  {
+				-1.0f,  1.0f, 0.0f,  0.0f, 1.0f,  // Top-left
+				-1.0f, -1.0f, 0.0f,  0.0f, 0.0f,  // Bottom-left
+				1.0f,  1.0f, 0.0f,  1.0f, 1.0f,  // Top-right
+
+				1.0f,  1.0f, 0.0f,  1.0f, 1.0f,  // Top-right
+				-1.0f, -1.0f, 0.0f,  0.0f, 0.0f,  // Bottom-left
+				1.0f, -1.0f, 0.0f,  1.0f, 0.0f   // Bottom-right
+				}
+		);
+
 		glc(glUniform1f(bnw_loc, bnw));
 		rp_end(&frame_rp);
 

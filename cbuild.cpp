@@ -89,6 +89,7 @@ int main(int argc, char** argv) {
 			"./core/renderer/renderer.cpp",
 			"./core/camera/camera.cpp",
 			"./core/font/font.cpp",
+			"./core/frame_buffer/frame_buffer.cpp",
 
 			"./game/main.cpp",
 		})
