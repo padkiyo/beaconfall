@@ -22,8 +22,8 @@ int main(int argc, char* argv[]) {
 		},
 		.max_vertices = 10000,
 		.shaders = {
-			.vertex_shader = "./game/vertex.vert",
-			.fragment_shader = "./game/fragment.frag"
+			.vertex_shader = "./shaders/vertex.vert",
+			.fragment_shader = "./shaders/fragment.frag"
 		},
 	};
 	RenderPipeline rp = rp_create(&specs).unwrap();
@@ -35,8 +35,8 @@ int main(int argc, char* argv[]) {
 		},
 		.max_vertices = 1000,
 		.shaders = {
-			.vertex_shader = "./game/frame.vert",
-			.fragment_shader = "./game/frame.frag"
+			.vertex_shader = "./shaders/frame.vert",
+			.fragment_shader = "./shaders/frame.frag"
 		},
 	};
 
