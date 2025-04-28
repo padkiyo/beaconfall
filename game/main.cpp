@@ -28,6 +28,22 @@ int main(int argc, char* argv[]) {
 	};
 	RenderPipeline rp = rp_create(&specs).unwrap();
 
+	RenderPipelineSpecs frame_specs = {
+		.format = {
+			{ .type = GL_FLOAT, .count = 3 },
+			{ .type = GL_FLOAT, .count = 2 },
+		},
+		.max_vertices = 1000,
+		.shaders = {
+			.vertex_shader = "./game/frame.vert",
+			.fragment_shader = "./game/frame.frag"
+		},
+	};
+
+	RenderPipeline frame_rp = rp_create(&frame_specs).unwrap();
+
+	FrameBuffer fb = fb_create(WIN_WIDTH, WIN_HEIGHT);
+
 	// Generating texture samples
 	i32 samplers[32];
 	for (i32 i = 0; i < 32; i++)
@@ -38,6 +54,17 @@ int main(int argc, char* argv[]) {
 	i32 loc = glc(glGetUniformLocation(rp.shader, "textures"));
 	panic(loc != -1, "Cannot find uniform: textures\n");
 	glc(glUniform1iv(loc, 32, samplers));
+
+	// Frame buffer shader
+	glc(glUseProgram(frame_rp.shader));
+	loc = glc(glGetUniformLocation(frame_rp.shader, "textures"));
+	panic(loc != -1, "Cannto find uniform: texture\n");
+	glc(glUniform1i(loc, fb.color_texture.id));
+
+	// Code for black and white trigger
+	i32 bnw_loc = glc(glGetUniformLocation(frame_rp.shader, "bnw"));
+	panic(loc != -1, "Cannot find unfirom: bnw");
+	float bnw = 0.0f;
 
 	Camera camera = camera_create(glm::vec3(0, 0, 0), {
 		.left = 0,
@@ -84,6 +111,15 @@ int main(int argc, char* argv[]) {
 					case SDLK_j:
 						audio_play_chunk(audio, JUMP);
 						break;
+					case SDLK_b:
+						if (bnw == 0.0f)
+						{
+							bnw = 1.0f;
+						}
+						else{
+							bnw = 0.0f;
+						}
+						break;
 
 					case SDLK_SPACE:
 						if (!audio_is_music_playing()) {
@@ -101,8 +137,13 @@ int main(int argc, char* argv[]) {
 		}
 
 		glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT);
-		glc(glClearColor(0.0f, 0.0f, 1.0f, 1.0f));
+
+		// Binding Frame Buffer
+		fb_bind(&fb);
+
+		glc(glClearColor(1.0f, 0.0f, 1.0f, 1.0f));
 		glc(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+		glc(glEnable(GL_DEPTH_TEST));
 
 		rp_begin(&rp);
 
@@ -121,6 +162,28 @@ int main(int argc, char* argv[]) {
 		rp_push_text(&rp, &big_font, "Hello world", glm::vec3(100, 200, 0), glm::vec4(1, 1, 1, 1));
 
 		rp_end(&rp);
+
+		rp_begin(&frame_rp);
+
+		// UNBINDING FRAME BUFFEr
+		fb_unbind(&fb);
+
+		glc(glClearColor(1.0f, 0.0f, 1.0f, 1.0f));
+		glc(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+
+		rp_push_vertices(&frame_rp,  {
+				-1.0f,  1.0f, 0.0f,  0.0f, 1.0f,  // Top-left
+				-1.0f, -1.0f, 0.0f,  0.0f, 0.0f,  // Bottom-left
+				1.0f,  1.0f, 0.0f,  1.0f, 1.0f,  // Top-right
+
+				1.0f,  1.0f, 0.0f,  1.0f, 1.0f,  // Top-right
+				-1.0f, -1.0f, 0.0f,  0.0f, 0.0f,  // Bottom-left
+				1.0f, -1.0f, 0.0f,  1.0f, 0.0f   // Bottom-right
+				}
+		);
+
+		glc(glUniform1f(bnw_loc, bnw));
+		rp_end(&frame_rp);
 
 		imgui_begin_frame();
 		// ImGui::Begin("Hello");
