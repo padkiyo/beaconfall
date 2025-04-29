@@ -8,6 +8,45 @@ enum AudioID {
 	MUSIC,
 };
 
+enum Scenes {
+	SCENE_A,
+	SCENE_B,
+};
+
+// Scene A
+void a_enter(void* data) {
+	log_info("Entered scene A\n");
+}
+
+void a_exit(void* data) {
+	log_info("Exited scene A\n");
+}
+
+void a_update(void* data, f64 dt) {
+	log_info("Updating scene A\n");
+}
+
+void a_event(void* data, SDL_Event event, f64 dt) {
+	log_info("Event in scene A\n");
+}
+
+// Scene B
+void b_enter(void* data) {
+	log_info("Entered scene B\n");
+}
+
+void b_exit(void* data) {
+	log_info("Exited scene B\n");
+}
+
+void b_update(void* data, f64 dt) {
+	log_info("Updating scene B\n");
+}
+
+void b_event(void* data, SDL_Event event, f64 dt) {
+	log_info("Event in scene B\n");
+}
+
 int main(int argc, char* argv[]) {
 	Window window = window_create(WIN_WIDTH, WIN_HEIGHT, "Game6 v0.0").unwrap();
 	Audio* audio = audio_create().unwrap();
@@ -75,6 +114,11 @@ int main(int argc, char* argv[]) {
 		.far = 1000.0f
 	});
 
+	// Scene
+	SceneManager sm = {0};
+	sm_add_scene(&sm, SCENE_A, a_enter, a_exit, a_update, a_event, NULL);
+	sm_add_scene(&sm, SCENE_B, b_enter, b_exit, b_update, b_event, NULL);
+
 	Font small_font = font_create("font.ttf", 32).unwrap();
 	Font big_font = font_create("font.ttf", 100).unwrap();
 
@@ -90,6 +134,9 @@ int main(int argc, char* argv[]) {
 	while(running){
 		while(SDL_PollEvent(&event)) {
 			ImGui_ImplSDL2_ProcessEvent(&event);
+
+			sm_handle_event(&sm, event, 0);
+
 			if(event.type == SDL_QUIT) {
 				running = false;
 			}
@@ -121,6 +168,14 @@ int main(int argc, char* argv[]) {
 						}
 						break;
 
+					case SDLK_TAB:
+						if (sm.current_scene == SCENE_A) {
+							sm_switch_scene(&sm, SCENE_B);
+						} else {
+							sm_switch_scene(&sm, SCENE_A);
+						}
+						break;
+
 					case SDLK_SPACE:
 						if (!audio_is_music_playing()) {
 							audio_play_music(audio, MUSIC);
@@ -146,6 +201,8 @@ int main(int argc, char* argv[]) {
 		glc(glEnable(GL_DEPTH_TEST));
 
 		rp_begin(&rp);
+
+		sm_update_scene(&sm, 0);
 
 		// Dont forget to bind those fonts
 		font_bind(&small_font);
