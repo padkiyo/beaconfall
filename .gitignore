@@ -3,3 +3,5 @@ cbuild
 objs
 records.txt
 imgui.ini
+release
+*.zip
