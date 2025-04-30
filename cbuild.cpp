@@ -92,6 +92,7 @@ int main(int argc, char** argv) {
 			"./core/frame_buffer/frame_buffer.cpp",
 			"./core/scene/scene.cpp",
 
+			"./game/scenes/dialog/dialog.cpp",
 			"./game/main.cpp",
 		})
 		.build();

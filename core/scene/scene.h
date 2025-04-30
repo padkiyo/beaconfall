@@ -2,6 +2,16 @@
 
 #include "common.h"
 
+/*
+ * To create a scene, copy paste the following function in your some_scene.h file
+ * Make sure to rename the `name` prefix to your scene name.
+ *
+   void name_entry(void* data);
+   void name_exit(void* data);
+   void name_update(void* data, f64 dt);
+   void name_event(void* data, SDL_Event event, f64 dt);
+ */
+
 struct Scene {
 	void* data;
 
