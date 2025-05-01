@@ -2,6 +2,7 @@
 #include "config.h"
 #include "game_state.h"
 #include "scenes/dialog/dialog.h"
+#include "scenes/map/map.h"
 #include "scenes/scenes.h"
 
 // Global game state
@@ -31,7 +32,7 @@ int main(int argc, char* argv[]) {
 		.near = -1.0f,
 		.far = 1000.0f
 	});
-	
+
 	// Creating scene manager
 	SceneManager sm = {0};
 
@@ -42,6 +43,16 @@ int main(int argc, char* argv[]) {
 		dialog_exit,
 		dialog_update,
 		dialog_event,
+		NULL
+	);
+
+
+	sm_add_scene(
+		&sm, SCENE_MAP,
+		map_entry,
+		map_exit,
+		map_update,
+		map_event,
 		NULL
 	);
 
