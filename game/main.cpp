@@ -56,6 +56,9 @@ int main(int argc, char* argv[]) {
 		NULL
 	);
 
+	// Switching the scene
+	sm_switch_scene(&sm, SCENE_MAP);
+
 	// Loading fonts
 	Font font_regular = font_create("./assets/Ac437_ToshibaSat_9x8.ttf", 32).unwrap();
 
