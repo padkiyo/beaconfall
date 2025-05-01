@@ -51,11 +51,11 @@ Result<RenderPipeline, std::string> rp_create(RenderPipelineSpecs* specs) {
 	texture_bind(rp.white_texture);
 
 	// Enabling depth testing
-	glc(glEnable(GL_DEPTH_TEST));
+	// glc(glEnable(GL_DEPTH_TEST));
 
 	// Enabling alpha blending
-	glc(glEnable(GL_BLEND));
 	glc(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+	glc(glEnable(GL_BLEND));
 
 	return rp;
 }

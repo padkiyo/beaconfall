@@ -112,3 +112,15 @@ void font_destroy(Font* font) {
 void font_bind(Font* font) {
 	texture_bind(font->atlas);
 }
+
+glm::vec2 font_calc_size(Font* font, const std::string& text) {
+	glm::vec2 final_size = { 0, 0 };
+	for (char c : text) {
+		auto [uv, size] = font->glyphs[c];
+		final_size.x += size.x;
+		if (final_size.y < size.y) {
+			final_size.y = size.y;
+		}
+	}
+	return final_size;
+}
