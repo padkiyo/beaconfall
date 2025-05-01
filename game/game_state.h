@@ -22,4 +22,5 @@ struct GameState {
 
 	// Resources
 	Font* font_regular;
+
 };
