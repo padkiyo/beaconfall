@@ -47,6 +47,7 @@ int main(int argc, char** argv) {
 			".",
 			"./vendors/glad/include",
 			"./vendors/imgui/include",
+			"./vendors/json",
 			"./vendors/stb",
 			"./vendors/glm",
 			"./core",
@@ -78,6 +79,10 @@ int main(int argc, char** argv) {
 			"./vendors/imgui/src/imgui_impl_sdl2.cpp",
 			"./vendors/imgui/src/imgui_tables.cpp",
 			"./vendors/imgui/src/imgui_widgets.cpp",
+			"./vendors/json/json/json_reader.cpp",
+			"./vendors/json/json/json_value.cpp",
+			"./vendors/json/json/json_writer.cpp",
+
 
 			"./core/base/utils.cpp",
 			"./core/window/window.cpp",
@@ -93,6 +98,7 @@ int main(int argc, char** argv) {
 			"./core/scene/scene.cpp",
 
 			"./game/scenes/dialog/dialog.cpp",
+			"./game/scenes/map/map.cpp",
 			"./game/main.cpp",
 		})
 		.build();

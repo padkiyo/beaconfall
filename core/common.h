@@ -11,6 +11,7 @@
 #include <stb_image.h>
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
+#include <json/json.h>
 
 #include <unordered_map>
 #include <string>
