@@ -16,7 +16,6 @@ void sm_add_scene(
 	ns->event = event;
 
 	sm->scenes.insert_or_assign(id, ns);
-	sm->current_scene = id;
 }
 
 void sm_remove_scene(SceneManager* sm, i32 id) {

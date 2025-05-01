@@ -3,8 +3,7 @@
 
 extern GameState gs;
 
-void map_entry(void* data){
-
+void map_entry(void* data) {
 	Json::Value root;
 	std::ifstream ifs;
 	ifs.open("./game/maps/test/map.json");
@@ -18,10 +17,14 @@ void map_entry(void* data){
 
 	std::cout << root["tileSize"] << std::endl;
 }
-void map_exit(void*data){
+
+void map_exit(void*data) {
 	log_info("Map scene is exited\n");
 }
-void map_update(void*data, f64 dt){
+
+void map_update(void*data, f64 dt) {
 
 }
-void map_event(void* data, SDL_Event event, f64 dt){}
+
+void map_event(void* data, SDL_Event event, f64 dt) {
+}
