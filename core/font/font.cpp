@@ -115,12 +115,29 @@ void font_bind(Font* font) {
 
 glm::vec2 font_calc_size(Font* font, const std::string& text) {
 	glm::vec2 final_size = { 0, 0 };
+	f32 line_width = 0.0f;
 	for (char c : text) {
+		if (c == '\n') {
+			final_size.y += font->atlas.height;
+			line_width = 0;
+			continue;
+		}
+
 		auto [uv, size] = font->glyphs[c];
-		final_size.x += size.x;
+
+		// Increasing the width
+		line_width += size.x;
+
+		// Setting up the height
 		if (final_size.y < size.y) {
 			final_size.y = size.y;
 		}
+
+		// Setting up the width
+		if (line_width > final_size.x) {
+			final_size.x = line_width;
+		}
 	}
+
 	return final_size;
 }

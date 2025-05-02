@@ -13,6 +13,7 @@ struct Message {
 };
 
 struct RenderableMessage {
+	f32 y;
 	MsgSide side;
 	Message msg;
 };
@@ -30,7 +31,8 @@ struct DialogSystem {
 
 	// renderings
 	std::unordered_map<i32, MsgSide> message_side;
-	std::vector<RenderableMessage> msg_to_render;
+	std::vector<RenderableMessage> interpolated_msgs;
+	std::vector<RenderableMessage> to_interpolate;
 };
 
 DialogSystem* dialog_system_create();

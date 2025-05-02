@@ -25,6 +25,10 @@ void dialog_system_start_dialog(DialogSystem* ds, i32 dialog_id) {
 	ds->current_dialog = dialog_id;
 	ds->message_index = -1;
 
+	// Clear the previous chats
+	ds->interpolated_msgs.clear();
+	ds->to_interpolate.clear();
+
 	// Moving forward the dialog as it begins with -1 in start
 	dialog_system_move_forward(ds);
 }
@@ -43,7 +47,7 @@ void dialog_system_update(DialogSystem* ds) {
 	);
 
 	Dialog dialog = ds->dialogs[ds->current_dialog];
-	
+
 	// End of dialog
 	if (ds->message_index >= dialog.messages.size()) {
 		ds->is_dialog_running = false;
@@ -51,29 +55,43 @@ void dialog_system_update(DialogSystem* ds) {
 		return;
 	}
 
-#define BUBBLE_PADDING 10
-#define Y_GAP 5
-
-	// Render chat boxes
-	glm::vec3 pos = {50, 500, 0};
-
 	// Iterating from back to first
-	for (auto it = ds->msg_to_render.rbegin(); it != ds->msg_to_render.rend(); ++it) {
+	for (
+		i32 i = ds->to_interpolate.size() - 1;
+		i >= 0;
+		--i
+	) {
+		auto& rm_1 = ds->interpolated_msgs[i];
+		auto& rm_2 = ds->to_interpolate[i];
+
+		// Moving upward till the to_interpolate y reaches to interpolated y
+		if (rm_2.y > rm_1.y) {
+			rm_2.y -= BUBBLE_SCROLL_SPEED;
+		}
+	}
+
+	// Interating over to_interpolate messages from back to front
+	i32 i = ds->to_interpolate.size();
+	for (
+		auto it = ds->to_interpolate.rbegin();
+		it != ds->to_interpolate.rend();
+		++it
+	) {
 		auto& rm = *it;
 		MsgSide side = rm.side;
 		Message msg = rm.msg;
 
-		// Determining the X position of the text bubbles
-		if (side == MsgSide::LEFT) {
-			pos.x = WIN_WIDTH / 2 - 300;
-		} else {
-			pos.x = WIN_WIDTH / 2;
-		}
+		glm::vec3 pos = {0, rm.y, 0};
 
+		// Size of text
 		glm::vec2 size = font_calc_size(gs.font_regular, msg.text);
 
-		// Going upwards
-		pos.y -= size.y + BUBBLE_PADDING + Y_GAP;
+		// Determining the X position of the text bubbles
+		if (side == MsgSide::LEFT) {
+			pos.x = WIN_WIDTH / 2 - BUBBLE_OFFSET_FROM_CENTER;
+		} else {
+			pos.x = WIN_WIDTH / 2 + BUBBLE_OFFSET_FROM_CENTER - size.x;
+		}
 
 		// Adding padding to the bubble
 		glm::vec2 box_size = {
@@ -87,12 +105,18 @@ void dialog_system_update(DialogSystem* ds) {
 			pos.z
 		};
 
+		// Calculating the alpha
+		f32 alpha = BUBBLE_ACTIVE_ALPHA;
+		if (i / ds->to_interpolate.size() != 1) {
+			alpha = BUBBLE_INACTIVE_ALPHA;
+		}
+
 		// Rendering bubble
 		rp_push_quad(
 			gs.quad_rp,
 			box_pos,
 			box_size,
-			glm::vec4(1, 1, 1, 0.8),
+			glm::vec4(0.1, 0.1, 0.1, alpha),
 			gs.quad_rp->white_texture.id,
 			glm::vec4(0, 0, 1, 1)
 		);
@@ -103,8 +127,10 @@ void dialog_system_update(DialogSystem* ds) {
 			gs.font_regular,
 			msg.text,
 			pos,
-			glm::vec4(0, 0, 0, 1)
+			glm::vec4(1, 1, 1, alpha)
 		);
+
+		i--;
 	}
 }
 
@@ -150,18 +176,36 @@ void dialog_system_move_forward(DialogSystem* ds) {
 	MsgSide side = ds->message_side[msg.by];
 
 	RenderableMessage rm = {
+		.y = BUBBLE_START_Y,
 		.side = side,
 		.msg = msg,
 	};
 
 	// If the message to render is greater than 3
 	// than remove the top one and add the new message at last
-	if (ds->msg_to_render.size() >= 3) {
+	if (ds->interpolated_msgs.size() >= 4) {
 
 		// Removing the top one
-		ds->msg_to_render.erase(ds->msg_to_render.begin());
+		ds->interpolated_msgs.erase(ds->interpolated_msgs.begin());
+		ds->to_interpolate.erase(ds->to_interpolate.begin());
 	}
 
-	// Pushing in the renderable messages
-	ds->msg_to_render.push_back(rm);
+	// Pushing in the messages
+	ds->interpolated_msgs.push_back(rm);
+	ds->to_interpolate.push_back(rm);
+
+	// Pre calculating the y position for interpolated messages
+	f32 y = BUBBLE_START_Y;
+	for (
+		auto it = ds->interpolated_msgs.rbegin();
+		it != ds->interpolated_msgs.rend();
+		++it
+	) {
+		auto& rm = *it;
+		Message msg = rm.msg;
+
+		glm::vec2 size = font_calc_size(gs.font_regular, msg.text);
+		y -= size.y + BUBBLE_PADDING + BUBBLE_Y_GAP;
+		rm.y = y;
+	}
 }

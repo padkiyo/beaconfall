@@ -20,8 +20,8 @@ enum Character {
 static Dialog test_dialog = {
 	.id = DIALOG_TEST,
 	.messages = {
-		{A, "Hey! How are you doing?"},
-		{B, "Good. How about you?"},
+		{A, "Hey!\nHow are you doing?"},
+		{B, "Good.\nHow about you?"},
 		{A, "Fine."},
 		{B, "Alright."},
 		{A, "See ya."},

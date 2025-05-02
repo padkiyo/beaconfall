@@ -158,6 +158,15 @@ Vertices rp_create_text(Font* font, const std::string& text, glm::vec3 pos, glm:
 
 	glm::vec3 quad_p = pos;
 	for (char c : text) {
+		if (c == '\n') {
+			glm::vec2 size = font_calc_size(font, " ");
+
+			// Reset the x and increase the y
+			quad_p.x = pos.x;
+			quad_p.y += size.y;
+			continue;
+		}
+
 		panic(font->glyphs.find(c) != font->glyphs.end(), "Cannot find the character in glyph table: %c", c);
 
 		auto [uv, size] = font->glyphs[c];
