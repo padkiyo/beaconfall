@@ -108,12 +108,12 @@ Vertices rp_create_quad(glm::vec3 pos, glm::vec2 size, glm::vec4 color) {
 	p6 = { pos.x, pos.y, pos.z };
 
 	Vertices vertices = {
-		p1.x, p1.y, p1.z, color.r, color.g, color.b, color.a,
-		p2.x, p2.y, p2.z, color.r, color.g, color.b, color.a,
-		p3.x, p3.y, p3.z, color.r, color.g, color.b, color.a,
-		p4.x, p4.y, p4.z, color.r, color.g, color.b, color.a,
-		p5.x, p5.y, p5.z, color.r, color.g, color.b, color.a,
-		p6.x, p6.y, p6.z, color.r, color.g, color.b, color.a,
+		p1.x, p1.y, p1.z, color.r, color.g, color.b, color.a, 0.0f, 0.0f, 0.0f,
+		p2.x, p2.y, p2.z, color.r, color.g, color.b, color.a,0.0f, 0.0f, 0.0f,
+		p3.x, p3.y, p3.z, color.r, color.g, color.b, color.a,0.0f, 0.0f, 0.0f,
+		p4.x, p4.y, p4.z, color.r, color.g, color.b, color.a,0.0f, 0.0f, 0.0f,
+		p5.x, p5.y, p5.z, color.r, color.g, color.b, color.a,0.0f, 0.0f, 0.0f,
+		p6.x, p6.y, p6.z, color.r, color.g, color.b, color.a,0.0f, 0.0f, 0.0f,
 	};
 
 	return vertices;
