@@ -97,6 +97,7 @@ int main(int argc, char** argv) {
 			"./core/frame_buffer/frame_buffer.cpp",
 			"./core/scene/scene.cpp",
 
+			"./game/systems/dialog_system/dialog_system.cpp",
 			"./game/scenes/dialog/dialog.cpp",
 			"./game/scenes/map/map.cpp",
 			"./game/main.cpp",

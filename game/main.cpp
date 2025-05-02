@@ -1,6 +1,8 @@
 #include "core.h"
 #include "config.h"
 #include "game_state.h"
+#include "systems/dialog_system/dialog_system.h"
+#include "systems/dialog_system/dialogs.h"
 #include "scenes/dialog/dialog.h"
 #include "scenes/map/map.h"
 #include "scenes/scenes.h"
@@ -33,6 +35,12 @@ int main(int argc, char* argv[]) {
 		.far = 1000.0f
 	});
 
+	// Dialog system
+	DialogSystem* ds = dialog_system_create();
+
+	// Loading up the dialogs
+	dialog_system_init_dialogs(ds);
+
 	// Creating scene manager
 	SceneManager sm = {0};
 
@@ -46,7 +54,6 @@ int main(int argc, char* argv[]) {
 		NULL
 	);
 
-
 	sm_add_scene(
 		&sm, SCENE_MAP,
 		map_entry,
@@ -57,10 +64,10 @@ int main(int argc, char* argv[]) {
 	);
 
 	// Switching the scene
-	sm_switch_scene(&sm, SCENE_MAP);
+	sm_switch_scene(&sm, SCENE_DIALOG);
 
 	// Loading fonts
-	Font font_regular = font_create("./assets/Ac437_ToshibaSat_9x8.ttf", 32).unwrap();
+	Font font_regular = font_create("./assets/Ac437_ToshibaSat_9x8.ttf", 18).unwrap();
 
 	// Initializing the game state
 	gs.window = &window;
@@ -84,8 +91,14 @@ int main(int argc, char* argv[]) {
 			// Events for imgui
 			ImGui_ImplSDL2_ProcessEvent(&event);
 
-			// Events for scenes
-			sm_handle_event(&sm, event, 0);
+			// During dialog only provide the event to dialog manager
+			// After the dialog is complete give back the control to scene
+			if (ds->is_dialog_running) {
+				dialog_system_handle_event(ds, event);
+			} else {
+				// Events for scenes
+				sm_handle_event(&sm, event, 0);
+			}
 
 			if(event.type == SDL_QUIT) {
 				running = false;
@@ -93,6 +106,10 @@ int main(int argc, char* argv[]) {
 
 			if (event.type == SDL_KEYDOWN) {
 				switch (event.key.keysym.sym) {
+					case SDLK_RETURN:
+						log_info("Starting test dialog\n");
+						dialog_system_start_dialog(ds, DIALOG_TEST);
+						break;
 				}
 			}
 		}
@@ -103,8 +120,7 @@ int main(int argc, char* argv[]) {
 		glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT);
 
 		glc(glClearColor(0.5f, 0.5f, 0.5f, 1.0f));
-		glc(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-		glc(glEnable(GL_DEPTH_TEST));
+		glc(glClear(GL_COLOR_BUFFER_BIT));
 
 		// Scene rendering section
 		rp_begin(&quad_rp);
@@ -116,6 +132,9 @@ int main(int argc, char* argv[]) {
 
 			// Updating the current scene
 			sm_update_scene(&sm, 0);
+
+			// Updating dialog system
+			dialog_system_update(ds);
 		}
 		rp_end(&quad_rp);
 

@@ -23,10 +23,11 @@ struct Scene {
 };
 
 struct SceneManager {
-	i32 current_scene = -1;  // Make sure the other scenes id are not -1
+	i32 current_scene;  // NOTE: Make sure the other scenes id are not -1
 	std::unordered_map<i32, Scene*> scenes;
 };
 
+SceneManager sm_create();
 void sm_add_scene(
 	SceneManager* sm, i32 id,
 	void (*enter)(void*),

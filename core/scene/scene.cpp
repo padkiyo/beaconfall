@@ -1,5 +1,11 @@
 #include "scene.h"
 
+SceneManager sm_create() {
+	return (SceneManager) {
+		.current_scene = -1
+	};
+}
+
 void sm_add_scene(
 	SceneManager* sm, i32 id,
 	void (*enter)(void*),
