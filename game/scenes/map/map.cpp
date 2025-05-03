@@ -1,6 +1,7 @@
 #include "map.h"
 #include "game_state.h"
-
+// ! TODO clean up ts
+// ! TODO forsome reason complex maps dont load, need to find a fix for it
 extern GameState gs;
 
 // ! TODO maybe not make this global ig
