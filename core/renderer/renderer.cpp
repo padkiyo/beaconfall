@@ -54,6 +54,7 @@ Result<RenderPipeline, std::string> rp_create(RenderPipelineSpecs* specs) {
 	// glc(glEnable(GL_DEPTH_TEST));
 
 	// Enabling alpha blending
+	//glc(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
 	glc(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 	glc(glEnable(GL_BLEND));
 
