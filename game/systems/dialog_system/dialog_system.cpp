@@ -33,6 +33,13 @@ void dialog_system_start_dialog(DialogSystem* ds, i32 dialog_id) {
 	dialog_system_move_forward(ds);
 }
 
+void dialog_system_end_dialog(DialogSystem* ds) {
+	if (!ds->is_dialog_running) return;
+
+	ds->is_dialog_running = false;
+	ds->current_dialog = -1;
+}
+
 void dialog_system_update(DialogSystem* ds) {
 	if (!ds->is_dialog_running) return;
 
@@ -141,8 +148,7 @@ void dialog_system_handle_event(DialogSystem* ds, SDL_Event event) {
 			// Skip the dialog
 			case SDLK_ESCAPE:
 				log_info("Exiting test dialog\n");
-				ds->is_dialog_running = false;
-				ds->current_dialog = -1;
+				dialog_system_end_dialog(ds);
 				break;
 
 			// Progress through the dialog

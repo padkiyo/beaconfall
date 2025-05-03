@@ -38,6 +38,7 @@ struct DialogSystem {
 DialogSystem* dialog_system_create();
 void dialog_system_init_dialogs(DialogSystem* ds);
 void dialog_system_start_dialog(DialogSystem* ds, i32 dialog_id);
+void dialog_system_end_dialog(DialogSystem* ds);
 void dialog_system_update(DialogSystem* ds);
 void dialog_system_handle_event(DialogSystem* ds, SDL_Event event);
 void dialog_system_move_forward(DialogSystem* ds);
