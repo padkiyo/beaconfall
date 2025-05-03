@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core.h"
+#include "systems/dialog_system/dialog_system.h"
 
 
 /*
@@ -19,6 +20,7 @@ struct GameState {
 	Audio* audio;
 	Camera* camera;
 	SceneManager* sm;
+	DialogSystem* ds;
 
 	// Resources
 	Font* font_regular;

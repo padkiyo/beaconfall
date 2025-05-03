@@ -1,6 +1,7 @@
 #include "dialog.h"
 #include "config.h"
 #include "game_state.h"
+#include "systems/dialog_system/dialogs.h"
 
 extern GameState gs;
 
@@ -51,5 +52,12 @@ void dialog_update(void* data, f64 dt) {
 }
 
 void dialog_event(void* data, SDL_Event event, f64 dt) {
-	log_info("Event in Dialog scene\n");
+	if (event.type == SDL_KEYDOWN) {
+		switch (event.key.keysym.sym) {
+			case SDLK_RETURN:
+				log_info("Starting test dialog\n");
+				dialog_system_start_dialog(gs.ds, DIALOG_TEST);
+				break;
+		}
+	}
 }
