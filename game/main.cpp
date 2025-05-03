@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
 	sm_switch_scene(&sm, SCENE_DIALOG);
 
 	// Loading fonts
-	Font font_regular = font_create("./assets/Ac437_ToshibaSat_9x8.ttf", 18).unwrap();
+	Font font_regular = font_create("./assets/Ac437_ToshibaSat_9x8.ttf", 25).unwrap();
 
 	// Initializing the game state
 	gs.window = &window;
