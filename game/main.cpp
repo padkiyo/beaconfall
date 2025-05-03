@@ -137,17 +137,14 @@ int main(int argc, char* argv[]) {
 
 		imgui_begin_frame();
 
-		// TODO find a way to display its name and move it to a neat function
-		int scene_count = 0;
 		if(ImGui::CollapsingHeader("Scenes"))
 		{
 			ImGui::SeparatorText("Scene Manager");
 			for(auto & [key, value] : sm.scenes){
-				if(ImGui::Button(std::to_string(scene_count).c_str()))
+				if(ImGui::Button(scene_name(key).c_str()))
 				{
 					sm_switch_scene(&sm, key);
 				}
-				scene_count +=1;
 			}
 		}
 		imgui_end_frame();

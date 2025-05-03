@@ -10,6 +10,7 @@ void dialog_entry(void* data) {
 }
 
 void dialog_exit(void* data) {
+	dialog_system_end_dialog(gs.ds);
 	log_info("Dialog scene is exited\n");
 }
 
