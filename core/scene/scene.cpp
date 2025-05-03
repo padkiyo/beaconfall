@@ -42,8 +42,10 @@ void sm_switch_scene(SceneManager* sm, i32 id) {
 	Scene* scene;
 
 	// Exit the current scene
-	scene = sm->scenes[sm->current_scene];
-	scene->exit(scene->data);
+	if (sm->current_scene >= 0) {
+		scene = sm->scenes[sm->current_scene];
+		scene->exit(scene->data);
+	}
 
 	// Switching to new scene
 	sm->current_scene = id;

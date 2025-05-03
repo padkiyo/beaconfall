@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
 	dialog_system_init_dialogs(ds);
 
 	// Creating scene manager
-	SceneManager sm = {0};
+	SceneManager sm = sm_create();
 
 	// Adding the scenes
 	sm_add_scene(
@@ -75,6 +75,7 @@ int main(int argc, char* argv[]) {
 	gs.audio = audio;
 	gs.camera = &camera;
 	gs.sm = &sm;
+	gs.ds = ds;
 
 	gs.font_regular = &font_regular;
 
@@ -106,10 +107,6 @@ int main(int argc, char* argv[]) {
 
 			if (event.type == SDL_KEYDOWN) {
 				switch (event.key.keysym.sym) {
-					case SDLK_RETURN:
-						log_info("Starting test dialog\n");
-						dialog_system_start_dialog(ds, DIALOG_TEST);
-						break;
 				}
 			}
 		}
