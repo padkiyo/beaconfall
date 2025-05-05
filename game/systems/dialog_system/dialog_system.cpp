@@ -13,6 +13,10 @@ DialogSystem* dialog_system_create() {
 	return ds;
 }
 
+void dialog_system_destroy(DialogSystem* ds) {
+	delete ds;
+}
+
 void dialog_system_init_dialogs(DialogSystem* ds) {
 	ds->dialogs.insert({ test_dialog.id, test_dialog });
 }

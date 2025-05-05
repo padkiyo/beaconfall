@@ -20,6 +20,11 @@
 #define BUBBLE_ACTIVE_ALPHA 1.0f
 #define BUBBLE_INACTIVE_ALPHA 0.5f
 
+// Notebook
+#define NOTEBOOK_WIDTH 400
+#define NOTEBOOK_HEIGHT 500
+#define NOTEBOOK_PAD_X 10
+#define NOTEBOOK_PAD_Y 10
 
 static RenderPipelineSpecs QuadRendererSpecs = {
 	.format = {

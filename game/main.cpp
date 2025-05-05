@@ -3,8 +3,7 @@
 #include "game_state.h"
 #include "systems/dialog_system/dialog_system.h"
 #include "systems/dialog_system/dialogs.h"
-#include "scenes/dialog/dialog.h"
-#include "scenes/map/map.h"
+#include "systems/notebook_system/notebook_system.h"
 #include "scenes/scenes.h"
 
 // Global game state
@@ -41,6 +40,9 @@ int main(int argc, char* argv[]) {
 	// Loading up the dialogs
 	dialog_system_init_dialogs(ds);
 
+	// Notebook system
+	NotebookSystem ns = notebook_system_create();
+
 	// Creating scene manager
 	SceneManager sm = sm_create();
 
@@ -63,8 +65,17 @@ int main(int argc, char* argv[]) {
 		NULL
 	);
 
+	sm_add_scene(
+		&sm, SCENE_NOTEBOOK,
+		notebook_entry,
+		notebook_exit,
+		notebook_update,
+		notebook_event,
+		NULL
+	);
+
 	// Switching the scene
-	sm_switch_scene(&sm, SCENE_DIALOG);
+	sm_switch_scene(&sm, SCENE_NOTEBOOK);
 
 	// Loading fonts
 	Font font_regular = font_create("./assets/Ac437_ToshibaSat_9x8.ttf", 25).unwrap();
@@ -76,6 +87,7 @@ int main(int argc, char* argv[]) {
 	gs.camera = &camera;
 	gs.sm = &sm;
 	gs.ds = ds;
+	gs.ns = &ns;
 
 	gs.font_regular = &font_regular;
 
@@ -92,10 +104,12 @@ int main(int argc, char* argv[]) {
 			// Events for imgui
 			ImGui_ImplSDL2_ProcessEvent(&event);
 
-			// During dialog only provide the event to dialog manager
-			// After the dialog is complete give back the control to scene
+			// TODO: Maybe maintain some state on which even is running?
+			// Handling event according to the running system
 			if (ds->is_dialog_running) {
 				dialog_system_handle_event(ds, event);
+			} else if (ns.open) {
+				notebook_system_handle_event(&ns, event);
 			} else {
 				// Events for scenes
 				sm_handle_event(&sm, event, 0);
@@ -132,6 +146,9 @@ int main(int argc, char* argv[]) {
 
 			// Updating dialog system
 			dialog_system_update(ds);
+
+			// Updating notebook system
+			notebook_system_update(&ns);
 		}
 		rp_end(&quad_rp);
 
@@ -148,6 +165,14 @@ int main(int argc, char* argv[]) {
 				}
 			}
 		}
+
+		if(ImGui::CollapsingHeader("Notebook"))
+		{
+			std::string text;
+			if (ImGui::InputText("text", &text, ImGuiInputTextFlags_EnterReturnsTrue)) {
+				notebook_system_append_text(&ns, text);
+			}
+		}
 		imgui_end_frame();
 
 		window_swap(window);
@@ -155,6 +180,7 @@ int main(int argc, char* argv[]) {
 
 	font_destroy(&font_regular);
 
+	dialog_system_destroy(ds);
 	imgui_destroy();
 	audio_destroy(audio);
 	rp_destroy(&quad_rp);

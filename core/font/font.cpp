@@ -148,3 +148,7 @@ glm::vec2 font_calc_size(Font* font, const std::string& text) {
 
 	return final_size;
 }
+
+glm::vec2 font_size(Font* font) {
+	return font_calc_size(font, " ");
+}
