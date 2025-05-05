@@ -51,11 +51,12 @@ Result<RenderPipeline, std::string> rp_create(RenderPipelineSpecs* specs) {
 	texture_bind(rp.white_texture);
 
 	// Enabling depth testing
-	glc(glEnable(GL_DEPTH_TEST));
+	// glc(glEnable(GL_DEPTH_TEST));
 
 	// Enabling alpha blending
-	glc(glEnable(GL_BLEND));
+	//glc(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
 	glc(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+	glc(glEnable(GL_BLEND));
 
 	return rp;
 }
@@ -108,12 +109,12 @@ Vertices rp_create_quad(glm::vec3 pos, glm::vec2 size, glm::vec4 color) {
 	p6 = { pos.x, pos.y, pos.z };
 
 	Vertices vertices = {
-		p1.x, p1.y, p1.z, color.r, color.g, color.b, color.a,
-		p2.x, p2.y, p2.z, color.r, color.g, color.b, color.a,
-		p3.x, p3.y, p3.z, color.r, color.g, color.b, color.a,
-		p4.x, p4.y, p4.z, color.r, color.g, color.b, color.a,
-		p5.x, p5.y, p5.z, color.r, color.g, color.b, color.a,
-		p6.x, p6.y, p6.z, color.r, color.g, color.b, color.a,
+		p1.x, p1.y, p1.z, color.r, color.g, color.b, color.a, 0.0f, 0.0f, 0.0f,
+		p2.x, p2.y, p2.z, color.r, color.g, color.b, color.a,0.0f, 0.0f, 0.0f,
+		p3.x, p3.y, p3.z, color.r, color.g, color.b, color.a,0.0f, 0.0f, 0.0f,
+		p4.x, p4.y, p4.z, color.r, color.g, color.b, color.a,0.0f, 0.0f, 0.0f,
+		p5.x, p5.y, p5.z, color.r, color.g, color.b, color.a,0.0f, 0.0f, 0.0f,
+		p6.x, p6.y, p6.z, color.r, color.g, color.b, color.a,0.0f, 0.0f, 0.0f,
 	};
 
 	return vertices;
@@ -158,6 +159,15 @@ Vertices rp_create_text(Font* font, const std::string& text, glm::vec3 pos, glm:
 
 	glm::vec3 quad_p = pos;
 	for (char c : text) {
+		if (c == '\n') {
+			glm::vec2 size = font_calc_size(font, " ");
+
+			// Reset the x and increase the y
+			quad_p.x = pos.x;
+			quad_p.y += size.y;
+			continue;
+		}
+
 		panic(font->glyphs.find(c) != font->glyphs.end(), "Cannot find the character in glyph table: %c", c);
 
 		auto [uv, size] = font->glyphs[c];

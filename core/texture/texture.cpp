@@ -84,11 +84,11 @@ void texture_clear(Texture texture) {
 	glc(glClearTexImage(texture.id, 0, texture.format, GL_UNSIGNED_BYTE, &t));
 }
 
-void texture_update(Texture texture, i32 lod, i32 x_offset, i32 y_offset, u32 width, u32 height, void* data) {
+void texture_update(Texture texture, i32 lod, i32 x_offset, i32 y_offset, u32 width, u32 height, GLenum format, void* data) {
 	texture_bind(texture);
 	glc(glTextureSubImage2D(
 		texture.id, lod, x_offset, y_offset,
-		width, height, texture.format,
+		width, height, format,
 		GL_UNSIGNED_BYTE, data
 	));
 }

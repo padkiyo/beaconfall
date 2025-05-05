@@ -1,71 +1,30 @@
 #include "core.h"
+#include "config.h"
+#include "game_state.h"
+#include "systems/dialog_system/dialog_system.h"
+#include "systems/dialog_system/dialogs.h"
+#include "systems/notebook_system/notebook_system.h"
+#include "scenes/scenes.h"
 
-#define WIN_WIDTH 800
-#define WIN_HEIGHT 600
-
-enum AudioID {
-	JUMP,
-	MUSIC,
-};
+// Global game state
+GameState gs;
 
 int main(int argc, char* argv[]) {
-	Window window = window_create(WIN_WIDTH, WIN_HEIGHT, "Game6 v0.0").unwrap();
-	Audio* audio = audio_create().unwrap();
+
+	// Initialization of window
+	Window window = window_create(WIN_WIDTH, WIN_HEIGHT, WIN_TITLE).unwrap();
+
+	// Setting up the imgui
 	imgui_create(window.sdl_window, window.gl_context);
 
-	RenderPipelineSpecs specs = {
-		.format = {
-			{ .type = GL_FLOAT, .count = 3 },
-			{ .type = GL_FLOAT, .count = 4 },
-			{ .type = GL_FLOAT, .count = 2 },
-			{ .type = GL_FLOAT, .count = 1 },
-		},
-		.max_vertices = 10000,
-		.shaders = {
-			.vertex_shader = "./game/vertex.vert",
-			.fragment_shader = "./game/fragment.frag"
-		},
-	};
-	RenderPipeline rp = rp_create(&specs).unwrap();
+	// Creating audio manager
+	Audio* audio = audio_create().unwrap();
 
-	RenderPipelineSpecs frame_specs = {
-		.format = {
-			{ .type = GL_FLOAT, .count = 3 },
-			{ .type = GL_FLOAT, .count = 2 },
-		},
-		.max_vertices = 1000,
-		.shaders = {
-			.vertex_shader = "./game/frame.vert",
-			.fragment_shader = "./game/frame.frag"
-		},
-	};
+	// Creating the default quad renderer
+	RenderPipeline quad_rp = rp_create(&QuadRendererSpecs).unwrap();
+	init_texture_samples(&quad_rp);
 
-	RenderPipeline frame_rp = rp_create(&frame_specs).unwrap();
-
-	FrameBuffer fb = fb_create(WIN_WIDTH, WIN_HEIGHT);
-
-	// Generating texture samples
-	i32 samplers[32];
-	for (i32 i = 0; i < 32; i++)
-		samplers[i] = i;
-
-	// Providing samplers to the shader
-	glc(glUseProgram(rp.shader));
-	i32 loc = glc(glGetUniformLocation(rp.shader, "textures"));
-	panic(loc != -1, "Cannot find uniform: textures\n");
-	glc(glUniform1iv(loc, 32, samplers));
-
-	// Frame buffer shader
-	glc(glUseProgram(frame_rp.shader));
-	loc = glc(glGetUniformLocation(frame_rp.shader, "textures"));
-	panic(loc != -1, "Cannto find uniform: texture\n");
-	glc(glUniform1i(loc, fb.color_texture.id));
-
-	// Code for black and white trigger
-	i32 bnw_loc = glc(glGetUniformLocation(frame_rp.shader, "bnw"));
-	panic(loc != -1, "Cannot find unfirom: bnw");
-	float bnw = 0.0f;
-
+	// Creating an orthographic camera
 	Camera camera = camera_create(glm::vec3(0, 0, 0), {
 		.left = 0,
 		.right = WIN_WIDTH,
@@ -75,136 +34,156 @@ int main(int argc, char* argv[]) {
 		.far = 1000.0f
 	});
 
-	Font small_font = font_create("font.ttf", 32).unwrap();
-	Font big_font = font_create("font.ttf", 100).unwrap();
+	// Dialog system
+	DialogSystem* ds = dialog_system_create();
 
-	audio_register_chunk(audio, JUMP, "./jump.wav");
-	audio_register_music(audio, MUSIC, "./music.mp3");
+	// Loading up the dialogs
+	dialog_system_init_dialogs(ds);
 
-	bool running = true;
-	SDL_Event event;
+	// Notebook system
+	NotebookSystem ns = notebook_system_create();
+
+	// Creating scene manager
+	SceneManager sm = sm_create();
+
+	// Adding the scenes
+	sm_add_scene(
+		&sm, SCENE_DIALOG,
+		dialog_entry,
+		dialog_exit,
+		dialog_update,
+		dialog_event,
+		NULL
+	);
+
+	sm_add_scene(
+		&sm, SCENE_MAP,
+		map_entry,
+		map_exit,
+		map_update,
+		map_event,
+		NULL
+	);
+
+	sm_add_scene(
+		&sm, SCENE_NOTEBOOK,
+		notebook_entry,
+		notebook_exit,
+		notebook_update,
+		notebook_event,
+		NULL
+	);
+
+	// Switching the scene
+	sm_switch_scene(&sm, SCENE_NOTEBOOK);
+
+	// Loading fonts
+	Font font_regular = font_create("./assets/Ac437_ToshibaSat_9x8.ttf", 25).unwrap();
+
+	// Initializing the game state
+	gs.window = &window;
+	gs.quad_rp = &quad_rp;
+	gs.audio = audio;
+	gs.camera = &camera;
+	gs.sm = &sm;
+	gs.ds = ds;
+	gs.ns = &ns;
+
+	gs.font_regular = &font_regular;
 
 	log_info("Opengl Version: %s\n", window_gl_version(window).c_str());
 
 	// Main loop
-	while(running){
+	bool running = true;
+	while(running) {
+
+		// Event loop
+		SDL_Event event;
 		while(SDL_PollEvent(&event)) {
+
+			// Events for imgui
 			ImGui_ImplSDL2_ProcessEvent(&event);
+
+			// TODO: Maybe maintain some state on which even is running?
+			// Handling event according to the running system
+			if (ds->is_dialog_running) {
+				dialog_system_handle_event(ds, event);
+			} else if (ns.open) {
+				notebook_system_handle_event(&ns, event);
+			} else {
+				// Events for scenes
+				sm_handle_event(&sm, event, 0);
+			}
+
 			if(event.type == SDL_QUIT) {
 				running = false;
 			}
 
 			if (event.type == SDL_KEYDOWN) {
 				switch (event.key.keysym.sym) {
-					case SDLK_w:
-						camera.pos.y -= 10.1f;
-						break;
-					case SDLK_s:
-						camera.pos.y += 10.1f;
-						break;
-					case SDLK_a:
-						camera.pos.x -= 10.1f;
-						break;
-					case SDLK_d:
-						camera.pos.x += 10.1f;
-						break;
-					case SDLK_j:
-						audio_play_chunk(audio, JUMP);
-						break;
-					case SDLK_b:
-						if (bnw == 0.0f)
-						{
-							bnw = 1.0f;
-						}
-						else{
-							bnw = 0.0f;
-						}
-						break;
-
-					case SDLK_SPACE:
-						if (!audio_is_music_playing()) {
-							audio_play_music(audio, MUSIC);
-						} else {
-							if (audio_paused_music()) {
-								audio_resume_music();
-							} else {
-								audio_pause_music();
-							}
-						}
-						break;
 				}
 			}
 		}
 
+		// Resource bindings
+		font_bind(&font_regular);
+
 		glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT);
 
-		// Binding Frame Buffer
-		fb_bind(&fb);
+		glc(glClearColor(0.5f, 0.5f, 0.5f, 1.0f));
+		glc(glClear(GL_COLOR_BUFFER_BIT));
 
-		glc(glClearColor(1.0f, 0.0f, 1.0f, 1.0f));
-		glc(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-		glc(glEnable(GL_DEPTH_TEST));
+		// Scene rendering section
+		rp_begin(&quad_rp);
+		{
+			// Updating camera matrix
+			glm::mat4 mvp = camera_calc_mvp(&camera);
+			i32 loc = glc(glGetUniformLocation(quad_rp.shader, "mvp"));
+			glc(glUniformMatrix4fv(loc, 1, GL_FALSE, &mvp[0][0]));
 
-		rp_begin(&rp);
+			// Updating the current scene
+			sm_update_scene(&sm, 0);
 
-		// Dont forget to bind those fonts
-		font_bind(&small_font);
-		font_bind(&big_font);
+			// Updating dialog system
+			dialog_system_update(ds);
 
-		// Updating camera matrix
-		glm::mat4 mvp = camera_calc_mvp(&camera);
-		loc = glc(glGetUniformLocation(rp.shader, "mvp"));
-		glc(glUniformMatrix4fv(loc, 1, GL_FALSE, &mvp[0][0]));
-
-		rp_push_quad(&rp, glm::vec3(0, 0, 0), glm::vec2(50, 50), glm::vec4(1, 0, 0, 1), rp.white_texture.id, glm::vec4(0, 0, 1, 1));
-
-		rp_push_text(&rp, &small_font, "Hello world", glm::vec3(100, 100, 0), glm::vec4(1, 1, 1, 1));
-		rp_push_text(&rp, &big_font, "Hello world", glm::vec3(100, 200, 0), glm::vec4(1, 1, 1, 1));
-
-		rp_end(&rp);
-
-		rp_begin(&frame_rp);
-
-		// UNBINDING FRAME BUFFEr
-		fb_unbind(&fb);
-
-		glc(glClearColor(1.0f, 0.0f, 1.0f, 1.0f));
-		glc(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-
-		rp_push_vertices(&frame_rp,  {
-				-1.0f,  1.0f, 0.0f,  0.0f, 1.0f,  // Top-left
-				-1.0f, -1.0f, 0.0f,  0.0f, 0.0f,  // Bottom-left
-				1.0f,  1.0f, 0.0f,  1.0f, 1.0f,  // Top-right
-
-				1.0f,  1.0f, 0.0f,  1.0f, 1.0f,  // Top-right
-				-1.0f, -1.0f, 0.0f,  0.0f, 0.0f,  // Bottom-left
-				1.0f, -1.0f, 0.0f,  1.0f, 0.0f   // Bottom-right
-				}
-		);
-
-		glc(glUniform1f(bnw_loc, bnw));
-		rp_end(&frame_rp);
+			// Updating notebook system
+			notebook_system_update(&ns);
+		}
+		rp_end(&quad_rp);
 
 		imgui_begin_frame();
-		// ImGui::Begin("Hello");
-		// ImGui::Text("Hello");
-		// ImGui::End();
 
-		// ImGui::Begin("World");
-		// ImGui::Text("World");
-		// ImGui::End();
+		if(ImGui::CollapsingHeader("Scenes"))
+		{
+			ImGui::SeparatorText("Scene Manager");
+			for(auto & [key, value] : sm.scenes){
+				std::string button_name = sm.current_scene != key? "[ ] " + scene_name(key) : "[*] " + scene_name(key);
+				if(ImGui::Button(button_name.c_str()))
+				{
+					sm_switch_scene(&sm, key);
+				}
+			}
+		}
+
+		if(ImGui::CollapsingHeader("Notebook"))
+		{
+			std::string text;
+			if (ImGui::InputText("text", &text, ImGuiInputTextFlags_EnterReturnsTrue)) {
+				notebook_system_append_text(&ns, text);
+			}
+		}
 		imgui_end_frame();
-
 
 		window_swap(window);
 	}
 
-	font_destroy(&small_font);
-	font_destroy(&big_font);
+	font_destroy(&font_regular);
 
+	dialog_system_destroy(ds);
 	imgui_destroy();
 	audio_destroy(audio);
-	rp_destroy(&rp);
+	rp_destroy(&quad_rp);
 	window_destroy(&window);
 	return 0;
 }
