@@ -158,7 +158,8 @@ int main(int argc, char* argv[]) {
 		{
 			ImGui::SeparatorText("Scene Manager");
 			for(auto & [key, value] : sm.scenes){
-				if(ImGui::Button(scene_name(key).c_str()))
+				std::string button_name = sm.current_scene != key? "[ ] " + scene_name(key) : "[*] " + scene_name(key);
+				if(ImGui::Button(button_name.c_str()))
 				{
 					sm_switch_scene(&sm, key);
 				}
