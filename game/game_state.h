@@ -2,6 +2,7 @@
 
 #include "core.h"
 #include "systems/dialog_system/dialog_system.h"
+#include "systems/notebook_system/notebook_system.h"
 
 
 /*
@@ -21,6 +22,7 @@ struct GameState {
 	Camera* camera;
 	SceneManager* sm;
 	DialogSystem* ds;
+	NotebookSystem* ns;
 
 	// Resources
 	Font* font_regular;

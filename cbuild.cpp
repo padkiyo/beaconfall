@@ -79,6 +79,7 @@ int main(int argc, char** argv) {
 			"./vendors/imgui/src/imgui_impl_sdl2.cpp",
 			"./vendors/imgui/src/imgui_tables.cpp",
 			"./vendors/imgui/src/imgui_widgets.cpp",
+			"./vendors/imgui/src/imgui_stdlib.cpp",
 			"./vendors/json/json/json_reader.cpp",
 			"./vendors/json/json/json_value.cpp",
 			"./vendors/json/json/json_writer.cpp",
@@ -98,8 +99,10 @@ int main(int argc, char** argv) {
 			"./core/scene/scene.cpp",
 
 			"./game/systems/dialog_system/dialog_system.cpp",
+			"./game/systems/notebook_system/notebook_system.cpp",
 			"./game/scenes/dialog/dialog.cpp",
 			"./game/scenes/map/map.cpp",
+			"./game/scenes/notebook/notebook.cpp",
 			"./game/main.cpp",
 		})
 		.build();
