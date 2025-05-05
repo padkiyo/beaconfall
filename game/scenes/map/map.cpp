@@ -5,7 +5,7 @@ extern GameState gs;
 Map map;
 
 void map_entry(void* data) {
-	map = map_load("./game/assets/maps/test_map/map.json", "./game/assets/maps/test_map/spritesheet.png").unwrap();
+	map = map_load("./assets/maps/test_map/map.json", "./assets/maps/test_map/spritesheet.png").unwrap();
 }
 
 void map_exit(void*data) {
