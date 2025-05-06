@@ -17,7 +17,7 @@ void map_update(void*data, f64 dt) {
 	rp_push_text(gs.quad_rp, gs.font_regular, "Map Scene", glm::vec3(0, 0, 0),
 			glm::vec4(1,1,1,1));
 
-	mm_render_current(gs.quad_rp, gs.mm, 3.0f);
+	mm_render_current(gs.quad_rp, gs.mm, 2.0f);
 }
 
 void map_event(void* data, SDL_Event event, f64 dt) {

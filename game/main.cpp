@@ -86,6 +86,7 @@ int main(int argc, char* argv[]) {
 	// Adding map to map manager
 	mm_add_map(&mm, TEST_MAP, "./assets/maps/test_map/map.json", "./assets/maps/test_map/spritesheet.png").unwrap();
 
+	mm_add_map(&mm, TEST2_MAP, "./assets/maps/test2_map/map.json", "./assets/maps/test2_map/spritesheet.png").unwrap();
 	// Loading fonts
 	Font font_regular = font_create("./assets/Ac437_ToshibaSat_9x8.ttf", 25).unwrap();
 
@@ -180,6 +181,20 @@ int main(int argc, char* argv[]) {
 				notebook_system_append_text(&ns, text);
 			}
 		}
+
+		if(ImGui::CollapsingHeader("Map Manager"))
+		{
+			ImGui::SeparatorText("Map Manager");
+			for(auto & [key, value] : mm.maps){
+				std::string button_name = mm.current_map != key? "[ ] " + map_name(key) : "[*] " + map_name(key);
+				if(ImGui::Button(button_name.c_str()))
+				{
+					mm_switch_map(&mm, key);
+				}
+			}
+
+		}
+
 		imgui_end_frame();
 
 		window_swap(window);
