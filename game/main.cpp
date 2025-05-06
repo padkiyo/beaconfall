@@ -1,6 +1,9 @@
 #include "core.h"
 #include "config.h"
 #include "game_state.h"
+
+#include "systems/map_system/map_system.h"
+#include "systems/map_system/maps.h"
 #include "systems/dialog_system/dialog_system.h"
 #include "systems/dialog_system/dialogs.h"
 #include "systems/notebook_system/notebook_system.h"
@@ -46,6 +49,9 @@ int main(int argc, char* argv[]) {
 	// Creating scene manager
 	SceneManager sm = sm_create();
 
+	// Creating Map Manager
+	MapManager mm = mm_create();
+
 	// Adding the scenes
 	sm_add_scene(
 		&sm, SCENE_DIALOG,
@@ -75,7 +81,10 @@ int main(int argc, char* argv[]) {
 	);
 
 	// Switching the scene
-	sm_switch_scene(&sm, SCENE_NOTEBOOK);
+	sm_switch_scene(&sm, SCENE_MAP);
+
+	// Adding map to map manager
+	mm_add_map(&mm, TEST_MAP, "./assets/maps/test_map/map.json", "./assets/maps/test_map/spritesheet.png").unwrap();
 
 	// Loading fonts
 	Font font_regular = font_create("./assets/Ac437_ToshibaSat_9x8.ttf", 25).unwrap();
@@ -88,9 +97,8 @@ int main(int argc, char* argv[]) {
 	gs.sm = &sm;
 	gs.ds = ds;
 	gs.ns = &ns;
-
+	gs.mm = &mm;
 	gs.font_regular = &font_regular;
-
 	log_info("Opengl Version: %s\n", window_gl_version(window).c_str());
 
 	// Main loop
@@ -127,7 +135,6 @@ int main(int argc, char* argv[]) {
 
 		// Resource bindings
 		font_bind(&font_regular);
-
 		glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT);
 
 		glc(glClearColor(0.5f, 0.5f, 0.5f, 1.0f));
