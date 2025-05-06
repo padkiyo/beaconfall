@@ -3,6 +3,7 @@
 #include "core.h"
 #include "systems/dialog_system/dialog_system.h"
 #include "systems/notebook_system/notebook_system.h"
+#include "systems/map_system/map_system.h"
 
 
 /*
@@ -23,6 +24,7 @@ struct GameState {
 	SceneManager* sm;
 	DialogSystem* ds;
 	NotebookSystem* ns;
+	MapManager* mm;
 
 	// Resources
 	Font* font_regular;
