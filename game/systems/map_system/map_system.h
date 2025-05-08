@@ -15,12 +15,13 @@ struct  MapManager {
 };
 
 
-MapManager mm_create();
+MapManager* mm_create();
+void mm_destroy(MapManager* mm);
 
 Result<i32 , const char*> mm_add_map(
-		MapManager* mm, i32 id,
-		const char* json,
-		const char* tilesheet
+	MapManager* mm, i32 id,
+	const char* json,
+	const char* tilesheet
 );
 
 void mm_switch_map(MapManager* mm, i32 id);

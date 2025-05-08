@@ -17,5 +17,6 @@ struct Camera {
 	CameraSpecs specs;
 };
 
-Camera camera_create(glm::vec3 pos, const CameraSpecs& specs);
+Camera* camera_create(glm::vec3 pos, const CameraSpecs& specs);
+void camera_destroy(Camera* cam);
 glm::mat4 camera_calc_mvp(Camera* cam);

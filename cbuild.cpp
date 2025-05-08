@@ -165,6 +165,7 @@ void build_game() {
 			"./game/systems/map_system/map_system.cpp",
 			"./game/scenes/map/map.cpp",
 			"./game/scenes/notebook/notebook.cpp",
+			"./game/game_state.cpp",
 			"./game/main.cpp",
 		})
 		.build()

@@ -1,5 +1,5 @@
 // TODO: better error handling by saying which file is not loading
-//
+	//
 #include "map_system.h"
 #include "maps.h"
 
@@ -97,10 +97,14 @@ void map_render(RenderPipeline* quad_rp, Map* map, f32 size){
 
 }
 
-MapManager mm_create() {
-	return (MapManager) {
-		.current_map = -1
-	};
+MapManager* mm_create() {
+	MapManager* mm = new MapManager;
+	mm->current_map = -1;
+	return mm;
+}
+
+void mm_destroy(MapManager* mm) {
+	delete mm;
 }
 
 Result<i32 , const char*> mm_add_map(
