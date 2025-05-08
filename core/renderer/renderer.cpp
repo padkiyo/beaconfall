@@ -1,11 +1,11 @@
 #include "renderer.h"
 
-Result<RenderPipeline, std::string> rp_create(RenderPipelineSpecs* specs) {
-	RenderPipeline rp;
-	rp.max_vertices = specs->max_vertices;
+Result<RenderPipeline*, std::string> rp_create(RenderPipelineSpecs* specs) {
+	RenderPipeline* rp = new RenderPipeline;
+	rp->max_vertices = specs->max_vertices;
 
 	u32 vertex_stride = 0; // Size of a single vector
-	rp.vertex_size = 0; // No of items in a vertex
+	rp->vertex_size = 0; // No of items in a vertex
 	u32 vb_size = 0; // Total Size of The Vertex Buffer
 	i32 offset = 0; // Vertex Attrib Offset Value
 
@@ -18,12 +18,12 @@ Result<RenderPipeline, std::string> rp_create(RenderPipelineSpecs* specs) {
 	vb_size = vertex_stride * specs->max_vertices;
 
 	// Creating vertex array objects
-	glc(glGenVertexArrays(1, &rp.vao));
-	glc(glBindVertexArray(rp.vao));
+	glc(glGenVertexArrays(1, &rp->vao));
+	glc(glBindVertexArray(rp->vao));
 
 	// Creating Vertex buffer objects
-	glc(glGenBuffers(1, &rp.vbo));
-	glc(glBindBuffer(GL_ARRAY_BUFFER, rp.vbo));
+	glc(glGenBuffers(1, &rp->vbo));
+	glc(glBindBuffer(GL_ARRAY_BUFFER, rp->vbo));
 	glc(glBufferData(GL_ARRAY_BUFFER, vb_size, nullptr, GL_DYNAMIC_DRAW));
 
 	// Creating Adding Vertex Attrib Layout
@@ -32,23 +32,23 @@ Result<RenderPipeline, std::string> rp_create(RenderPipelineSpecs* specs) {
 		glc(glEnableVertexAttribArray(id));
 		glc(glVertexAttribPointer(id, i.count, i.type, GL_FALSE, vertex_stride, reinterpret_cast<const void*>(static_cast<uintptr_t>(offset))));
 		offset += i.count * sizeof_gl_type(i.type);
-		rp.vertex_size += i.count;
+		rp->vertex_size += i.count;
 		id++;
 	}
 
 	// Allocating the buffer in memory
-	rp.buffer = (f32*) calloc(specs->max_vertices, vertex_stride);
-	rp.buffer_index = 0;
+	rp->buffer = (f32*) calloc(specs->max_vertices, vertex_stride);
+	rp->buffer_index = 0;
 
 	// Will crash the whole system! TODO do error handling here
 	std::string vs = specs->shaders.vertex_shader;
 	std::string fs = specs->shaders.fragment_shader;
-	rp.shader = xx(shader_create(vs, fs));
+	rp->shader = xx(shader_create(vs, fs));
 
 	// Generating white texture
 	u32 data = 0xffffffff;
-	rp.white_texture = texture_create_from_data(1, 1, &data);
-	texture_bind(rp.white_texture);
+	rp->white_texture = texture_create_from_data(1, 1, &data);
+	texture_bind(rp->white_texture);
 
 	// Enabling depth testing
 	// glc(glEnable(GL_DEPTH_TEST));

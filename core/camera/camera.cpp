@@ -1,10 +1,14 @@
 #include "camera.h"
 
-Camera camera_create(glm::vec3 pos, const CameraSpecs& specs) {
-	return (Camera) {
-		.pos = pos,
-		.specs = specs,
-	};
+Camera* camera_create(glm::vec3 pos, const CameraSpecs& specs) {
+	Camera* cam = new Camera;
+	cam->pos = pos;
+	cam->specs = specs;
+	return cam;
+}
+
+void camera_destroy(Camera* cam) {
+	delete cam;
 }
 
 glm::mat4 camera_calc_mvp(Camera* cam) {

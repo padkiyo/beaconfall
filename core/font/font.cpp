@@ -37,7 +37,7 @@ std::unordered_map<char, SDL_Surface*> load_char_set(TTF_Font* ttf_font, i32* wi
 	return surfs;
 }
 
-Result<Font, std::string> font_create(const std::string& path, i32 size) {
+Result<Font*, std::string> font_create(const std::string& path, i32 size) {
 	if (TTF_Init() < 0) {
 		return std::string("Failed to initialize SDL_ttf");
 	}
@@ -102,18 +102,19 @@ Result<Font, std::string> font_create(const std::string& path, i32 size) {
 
 	texture_bind(atlas);
 
-	return (Font) {
-		.size = size,
-		.ttf_font = ttf_font,
-		.atlas = atlas,
-		.glyphs = glyphs
-	};
+	Font* font = new Font;
+	font->size = size;
+	font->ttf_font = ttf_font;
+	font->atlas = atlas;
+	font->glyphs = glyphs;
+	return font;
 }
 
 void font_destroy(Font* font) {
 	TTF_CloseFont(font->ttf_font);
 	texture_destroy(font->atlas);
 	font->glyphs.clear();
+	delete font;
 }
 
 void font_bind(Font* font) {

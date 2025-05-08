@@ -9,98 +9,17 @@
 #include "systems/notebook_system/notebook_system.h"
 #include "scenes/scenes.h"
 
-// Global game state
-GameState gs;
+extern GameState gs;
 
 int main(int argc, char* argv[]) {
 
-	// Initialization of window
-	Window window = window_create(WIN_WIDTH, WIN_HEIGHT, WIN_TITLE).unwrap();
+	// Initializations of game state
+	gs_init_core();
+	gs_init_scenes();
+	gs_init_systems();
+	gs_init_resources();
 
-	// Setting up the imgui
-	imgui_create(window.sdl_window, window.gl_context);
-
-	// Creating audio manager
-	Audio* audio = audio_create().unwrap();
-
-	// Creating the default quad renderer
-	RenderPipeline quad_rp = rp_create(&QuadRendererSpecs).unwrap();
-	init_texture_samples(&quad_rp);
-
-	// Creating an orthographic camera
-	Camera camera = camera_create(glm::vec3(0, 0, 0), {
-		.left = 0,
-		.right = WIN_WIDTH,
-		.top = 0,
-		.bottom = WIN_HEIGHT,
-		.near = -1.0f,
-		.far = 1000.0f
-	});
-
-	// Dialog system
-	DialogSystem* ds = dialog_system_create();
-
-	// Loading up the dialogs
-	dialog_system_init_dialogs(ds);
-
-	// Notebook system
-	NotebookSystem ns = notebook_system_create();
-
-	// Creating scene manager
-	SceneManager sm = sm_create();
-
-	// Creating Map Manager
-	MapManager mm = mm_create();
-
-	// Adding the scenes
-	sm_add_scene(
-		&sm, SCENE_DIALOG,
-		dialog_entry,
-		dialog_exit,
-		dialog_update,
-		dialog_event,
-		NULL
-	);
-
-	sm_add_scene(
-		&sm, SCENE_MAP,
-		map_entry,
-		map_exit,
-		map_update,
-		map_event,
-		NULL
-	);
-
-	sm_add_scene(
-		&sm, SCENE_NOTEBOOK,
-		notebook_entry,
-		notebook_exit,
-		notebook_update,
-		notebook_event,
-		NULL
-	);
-
-	// Switching the scene
-	sm_switch_scene(&sm, SCENE_MAP);
-
-	// Adding map to map manager
-	mm_add_map(&mm, TEST_MAP, "./assets/maps/test_map/map.json", "./assets/maps/test_map/spritesheet.png").unwrap();
-
-	mm_add_map(&mm, TEST2_MAP, "./assets/maps/test2_map/map.json", "./assets/maps/test2_map/spritesheet.png").unwrap();
-	// Loading fonts
-	Font font_regular = font_create("./assets/Ac437_ToshibaSat_9x8.ttf", 25).unwrap();
-
-	// Initializing the game state
-	gs.window = &window;
-	gs.quad_rp = &quad_rp;
-	gs.audio = audio;
-	gs.camera = &camera;
-	gs.sm = &sm;
-	gs.ds = ds;
-	gs.ns = &ns;
-	gs.mm = &mm;
-	gs.font_regular = &font_regular;
-	log_info("Opengl Version: %s\n", window_gl_version(window).c_str());
+	log_info("Opengl Version: %s\n", window_gl_version(gs.window).c_str());
 
 	// Main loop
 	bool running = true;
@@ -115,13 +34,13 @@ int main(int argc, char* argv[]) {
 
 			// TODO: Maybe maintain some state on which even is running?
 			// Handling event according to the running system
-			if (ds->is_dialog_running) {
-				dialog_system_handle_event(ds, event);
-			} else if (ns.open) {
-				notebook_system_handle_event(&ns, event);
+			if (gs.ds->is_dialog_running) {
+				dialog_system_handle_event(gs.ds, event);
+			} else if (gs.ns->open) {
+				notebook_system_handle_event(gs.ns, event);
 			} else {
 				// Events for scenes
-				sm_handle_event(&sm, event, 0);
+				sm_handle_event(gs.sm, event, 0);
 			}
 
 			if(event.type == SDL_QUIT) {
@@ -135,41 +54,42 @@ int main(int argc, char* argv[]) {
 		}
 
 		// Resource bindings
-		font_bind(&font_regular);
+		gs_use_resources();
+
 		glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT);
 
 		glc(glClearColor(0.5f, 0.5f, 0.5f, 1.0f));
 		glc(glClear(GL_COLOR_BUFFER_BIT));
 
 		// Scene rendering section
-		rp_begin(&quad_rp);
+		rp_begin(gs.quad_rp);
 		{
 			// Updating camera matrix
-			glm::mat4 mvp = camera_calc_mvp(&camera);
-			i32 loc = glc(glGetUniformLocation(quad_rp.shader, "mvp"));
+			glm::mat4 mvp = camera_calc_mvp(gs.camera);
+			i32 loc = glc(glGetUniformLocation(gs.quad_rp->shader, "mvp"));
 			glc(glUniformMatrix4fv(loc, 1, GL_FALSE, &mvp[0][0]));
 
 			// Updating the current scene
-			sm_update_scene(&sm, 0);
+			sm_update_scene(gs.sm, 0);
 
 			// Updating dialog system
-			dialog_system_update(ds);
+			dialog_system_update(gs.ds);
 
 			// Updating notebook system
-			notebook_system_update(&ns);
+			notebook_system_update(gs.ns);
 		}
-		rp_end(&quad_rp);
+		rp_end(gs.quad_rp);
 
 		imgui_begin_frame();
 
 		if(ImGui::CollapsingHeader("Scenes"))
 		{
 			ImGui::SeparatorText("Scene Manager");
-			for(auto & [key, value] : sm.scenes){
-				std::string button_name = sm.current_scene != key? "[ ] " + scene_name(key) : "[*] " + scene_name(key);
+			for(auto & [key, value] : gs.sm->scenes){
+				std::string button_name = gs.sm->current_scene != key? "[ ] " + scene_name(key) : "[*] " + scene_name(key);
 				if(ImGui::Button(button_name.c_str()))
 				{
-					sm_switch_scene(&sm, key);
+					sm_switch_scene(gs.sm, key);
 				}
 			}
 		}
@@ -178,18 +98,18 @@ int main(int argc, char* argv[]) {
 		{
 			std::string text;
 			if (ImGui::InputText("text", &text, ImGuiInputTextFlags_EnterReturnsTrue)) {
-				notebook_system_append_text(&ns, text);
+				notebook_system_append_text(gs.ns, text);
 			}
 		}
 
 		if(ImGui::CollapsingHeader("Map Manager"))
 		{
 			ImGui::SeparatorText("Map Manager");
-			for(auto & [key, value] : mm.maps){
-				std::string button_name = mm.current_map != key? "[ ] " + map_name(key) : "[*] " + map_name(key);
+			for(auto & [key, value] : gs.mm->maps){
+				std::string button_name = gs.mm->current_map != key? "[ ] " + map_name(key) : "[*] " + map_name(key);
 				if(ImGui::Button(button_name.c_str()))
 				{
-					mm_switch_map(&mm, key);
+					mm_switch_map(gs.mm, key);
 				}
 			}
 
@@ -197,15 +117,10 @@ int main(int argc, char* argv[]) {
 
 		imgui_end_frame();
 
-		window_swap(window);
+		window_swap(gs.window);
 	}
 
-	font_destroy(&font_regular);
-
-	dialog_system_destroy(ds);
-	imgui_destroy();
-	audio_destroy(audio);
-	rp_destroy(&quad_rp);
-	window_destroy(&window);
+	// Cleaning up the game
+	gs_free();
 	return 0;
 }

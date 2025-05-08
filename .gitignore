@@ -5,3 +5,4 @@ records.txt
 imgui.ini
 release
 *.zip
+build*

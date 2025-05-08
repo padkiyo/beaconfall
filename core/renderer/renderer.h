@@ -45,7 +45,7 @@ struct RenderPipeline {
 	Texture white_texture;
 };
 
-Result<RenderPipeline, std::string> rp_create(RenderPipelineSpecs* specs);
+Result<RenderPipeline*, std::string> rp_create(RenderPipelineSpecs* specs);
 void rp_destroy(RenderPipeline* rp);
 
 void rp_begin(RenderPipeline* rp);

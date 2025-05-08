@@ -11,35 +11,13 @@ std::unordered_map<std::string, std::string> linux_libs = {
 	{ "./vendors/SDL2/lib/libSDL2_ttf-2.0.so.0", "./bin/libSDL2_ttf-2.0.so.0" },
 };
 
-int main(int argc, char** argv) {
-	cbuild_rebuild(argc, argv);
-
-	auto start = std::chrono::high_resolution_clock::now();
-
-	// This holds the file name with its updated time
-	FileRecords records;
-	read_file_records(records);
-
-	// Building the C vendors
-	CBuild build_c("gcc");
-	build_c
-		.set_file_records(&records)
-		.src({
-			"vendors/glad/src/gl.c",
-			"vendors/stb/stb_image.c",
-		})
-		.inc_paths({
-			"vendors/glad/include",
-			"vendors/stb",
-		})
-		.compile();
-
-	// Final build
+void build_core() {
 	CBuild build("g++");
 	build
-		.set_file_records(&records)
-		.out("bin", "game")
+		.out("bin", "libcore.so")
 		.flags({
+			"-fPIC",
+			"-shared",
 			"-std=c++20",
 			"-Wl,-rpath,'$ORIGIN'",
 		})
@@ -51,9 +29,74 @@ int main(int argc, char** argv) {
 			"./vendors/stb",
 			"./vendors/glm",
 			"./core",
-			"./game/",
 		})
-#if defined(__linux__)
+		.lib_paths({
+			"./bin/",
+			"./vendors/SDL2/lib/",
+		})
+		.libs({
+			"vendors",
+			"GL",
+			"GLU",
+			"m",
+			"SDL2",
+			"SDL2_mixer",
+			"SDL2_ttf",
+		})
+		.src({
+			"./core/base/utils.cpp",
+			"./core/window/window.cpp",
+			"./core/error/error.cpp",
+			"./core/audio/audio.cpp",
+			"./core/imgui/core_imgui.cpp",
+			"./core/shader/shader.cpp",
+			"./core/texture/texture.cpp",
+			"./core/renderer/renderer.cpp",
+			"./core/camera/camera.cpp",
+			"./core/font/font.cpp",
+			"./core/frame_buffer/frame_buffer.cpp",
+			"./core/scene/scene.cpp",
+		})
+		.build()
+		.clean();
+}
+
+void build_vendors() {
+	CBuild build_c("gcc");
+	build_c
+		.flags({
+			"-fPIC",
+		})
+		.inc_paths({
+			"vendors/glad/include",
+			"vendors/stb",
+		})
+		.src({
+			"vendors/glad/src/gl.c",
+			"vendors/stb/stb_image.c",
+		})
+		.compile();
+
+	CBuild build_cpp("g++");
+	build_cpp
+		.out("bin", "libvendors.so")
+		.flags({
+			"-fPIC",
+			"-shared",
+		})
+		.inc_paths({
+			".",
+			"./vendors/glad/include",
+			"./vendors/imgui/include",
+			"./vendors/json",
+			"./vendors/stb",
+			"./vendors/glm",
+			"./core",
+		})
+		.lib_paths({
+			"./bin/",
+			"./vendors/SDL2/lib/",
+		})
 		.libs({
 			"GL",
 			"GLU",
@@ -62,11 +105,6 @@ int main(int argc, char** argv) {
 			"SDL2_mixer",
 			"SDL2_ttf",
 		})
-#elif defined(_WIN32)
-		.libs({
-			// TODO: Add libs for windows
-		})
-#endif
 		.objs({
 			"./objs/gl.o",
 			"./objs/stb_image.o",
@@ -83,31 +121,58 @@ int main(int argc, char** argv) {
 			"./vendors/json/json/json_reader.cpp",
 			"./vendors/json/json/json_value.cpp",
 			"./vendors/json/json/json_writer.cpp",
+		})
+		.build()
+		.clean();
+}
 
-
-			"./core/base/utils.cpp",
-			"./core/window/window.cpp",
-			"./core/error/error.cpp",
-			"./core/audio/audio.cpp",
-			"./core/imgui/core_imgui.cpp",
-			"./core/shader/shader.cpp",
-			"./core/texture/texture.cpp",
-			"./core/renderer/renderer.cpp",
-			"./core/camera/camera.cpp",
-			"./core/font/font.cpp",
-			"./core/frame_buffer/frame_buffer.cpp",
-			"./core/scene/scene.cpp",
-
+void build_game() {
+	CBuild build("g++");
+	build
+		.out("bin", "game")
+		.flags({
+			"-std=c++20",
+			"-Wl,-rpath,'$ORIGIN'",
+		})
+		.inc_paths({
+			".",
+			"./vendors/glad/include",
+			"./vendors/imgui/include",
+			"./vendors/json",
+			"./vendors/stb",
+			"./vendors/glm",
+			"./core",
+			"./game/",
+		})
+		.lib_paths({
+			"./bin/",
+			"./vendors/SDL2/lib/",
+		})
+		.libs({
+			"core",
+			"vendors",
+			"GL",
+			"GLU",
+			"m",
+			"SDL2",
+			"SDL2_mixer",
+			"SDL2_ttf",
+		})
+		.src({
 			"./game/systems/dialog_system/dialog_system.cpp",
 			"./game/systems/notebook_system/notebook_system.cpp",
 			"./game/scenes/dialog/dialog.cpp",
 			"./game/systems/map_system/map_system.cpp",
 			"./game/scenes/map/map.cpp",
 			"./game/scenes/notebook/notebook.cpp",
+			"./game/game_state.cpp",
 			"./game/main.cpp",
 		})
-		.build();
+		.build()
+		.clean();
+}
 
+void move_libraries() {
 #if defined(__linux__)
 
 	printf("\n");
@@ -120,8 +185,44 @@ int main(int argc, char** argv) {
 #elif defined(_WIN32)
 	// TODO: Implement copying for windows
 #endif
+}
 
-	save_file_records(records);
+void print_usage() {
+	std::cout << "[Usage]: ./cbuild [options]" << std::endl;
+	std::cout << "[Options]:\n";
+	std::cout << "  vendors: Builds vendors\n";
+	std::cout << "  core: Builds core\n";
+	std::cout << "  game: Builds game\n";
+	std::cout << "  all: Builds everything\n";
+}
+
+int main(int argc, char** argv) {
+	cbuild_rebuild(argc, argv);
+
+	std::vector<std::string> args(argv, argv + argc);
+
+	args.erase(args.begin());
+
+	if (!args.size())
+		print_usage();
+
+	auto start = std::chrono::high_resolution_clock::now();
+
+	for (auto& arg : args) {
+		if (arg == "vendors") {
+			build_vendors();
+		} else if (arg == "core") {
+			build_core();
+		} else if (arg == "game") {
+			build_game();
+			move_libraries();
+		} else if (arg == "all") {
+			build_vendors();
+			build_core();
+			build_game();
+			move_libraries();
+		}
+	}
 
 	auto end = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> duration = end - start;
