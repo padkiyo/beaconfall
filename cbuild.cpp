@@ -161,8 +161,8 @@ void build_game() {
 		.src({
 			"./game/systems/dialog_system/dialog_system.cpp",
 			"./game/systems/notebook_system/notebook_system.cpp",
-			"./game/scenes/dialog/dialog.cpp",
 			"./game/systems/map_system/map_system.cpp",
+			"./game/scenes/dialog/dialog.cpp",
 			"./game/scenes/map/map.cpp",
 			"./game/scenes/notebook/notebook.cpp",
 			"./game/game_state.cpp",

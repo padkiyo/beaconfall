@@ -11,6 +11,7 @@ struct FrameBuffer {
 	Texture color_texture;
 };
 
-FrameBuffer fb_create(u32 width, u32 height);
-void fb_bind(FrameBuffer* fb);
-void fb_unbind(FrameBuffer* fb);
+Result<FrameBuffer, const char*> fb_create(u32 width, u32 height);
+void fb_destroy(FrameBuffer fb);
+void fb_bind(FrameBuffer fb);
+void fb_unbind(FrameBuffer fb);
