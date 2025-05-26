@@ -54,7 +54,7 @@ void rp_push_vertices(RenderPipeline* rp, const Vertices& vertices);
 
 // Quads
 Vertices rp_create_quad(glm::vec3 pos, glm::vec2 size, glm::vec4 color);
-Vertices rp_create_quad(glm::vec3 pos, glm::vec2 size, glm::vec4 color, u32 tex_id, glm::vec4 tex_coord);
+Vertices rp_create_quad(glm::vec3 pos, glm::vec2 size, glm::vec4 color, u32 tex_id, glm::vec4 tex_coord, glm::mat4 rot = glm::mat4(1));
 
 #define rp_push_quad(rp, ...) do {\
 	Vertices x = rp_create_quad(__VA_ARGS__);\

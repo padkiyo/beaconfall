@@ -1,13 +1,8 @@
 #include "core.h"
 #include "config.h"
 #include "game_state.h"
-
-#include "systems/map_system/map_system.h"
-#include "systems/map_system/maps.h"
-#include "systems/dialog_system/dialog_system.h"
-#include "systems/dialog_system/dialogs.h"
-#include "systems/notebook_system/notebook_system.h"
 #include "scenes/scenes.h"
+#include "systems/map_system/maps.h"
 
 extern GameState gs;
 
@@ -61,14 +56,15 @@ int main(int argc, char* argv[]) {
 		glc(glClearColor(0.5f, 0.5f, 0.5f, 1.0f));
 		glc(glClear(GL_COLOR_BUFFER_BIT));
 
+		// Updating camera matrix
+		glc(glUseProgram(gs.quad_rp->shader));
+		glm::mat4 mvp = camera_calc_mvp(gs.camera);
+		i32 loc = glc(glGetUniformLocation(gs.quad_rp->shader, "mvp"));
+		glc(glUniformMatrix4fv(loc, 1, GL_FALSE, &mvp[0][0]));
+
 		// Scene rendering section
 		rp_begin(gs.quad_rp);
 		{
-			// Updating camera matrix
-			glm::mat4 mvp = camera_calc_mvp(gs.camera);
-			i32 loc = glc(glGetUniformLocation(gs.quad_rp->shader, "mvp"));
-			glc(glUniformMatrix4fv(loc, 1, GL_FALSE, &mvp[0][0]));
-
 			// Updating the current scene
 			sm_update_scene(gs.sm, 0);
 
