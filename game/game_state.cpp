@@ -70,7 +70,16 @@ void gs_init_scenes() {
 		NULL
 	);
 
-	sm_switch_scene(gs.sm, SCENE_DIALOG);
+	sm_add_scene(
+		gs.sm, SCENE_SLOWMO,
+		slowmo_entry,
+		slowmo_exit,
+		slowmo_update,
+		slowmo_event,
+		(void*) slowmo_create()
+	);
+
+	sm_switch_scene(gs.sm, SCENE_SLOWMO);
 }
 
 void gs_init_systems() {

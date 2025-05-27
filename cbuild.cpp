@@ -11,6 +11,7 @@ std::unordered_map<std::string, std::string> linux_libs = {
 	{ "./vendors/SDL2/lib/libSDL2_ttf-2.0.so.0", "./bin/libSDL2_ttf-2.0.so.0" },
 };
 
+// :core
 void build_core() {
 	CBuild build("g++");
 	build
@@ -62,6 +63,7 @@ void build_core() {
 		.clean();
 }
 
+// :vendors
 void build_vendors() {
 	CBuild build_c("gcc");
 	build_c
@@ -127,6 +129,7 @@ void build_vendors() {
 		.clean();
 }
 
+// :game
 void build_game() {
 	CBuild build("g++");
 	build
@@ -166,6 +169,7 @@ void build_game() {
 			"./game/scenes/dialog/dialog.cpp",
 			"./game/scenes/map/map.cpp",
 			"./game/scenes/notebook/notebook.cpp",
+			"./game/scenes/slowmo/slowmo.cpp",
 			"./game/game_state.cpp",
 			"./game/main.cpp",
 		})
