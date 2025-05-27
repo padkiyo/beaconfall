@@ -6,7 +6,7 @@ struct FrameController {
 	u32 start_time;
 	u32 start_tick;
 	f64 unit_frame;
-	u32 dt;
+	f64 dt;
 	i32 frame;
 	i32 fps;
 };
