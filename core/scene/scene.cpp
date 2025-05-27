@@ -1,9 +1,13 @@
 #include "scene.h"
 
-SceneManager sm_create() {
-	return (SceneManager) {
-		.current_scene = -1
-	};
+SceneManager* sm_create() {
+	SceneManager* sm = new SceneManager;
+	sm->current_scene = -1;
+	return sm;
+}
+
+void sm_destroy(SceneManager* sm) {
+	delete sm;
 }
 
 void sm_add_scene(

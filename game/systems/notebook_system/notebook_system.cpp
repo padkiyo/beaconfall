@@ -7,11 +7,15 @@ extern GameState gs;
 // TODO: Add support for long text wraps
 // TODO: Make fixed amount of pages
 
-NotebookSystem notebook_system_create() {
-	return (NotebookSystem) {
-		.current_page = 0,
-		.open = false,
-	};
+NotebookSystem* notebook_system_create() {
+	NotebookSystem* ns = new NotebookSystem;
+	ns->current_page = 0;
+	ns->open = false;
+	return ns;
+}
+
+void notebook_system_destroy(NotebookSystem* ns) {
+	delete ns;
 }
 
 void notebook_system_update(NotebookSystem* ns) {
@@ -112,7 +116,7 @@ void notebook_system_append_text(NotebookSystem* ns, const std::string& text) {
 	glm::vec2 size = font_size(gs.font_regular);
 
 	// Calculating max no of lines in a page
-	// (total height - page number size) / height of each character 
+	// (total height - page number size) / height of each character
 	i32 max_lines = (NOTEBOOK_HEIGHT - size.y - 2*NOTEBOOK_PAD_Y) / size.y;
 
 	// If the line is overflown add a new page

@@ -5,7 +5,7 @@ extern GameState gs;
 Map map;
 
 void map_entry(void* data) {
-	map = map_load("./assets/maps/test_map/map.json", "./assets/maps/test_map/spritesheet.png").unwrap();
+	log_info("Map scene is entered\n");
 }
 
 void map_exit(void*data) {
@@ -17,7 +17,7 @@ void map_update(void*data, f64 dt) {
 	rp_push_text(gs.quad_rp, gs.font_regular, "Map Scene", glm::vec3(0, 0, 0),
 			glm::vec4(1,1,1,1));
 
-	map_render(gs.quad_rp, &map, 1.5f);
+	mm_render_current(gs.quad_rp, gs.mm, 2.0f);
 }
 
 void map_event(void* data, SDL_Event event, f64 dt) {
