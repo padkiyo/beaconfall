@@ -56,6 +56,7 @@ void build_core() {
 			"./core/font/font.cpp",
 			"./core/frame_buffer/frame_buffer.cpp",
 			"./core/scene/scene.cpp",
+			"./core/frame_controller/frame_controller.cpp",
 		})
 		.build()
 		.clean();
