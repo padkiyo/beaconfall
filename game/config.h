@@ -7,6 +7,7 @@
 #define WIN_TITLE "Game6 " VERSION
 #define WIN_WIDTH 800
 #define WIN_HEIGHT 600
+#define FPS 60
 
 // Texture
 #define MAX_TEXTURE_SAMPLES 32

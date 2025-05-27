@@ -20,6 +20,9 @@ int main(int argc, char* argv[]) {
 	bool running = true;
 	while(running) {
 
+		// Starting the frame count
+		fc_start(&gs.fc);
+
 		// Event loop
 		SDL_Event event;
 		while(SDL_PollEvent(&event)) {
@@ -76,6 +79,20 @@ int main(int argc, char* argv[]) {
 		}
 		rp_end(gs.quad_rp);
 
+		// Overlay rendering
+		rp_begin(gs.quad_rp);
+		{
+			std::string fps = std::to_string(gs.fc.fps);
+			rp_push_text(
+				gs.quad_rp,
+				gs.font_regular,
+				fps,
+				glm::vec3(10, 10, 0),
+				glm::vec4(0, 1, 0.2, 1)
+			);
+		}
+		rp_end(gs.quad_rp);
+
 		imgui_begin_frame();
 
 		if(ImGui::CollapsingHeader("Scenes"))
@@ -114,6 +131,11 @@ int main(int argc, char* argv[]) {
 		imgui_end_frame();
 
 		window_swap(gs.window);
+
+		// Capping the frame
+		fc_end(&gs.fc);
+		// log_info("FPS: %d\n", gs.fc.fps);
+		// log_info("dt: %d\n", gs.fc.dt);
 	}
 
 	// Cleaning up the game

@@ -35,6 +35,9 @@ void gs_init_core() {
 		.near = -1.0f,
 		.far = 1000.0f
 	});
+
+	// Initializing the frame controller
+	gs.fc = fc_create(FPS);
 }
 
 void gs_init_scenes() {
@@ -67,7 +70,7 @@ void gs_init_scenes() {
 		NULL
 	);
 
-	sm_switch_scene(gs.sm, SCENE_MAP);
+	sm_switch_scene(gs.sm, SCENE_DIALOG);
 }
 
 void gs_init_systems() {

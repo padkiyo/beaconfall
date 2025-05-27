@@ -22,6 +22,7 @@ struct GameState {
 	Audio* audio;
 	Camera* camera;
 	SceneManager* sm;
+	FrameController fc;
 
 	// Systems
 	DialogSystem* ds;
