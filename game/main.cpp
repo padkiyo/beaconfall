@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
 				notebook_system_handle_event(gs.ns, event);
 			} else {
 				// Events for scenes
-				sm_handle_event(gs.sm, event, 0);
+				sm_handle_event(gs.sm, event, gs.fc.dt);
 			}
 
 			if(event.type == SDL_QUIT) {
@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
 		rp_begin(gs.quad_rp);
 		{
 			// Updating the current scene
-			sm_update_scene(gs.sm, 0);
+			sm_update_scene(gs.sm, gs.fc.dt);
 
 			// Updating dialog system
 			dialog_system_update(gs.ds);
@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
 		// Capping the frame
 		fc_end(&gs.fc);
 		// log_info("FPS: %d\n", gs.fc.fps);
-		// log_info("dt: %d\n", gs.fc.dt);
+		// log_info("dt: %f\n", gs.fc.dt);
 	}
 
 	// Cleaning up the game
