@@ -47,6 +47,26 @@ int main(int argc, char* argv[]) {
 
 			if (event.type == SDL_KEYDOWN) {
 				switch (event.key.keysym.sym) {
+					case SDLK_q:
+						gs.camera->pos.z += 10.0f;
+						break;
+					case SDLK_e:
+						gs.camera->pos.z -= 10.0f;
+						break;
+
+					case SDLK_w:
+						gs.camera->pos.x += 10.0f;
+						break;
+					case SDLK_s:
+						gs.camera->pos.x -= 0.1f;
+						break;
+
+					case SDLK_a:
+						gs.camera->pos.y += 10.0f;
+						break;
+					case SDLK_d:
+						gs.camera->pos.y -= 0.1f;
+						break;
 				}
 			}
 		}
@@ -57,7 +77,8 @@ int main(int argc, char* argv[]) {
 		glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT);
 
 		glc(glClearColor(0.5f, 0.5f, 0.5f, 1.0f));
-		glc(glClear(GL_COLOR_BUFFER_BIT));
+		glc(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+
 
 		// Updating camera matrix
 		glc(glUseProgram(gs.quad_rp->shader));
@@ -76,7 +97,13 @@ int main(int argc, char* argv[]) {
 
 			// Updating notebook system
 			notebook_system_update(gs.ns);
+
+			rp_push_quad(gs.quad_rp, glm::vec3(0.0f, -0.7f, 1.0f), glm::vec2(0.5f, 0.5f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), gs.quad_rp->white_texture.id, glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+
 		}
+
+		std::cout << gs.camera->pos.x << "," << gs.camera->pos.y << "," << gs.camera->pos.z << std::endl;
+
 		rp_end(gs.quad_rp);
 
 		// Overlay rendering

@@ -76,7 +76,7 @@ void map_render(RenderPipeline* quad_rp, Map* map, f32 size){
 
 			glm::vec3 position = glm::vec3(
 					tiles[i]["x"].asFloat() * render_size.x,
-					tiles[i]["y"].asFloat() * render_size.y,
+				(11.0f - tiles[i]["y"].asFloat()) * render_size.y ,
 					1.0f
 					);
 

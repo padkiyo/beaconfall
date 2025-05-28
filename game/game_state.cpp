@@ -27,13 +27,15 @@ void gs_init_core() {
 	init_texture_samples(gs.quad_rp);
 
 	// Initializing orthographic camera
-	gs.camera = camera_create(glm::vec3(0, 0, 0), {
+	gs.camera = camera_create(glm::vec3(0, 0, -2), {
 		.left = 0,
 		.right = WIN_WIDTH,
 		.top = 0,
 		.bottom = WIN_HEIGHT,
-		.near = -1.0f,
-		.far = 1000.0f
+		.near = 0.1f,
+		.far = 1000.0f,
+		.fov = 45.0f,
+		.aspect_ratio = WIN_WIDTH/WIN_HEIGHT
 	});
 
 	// Initializing the frame controller
