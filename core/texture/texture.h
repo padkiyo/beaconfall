@@ -22,7 +22,7 @@ static TextureFilter DefaultFilter = {
 	.wrap_t = GL_CLAMP_TO_EDGE
 };
 
-Result<Texture, std::string> texture_create_from_file(const char* filepath, b32 flip = false, TextureFilter filter = DefaultFilter);
+Result<Texture, std::string> texture_create_from_file(const char* filepath, b32 flip = true, TextureFilter filter = DefaultFilter);
 
 /*
  * NOTE: The 'data' parameter is always of type GL_UNSIGNED_BYTE thats why its a (u32*)

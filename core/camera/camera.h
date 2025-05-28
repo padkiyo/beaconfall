@@ -9,14 +9,19 @@ struct CameraSpecs {
 	f32 bottom;
 	f32 near;
 	f32 far;
+
+	f32 fov;
+	f32 aspect_ratio;
 };
 
 struct Camera {
 	glm::vec3 pos;
 	glm::mat4 mvp;
+	glm::mat4 look_at;
 	CameraSpecs specs;
 };
 
 Camera* camera_create(glm::vec3 pos, const CameraSpecs& specs);
 void camera_destroy(Camera* cam);
 glm::mat4 camera_calc_mvp(Camera* cam);
+
