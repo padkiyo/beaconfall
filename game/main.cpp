@@ -4,6 +4,8 @@
 #include "scenes/scenes.h"
 #include "systems/map_system/maps.h"
 
+#define CAM_SPEED 1.0f
+
 extern GameState gs;
 
 int main(int argc, char* argv[]) {
@@ -48,24 +50,24 @@ int main(int argc, char* argv[]) {
 			if (event.type == SDL_KEYDOWN) {
 				switch (event.key.keysym.sym) {
 					case SDLK_q:
-						gs.camera->pos.z += 10.0f;
+						gs.camera->pos.z += CAM_SPEED;
 						break;
 					case SDLK_e:
-						gs.camera->pos.z -= 10.0f;
+						gs.camera->pos.z -= CAM_SPEED;
 						break;
 
 					case SDLK_w:
-						gs.camera->pos.x += 10.0f;
+						gs.camera->pos.y += CAM_SPEED;
 						break;
 					case SDLK_s:
-						gs.camera->pos.x -= 0.1f;
+						gs.camera->pos.y -= CAM_SPEED;
 						break;
 
 					case SDLK_a:
-						gs.camera->pos.y += 10.0f;
+						gs.camera->pos.x -= CAM_SPEED;
 						break;
 					case SDLK_d:
-						gs.camera->pos.y -= 0.1f;
+						gs.camera->pos.x += CAM_SPEED;
 						break;
 				}
 			}
@@ -74,8 +76,7 @@ int main(int argc, char* argv[]) {
 		// Resource bindings
 		gs_use_resources();
 
-		glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT);
-
+		glc(glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT));
 		glc(glClearColor(0.5f, 0.5f, 0.5f, 1.0f));
 		glc(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
@@ -97,9 +98,6 @@ int main(int argc, char* argv[]) {
 
 			// Updating notebook system
 			notebook_system_update(gs.ns);
-
-			rp_push_quad(gs.quad_rp, glm::vec3(0.0f, -0.7f, 1.0f), glm::vec2(0.5f, 0.5f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), gs.quad_rp->white_texture.id, glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
-
 		}
 
 		std::cout << gs.camera->pos.x << "," << gs.camera->pos.y << "," << gs.camera->pos.z << std::endl;
@@ -114,7 +112,7 @@ int main(int argc, char* argv[]) {
 				gs.quad_rp,
 				gs.font_regular,
 				fps,
-				glm::vec3(10, 10, 0),
+				glm::vec3(0, 0, 1),
 				glm::vec4(0, 1, 0.2, 1)
 			);
 		}

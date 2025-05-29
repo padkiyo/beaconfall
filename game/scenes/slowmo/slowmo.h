@@ -4,6 +4,7 @@
 
 struct Enemy {
 	glm::vec3 pos;
+	glm::vec2 size;
 	f32 react_time;
 	f32 curr_time;
 	b32 reacted;

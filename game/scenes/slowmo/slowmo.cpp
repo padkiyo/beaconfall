@@ -16,19 +16,22 @@ Slowmo* slowmo_create() {
 	scene->tick = TICK;
 	scene->enemies = {
 		{
-			glm::vec3(100, 200, 0),
+			glm::vec3(-0.5, 0, 1),
+			glm::vec2(0.2, 0.5),
 			2,
 			0,
 			false,
 		},
 		{
-			glm::vec3(300, 200, 0),
+			glm::vec3(0, 0, 1),
+			glm::vec2(0.2, 0.5),
 			1,
 			0,
 			false,
 		},
 		{
-			glm::vec3(500, 200, 0),
+			glm::vec3(0.5, 0, 1),
+			glm::vec2(0.2, 0.5),
 			3,
 			0,
 			false,
@@ -42,6 +45,36 @@ void slowmo_entry(void* data) {
 }
 
 void slowmo_exit(void* data) {
+}
+
+b32 intersectRayTriangle(
+	glm::vec3 orig, glm::vec3 dir,
+	glm::vec3 v0, glm::vec3 v1, glm::vec3 v2,
+	glm::vec3 &outIntersectionPoint
+) {
+	const f32 EPSILON = 1e-8;
+	glm::vec3 edge1 = v1 - v0;
+	glm::vec3 edge2 = v2 - v0;
+	glm::vec3 h = glm::cross(dir, edge2);
+	f32 a = glm::dot(edge1, h);
+	if (a > -EPSILON && a < EPSILON) return false;
+
+	f32 f = 1.0 / a;
+	glm::vec3 s = orig - v0;
+	f32 u = f * glm::dot(s, h);
+	if (u < 0.0 || u > 1.0) return false;
+
+	glm::vec3 q = glm::cross(s, edge1);
+	f32 v = f * glm::dot(dir, q);
+	if (v < 0.0 || u + v > 1.0) return false;
+
+	f32 t = f * glm::dot(edge2, q);
+	if (t > EPSILON) {
+			outIntersectionPoint = orig + dir * t;
+			return true;
+	}
+
+	return false;
 }
 
 void slowmo_update(void* data, f64 dt) {
@@ -83,15 +116,10 @@ void slowmo_update(void* data, f64 dt) {
 		glm::vec4(1, 1, 1, 1)
 	);
 
-	// TODO:
-	// When peaked start the reaction timer
-	// The slowmo starts
-	// The slowmo has limited amount of time
-	// When slomo stops the reaction timer moves faster
-	// END
-
+	// Handling dead eye slowmo
 	if (scene->start_deadeye) {
 
+		// Rendering the time bar
 		u32 deadeye_time_elapsed = SDL_GetTicks() - scene->deadeye_start_time;
 		f32 progress = 100.0f - (((f32) deadeye_time_elapsed / (f32) DEAD_EYE_TIME) * 100.0f);
 
@@ -110,6 +138,46 @@ void slowmo_update(void* data, f64 dt) {
 		// Switching to normal tick when dead eye effect is over
 		if (deadeye_time_elapsed >= DEAD_EYE_TIME) {
 			scene->tick = TICK;
+		} else {
+
+			// When the deadeye effect is not completed let the player aim
+
+			// TODO: Implement the aiming system
+
+			for (auto& enemy: scene->enemies) {
+				i32 mp_x, mp_y;
+				SDL_GetMouseState(&mp_x, &mp_y);
+
+				// Converting to Normalized Device Coordinates
+				float x = (2.0f * mp_x) / WIN_WIDTH - 1.0f;
+				float y = 1.0f - (2.0f * mp_y) / WIN_HEIGHT;
+				glm::vec4 ray_ndc = glm::vec4(x, y, -1.0f, 1.0f);
+			
+				// Converting to View Space
+				glm::vec4 ray_clip = glm::vec4(ray_ndc.x, ray_ndc.y, -1.0, 1.0);
+				glm::vec4 ray_eye = glm::inverse(gs.camera->proj) * ray_clip;
+				ray_eye = glm::vec4(ray_eye.x, ray_eye.y, -1.0, 0.0); // direction
+			
+				// Converting to world space
+				glm::vec3 ray_world = glm::normalize(glm::vec3(glm::inverse(gs.camera->look_at) * ray_eye));
+				glm::vec3 ray_origin = glm::vec3(glm::inverse(gs.camera->look_at)[3]); // camera position
+			
+				std::cout << ray_origin.x << " " << ray_origin.y << " " << ray_origin.z << std::endl;
+				std::cout << ray_world.x << " " << ray_world.y << " " << ray_world.z << std::endl;
+				std::cout << std::endl;
+			
+				// Extracting points from quad
+				glm::vec3 v0 = enemy.pos;
+				glm::vec3 v1 = { enemy.pos.x + enemy.size.x, enemy.pos.y, enemy.pos.z };
+				glm::vec3 v2 = { enemy.pos.x + enemy.size.x, enemy.pos.y + enemy.size.y, enemy.pos.z };
+				glm::vec3 v3 = { enemy.pos.x, enemy.pos.y + enemy.size.y, enemy.pos.z };
+				glm::vec3 hitPoint;
+			
+				// Calculating hit
+				bool hit = intersectRayTriangle(ray_origin, ray_world, v0, v1, v2, hitPoint) ||
+				           intersectRayTriangle(ray_origin, ray_world, v2, v3, v0, hitPoint);
+				std::cout << "HIT: " << hit << std::endl;
+			}
 		}
 
 		// Updating the enemies reaction time
@@ -128,7 +196,7 @@ void slowmo_update(void* data, f64 dt) {
 			rp_push_quad(
 				gs.quad_rp,
 				enemy.pos,
-				glm::vec2(50, 100),
+				enemy.size,
 				glm::vec4(1, 0, 0, 1),
 				gs.quad_rp->white_texture.id,
 				glm::vec4(0, 0, 1, 1)
@@ -137,7 +205,7 @@ void slowmo_update(void* data, f64 dt) {
 			rp_push_quad(
 				gs.quad_rp,
 				enemy.pos,
-				glm::vec2(50, 100),
+				enemy.size,
 				glm::vec4(
 					1 - ((enemy.react_time - enemy.curr_time) / enemy.react_time),
 					0, 0, 1
