@@ -25,6 +25,9 @@ std::unordered_map<char, SDL_Surface*> load_char_set(TTF_Font* ttf_font, i32* wi
 		// Switching the surface
 		surface = intermediate_surface;
 
+		// NOTE: Flipping the surface because of perspective projection that we're using
+		flip_surface(surface);
+
 		// The atlas is a 1D wide texture
 		*width += surface->w;
 		if (*height < surface->h) {

@@ -18,6 +18,7 @@ struct Camera {
 	glm::vec3 pos;
 	glm::mat4 mvp;
 	glm::mat4 look_at;
+	glm::mat4 proj;
 	CameraSpecs specs;
 };
 

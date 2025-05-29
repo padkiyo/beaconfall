@@ -30,7 +30,7 @@ void camera_destroy(Camera* cam) {
 
  glm::mat4 camera_calc_mvp(Camera* cam) {
  	// Projection matrix
- 	glm::mat4 proj = glm::perspective(
+ 	cam->proj = glm::perspective(
  		glm::radians(cam->specs.fov),
 		cam->specs.aspect_ratio,
  		cam->specs.near,
@@ -51,6 +51,6 @@ void camera_destroy(Camera* cam) {
  	cam->look_at = camera_mat * camera_trans;
 
  	// Final MVP
- 	cam->mvp = proj * cam->look_at;
+ 	cam->mvp = cam->proj * cam->look_at;
  	return cam->mvp;
  }
