@@ -1,5 +1,5 @@
 // TODO: better error handling by saying which file is not loading
-//
+	//
 #include "map_system.h"
 #include "maps.h"
 
@@ -76,7 +76,7 @@ void map_render(RenderPipeline* quad_rp, Map* map, f32 size){
 
 			glm::vec3 position = glm::vec3(
 					tiles[i]["x"].asFloat() * render_size.x,
-					tiles[i]["y"].asFloat() * render_size.y,
+				(11.0f - tiles[i]["y"].asFloat()) * render_size.y ,
 					1.0f
 					);
 
@@ -96,3 +96,55 @@ void map_render(RenderPipeline* quad_rp, Map* map, f32 size){
 	}
 
 }
+
+MapManager* mm_create() {
+	MapManager* mm = new MapManager;
+	mm->current_map = -1;
+	return mm;
+}
+
+void mm_destroy(MapManager* mm) {
+	delete mm;
+}
+
+Result<i32 , const char*> mm_add_map(
+		MapManager* mm, i32 id,
+		const char* json,
+		const char* tilesheet
+)
+{
+	Map* nm = new Map;
+	Map _tmp_map = xx(map_load(json, tilesheet));
+
+	nm->root = _tmp_map.root;
+	nm->tilesheet = _tmp_map.tilesheet;
+
+	mm->maps.insert_or_assign(id, nm);
+
+	if (mm->current_map == -1)
+		mm->current_map = id;
+
+	return id;
+}
+
+void mm_switch_map(MapManager* mm, i32 id) {
+	panic(mm->maps.find(id) != mm->maps.end(), "Map with ID: %d is not found", id);
+	if (id == mm->current_map) return;
+	mm->current_map= id;
+}
+
+void mm_remove_map(MapManager* mm, i32 id) {
+	panic(mm->maps.find(id) != mm->maps.end(), "Map with ID: %d is not found", id);
+
+	panic(mm->current_map == id, "Map with ID: %d is current map, unable to delete", id);
+
+	Map* map = mm->maps[id];
+	delete map;
+	mm->maps.erase(id);
+}
+
+void mm_render_current(RenderPipeline* quad_rp, MapManager* mm, f32 size) {
+	Map* map = mm->maps[mm->current_map];
+	map_render(quad_rp, map, size);
+}
+

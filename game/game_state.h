@@ -3,6 +3,7 @@
 #include "core.h"
 #include "systems/dialog_system/dialog_system.h"
 #include "systems/notebook_system/notebook_system.h"
+#include "systems/map_system/map_system.h"
 
 
 /*
@@ -21,10 +22,20 @@ struct GameState {
 	Audio* audio;
 	Camera* camera;
 	SceneManager* sm;
+	FrameController fc;
+
+	// Systems
 	DialogSystem* ds;
 	NotebookSystem* ns;
+	MapManager* mm;
 
 	// Resources
 	Font* font_regular;
-
 };
+
+void gs_init_core();
+void gs_init_scenes();
+void gs_init_systems();
+void gs_init_resources();
+void gs_use_resources();
+void gs_free();

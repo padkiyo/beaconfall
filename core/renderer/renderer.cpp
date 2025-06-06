@@ -1,11 +1,11 @@
 #include "renderer.h"
 
-Result<RenderPipeline, std::string> rp_create(RenderPipelineSpecs* specs) {
-	RenderPipeline rp;
-	rp.max_vertices = specs->max_vertices;
+Result<RenderPipeline*, std::string> rp_create(RenderPipelineSpecs* specs) {
+	RenderPipeline* rp = new RenderPipeline;
+	rp->max_vertices = specs->max_vertices;
 
 	u32 vertex_stride = 0; // Size of a single vector
-	rp.vertex_size = 0; // No of items in a vertex
+	rp->vertex_size = 0; // No of items in a vertex
 	u32 vb_size = 0; // Total Size of The Vertex Buffer
 	i32 offset = 0; // Vertex Attrib Offset Value
 
@@ -18,12 +18,12 @@ Result<RenderPipeline, std::string> rp_create(RenderPipelineSpecs* specs) {
 	vb_size = vertex_stride * specs->max_vertices;
 
 	// Creating vertex array objects
-	glc(glGenVertexArrays(1, &rp.vao));
-	glc(glBindVertexArray(rp.vao));
+	glc(glGenVertexArrays(1, &rp->vao));
+	glc(glBindVertexArray(rp->vao));
 
 	// Creating Vertex buffer objects
-	glc(glGenBuffers(1, &rp.vbo));
-	glc(glBindBuffer(GL_ARRAY_BUFFER, rp.vbo));
+	glc(glGenBuffers(1, &rp->vbo));
+	glc(glBindBuffer(GL_ARRAY_BUFFER, rp->vbo));
 	glc(glBufferData(GL_ARRAY_BUFFER, vb_size, nullptr, GL_DYNAMIC_DRAW));
 
 	// Creating Adding Vertex Attrib Layout
@@ -32,26 +32,26 @@ Result<RenderPipeline, std::string> rp_create(RenderPipelineSpecs* specs) {
 		glc(glEnableVertexAttribArray(id));
 		glc(glVertexAttribPointer(id, i.count, i.type, GL_FALSE, vertex_stride, reinterpret_cast<const void*>(static_cast<uintptr_t>(offset))));
 		offset += i.count * sizeof_gl_type(i.type);
-		rp.vertex_size += i.count;
+		rp->vertex_size += i.count;
 		id++;
 	}
 
 	// Allocating the buffer in memory
-	rp.buffer = (f32*) calloc(specs->max_vertices, vertex_stride);
-	rp.buffer_index = 0;
+	rp->buffer = (f32*) calloc(specs->max_vertices, vertex_stride);
+	rp->buffer_index = 0;
 
 	// Will crash the whole system! TODO do error handling here
 	std::string vs = specs->shaders.vertex_shader;
 	std::string fs = specs->shaders.fragment_shader;
-	rp.shader = xx(shader_create(vs, fs));
+	rp->shader = xx(shader_create(vs, fs));
 
 	// Generating white texture
 	u32 data = 0xffffffff;
-	rp.white_texture = texture_create_from_data(1, 1, &data);
-	texture_bind(rp.white_texture);
+	rp->white_texture = texture_create_from_data(1, 1, &data);
+	texture_bind(rp->white_texture);
 
 	// Enabling depth testing
-	// glc(glEnable(GL_DEPTH_TEST));
+	glc(glEnable(GL_DEPTH_TEST));
 
 	// Enabling alpha blending
 	//glc(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
@@ -120,16 +120,40 @@ Vertices rp_create_quad(glm::vec3 pos, glm::vec2 size, glm::vec4 color) {
 	return vertices;
 }
 
-Vertices rp_create_quad(glm::vec3 pos, glm::vec2 size, glm::vec4 color, u32 tex_id, glm::vec4 tex_coord) {
+Vertices rp_create_quad(glm::vec3 pos, glm::vec2 size, glm::vec4 color, u32 tex_id, glm::vec4 tex_coord, glm::mat4 rot) {
 	// Creating positions
+	glm::vec4 _p1, _p2, _p3, _p4, _p5, _p6;
 	glm::vec3 p1, p2, p3, p4, p5, p6;
 
-	p1 = { pos.x, pos.y, pos.z };
-	p2 = { pos.x + size.x, pos.y, pos.z };
-	p3 = { pos.x + size.x, pos.y + size.y, pos.z };
-	p4 = { pos.x + size.x, pos.y + size.y, pos.z };
-	p5 = { pos.x, pos.y + size.y, pos.z };
-	p6 = { pos.x, pos.y, pos.z };
+	// Rotating over origin
+	_p1 = rot * glm::vec4(-size.x / 2, -size.y / 2, 0.0f, 1.0f);
+	_p2 = rot * glm::vec4( size.x / 2, -size.y / 2, 0.0f, 1.0f);
+	_p3 = rot * glm::vec4( size.x / 2,  size.y / 2, 0.0f, 1.0f);
+	_p4 = rot * glm::vec4( size.x / 2,  size.y / 2, 0.0f, 1.0f);
+	_p5 = rot * glm::vec4(-size.x / 2,  size.y / 2, 0.0f, 1.0f);
+	_p6 = rot * glm::vec4(-size.x / 2, -size.y / 2, 0.0f, 1.0f);
+
+	p1 = glm::vec3(_p1) / _p1.w;
+	p2 = glm::vec3(_p2) / _p2.w;
+	p3 = glm::vec3(_p3) / _p3.w;
+	p4 = glm::vec3(_p4) / _p4.w;
+	p5 = glm::vec3(_p5) / _p5.w;
+	p6 = glm::vec3(_p6) / _p6.w;
+
+	// Shifting to the desired position
+	p1 += glm::vec3(pos.x + size.x / 2, pos.y + size.y / 2, pos.z);
+	p2 += glm::vec3(pos.x + size.x / 2, pos.y + size.y / 2, pos.z);
+	p3 += glm::vec3(pos.x + size.x / 2, pos.y + size.y / 2, pos.z);
+	p4 += glm::vec3(pos.x + size.x / 2, pos.y + size.y / 2, pos.z);
+	p5 += glm::vec3(pos.x + size.x / 2, pos.y + size.y / 2, pos.z);
+	p6 += glm::vec3(pos.x + size.x / 2, pos.y + size.y / 2, pos.z);
+
+	// p1 = { pos.x, pos.y, pos.z };
+	// p2 = { pos.x + size.x, pos.y, pos.z };
+	// p3 = { pos.x + size.x, pos.y + size.y, pos.z };
+	// p4 = { pos.x + size.x, pos.y + size.y, pos.z };
+	// p5 = { pos.x, pos.y + size.y, pos.z };
+	// p6 = { pos.x, pos.y, pos.z };
 
 	// Creating tex coords
 	glm::vec2 t1, t2, t3, t4, t5, t6;

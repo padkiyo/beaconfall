@@ -13,7 +13,8 @@ struct NotebookSystem {
 	b32 open;
 };
 
-NotebookSystem notebook_system_create();
+NotebookSystem* notebook_system_create();
+void notebook_system_destroy(NotebookSystem* ns);
 void notebook_system_update(NotebookSystem* ns);
 void notebook_system_handle_event(NotebookSystem* ns, SDL_Event event);
 void notebook_system_append_text(NotebookSystem* ns, const std::string& text);

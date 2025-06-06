@@ -1,9 +1,9 @@
 #include "window.h"
 
-Result<Window, const char*> window_create(i32 width, i32 height, const char* title){
+Result<Window*, const char*> window_create(i32 width, i32 height, const char* title) {
 
 	// ! For returning from function
-	Window res_window;
+	Window* res_window = new Window;
 
 	// Initialization stuff incomming
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -38,29 +38,29 @@ Result<Window, const char*> window_create(i32 width, i32 height, const char* tit
 		return "Unable to create GLAD context";
 	}
 
-	res_window.width = width;
-	res_window.height = height;
-	res_window.title = title;
-	res_window.version = version;
-	res_window.sdl_window = window;
-	res_window.gl_context = gl_context;
+	res_window->width = width;
+	res_window->height = height;
+	res_window->title = title;
+	res_window->version = version;
+	res_window->sdl_window = window;
+	res_window->gl_context = gl_context;
 
 	return res_window;
 }
 
 // Swaps window after rendering
-void window_swap(Window window){
-	SDL_GL_SwapWindow(window.sdl_window);
+void window_swap(Window* window) {
+	SDL_GL_SwapWindow(window->sdl_window);
 }
 
 // Function to print gl version
-std::string  window_gl_version(Window window){
+std::string  window_gl_version(Window* window){
 
 	// Weird code ahead! Pls Ignore :D
 	std::string version;
-	version += std::to_string(GLAD_VERSION_MAJOR(window.version));
+	version += std::to_string(GLAD_VERSION_MAJOR(window->version));
 	version += ".";
-	version += std::to_string(GLAD_VERSION_MINOR(window.version));
+	version += std::to_string(GLAD_VERSION_MINOR(window->version));
 
 
 	return version;
@@ -71,4 +71,5 @@ void window_destroy(Window* window){
 	SDL_GL_DeleteContext(window->gl_context);
 	SDL_DestroyWindow(window->sdl_window);
 	SDL_Quit();
+	delete window;
 }
