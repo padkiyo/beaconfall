@@ -121,15 +121,15 @@ void slowmo_update(void* data, f64 dt) {
 
 		// Rendering the time bar
 		u32 deadeye_time_elapsed = SDL_GetTicks() - scene->deadeye_start_time;
-		f32 progress = 100.0f - (((f32) deadeye_time_elapsed / (f32) DEAD_EYE_TIME) * 100.0f);
+		f32 progress = (100.0f - (((f32) deadeye_time_elapsed / (f32) DEAD_EYE_TIME) * 100.0f)) / 100.0f;
 
 		if (progress <= 0.0f)
 			progress = 0.0f;
 
 		rp_push_quad(
 			gs.quad_rp,
-			glm::vec3(50, WIN_HEIGHT - 100, 0),
-			glm::vec2(progress, 20),
+			glm::vec3(-0.5, -0.5, 0),
+			glm::vec2(progress, 0.1),
 			glm::vec4(0.5, 0.5, 0, 1),
 			gs.quad_rp->white_texture.id,
 			glm::vec4(0, 0, 1, 1)
@@ -152,31 +152,30 @@ void slowmo_update(void* data, f64 dt) {
 				float x = (2.0f * mp_x) / WIN_WIDTH - 1.0f;
 				float y = 1.0f - (2.0f * mp_y) / WIN_HEIGHT;
 				glm::vec4 ray_ndc = glm::vec4(x, y, -1.0f, 1.0f);
-			
+
 				// Converting to View Space
 				glm::vec4 ray_clip = glm::vec4(ray_ndc.x, ray_ndc.y, -1.0, 1.0);
 				glm::vec4 ray_eye = glm::inverse(gs.camera->proj) * ray_clip;
 				ray_eye = glm::vec4(ray_eye.x, ray_eye.y, -1.0, 0.0); // direction
-			
+
 				// Converting to world space
 				glm::vec3 ray_world = glm::normalize(glm::vec3(glm::inverse(gs.camera->look_at) * ray_eye));
 				glm::vec3 ray_origin = glm::vec3(glm::inverse(gs.camera->look_at)[3]); // camera position
-			
-				std::cout << ray_origin.x << " " << ray_origin.y << " " << ray_origin.z << std::endl;
-				std::cout << ray_world.x << " " << ray_world.y << " " << ray_world.z << std::endl;
-				std::cout << std::endl;
-			
+
+				// std::cout << ray_origin.x << " " << ray_origin.y << " " << ray_origin.z << std::endl;
+				// std::cout << ray_world.x << " " << ray_world.y << " " << ray_world.z << std::endl;
+				// std::cout << std::endl;
+
 				// Extracting points from quad
 				glm::vec3 v0 = enemy.pos;
 				glm::vec3 v1 = { enemy.pos.x + enemy.size.x, enemy.pos.y, enemy.pos.z };
 				glm::vec3 v2 = { enemy.pos.x + enemy.size.x, enemy.pos.y + enemy.size.y, enemy.pos.z };
 				glm::vec3 v3 = { enemy.pos.x, enemy.pos.y + enemy.size.y, enemy.pos.z };
 				glm::vec3 hitPoint;
-			
+
 				// Calculating hit
 				bool hit = intersectRayTriangle(ray_origin, ray_world, v0, v1, v2, hitPoint) ||
 				           intersectRayTriangle(ray_origin, ray_world, v2, v3, v0, hitPoint);
-				std::cout << "HIT: " << hit << std::endl;
 			}
 		}
 
