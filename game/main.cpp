@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
 	gs_init_systems();
 	gs_init_resources();
 
-	log_info("Opengl Version: %s\n", window_gl_version(gs.window).c_str());
+	log_info("Opengl Version: %s\n", gs.window->get_gl_version().c_str());
 
 	// Main loop
 	bool running = true;
@@ -79,7 +79,6 @@ int main(int argc, char* argv[]) {
 		glc(glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT));
 		glc(glClearColor(0.5f, 0.5f, 0.5f, 1.0f));
 		glc(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-
 
 		// Updating camera matrix
 		glc(glUseProgram(gs.quad_rp->shader));
@@ -155,7 +154,7 @@ int main(int argc, char* argv[]) {
 
 		imgui_end_frame();
 
-		window_swap(gs.window);
+		gs.window->swap();
 
 		// Capping the frame
 		fc_end(&gs.fc);

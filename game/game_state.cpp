@@ -14,10 +14,10 @@ GameState gs;
 void gs_init_core() {
 
 	// Intializing the window
-	gs.window = window_create(WIN_WIDTH, WIN_HEIGHT, WIN_TITLE).unwrap();
+	gs.window = new Window(WIN_WIDTH, WIN_HEIGHT, WIN_TITLE);
 
 	// Initializing the imgui context
-	imgui_create(gs.window->sdl_window, gs.window->gl_context);
+	imgui_create(gs.window->get_sdl_window(), gs.window->get_gl_context());
 
 	// Initializing audio layer
 	gs.audio = audio_create().unwrap();
@@ -128,5 +128,6 @@ void gs_free() {
 	camera_destroy(gs.camera);
 	audio_destroy(gs.audio);
 	rp_destroy(gs.quad_rp);
-	window_destroy(gs.window);
+
+	delete gs.window;
 }
