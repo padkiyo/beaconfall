@@ -14,10 +14,10 @@ struct GameState {
 	// Core
 	Window* window;
 	RenderPipeline* quad_rp;
-	Audio* audio;
+	AudioManager* audio_mgr;
 	Camera* camera;
-	SceneManager* sm;
-	FrameController fc;
+	SceneManager* scene_mgr;
+	FrameController* fc;
 
 	// Systems
 	MapManager* mm;

@@ -1,39 +1,40 @@
 #include "frame_controller.h"
 
-FrameController fc_create(i32 fps) {
-	return (FrameController) {
-		.start_time = SDL_GetTicks(),
-		.start_tick = SDL_GetTicks(),
-		.unit_frame = 1.0f / fps,
-		.dt = 0,
-		.frame = 0,
-		.fps = 0
-	};
+FrameController::FrameController(i32 fps) {
+	m_start_time = SDL_GetTicks();
+	m_start_tick = SDL_GetTicks();
+	m_unit_frame = 1.0 / fps;
+	m_dt = 0;
+	m_frame_cnt = 0;
+	m_fps = 0;
 }
 
-void fc_start(FrameController* fc) {
-	fc->start_tick = SDL_GetTicks();
+FrameController::~FrameController() {
 }
 
-void fc_end(FrameController* fc) {
+void FrameController::begin() {
+	m_start_tick = SDL_GetTicks();
+}
+
+void FrameController::end() {
 	// Counting the frames for fps
-	fc->frame++;
+	m_frame_cnt++;
 
-	fc->dt = (SDL_GetTicks() - fc->start_tick) / 1000.0f; // Converting to seconds
+	m_dt = (SDL_GetTicks() - m_start_tick) / 1000.0; // Converting to seconds
 
 	// If the time between frame (dt) is smaller then unit frame (1000/fps) then sleep for remaining amount of time
-	if (fc->unit_frame > fc->dt) {
-		u32 secs = fc->unit_frame - fc->dt;
+	if (m_unit_frame > m_dt) {
+		u32 secs = m_unit_frame - m_dt;
 		sleep(secs);
 	}
 
 	// Adjust the dt after the sleep
-	fc->dt = (SDL_GetTicks() - fc->start_tick) / 1000.0f;
+	m_dt = (SDL_GetTicks() - m_start_tick) / 1000.0;
 
 	// If a second is passed then set the counted frame as fps and count again
-	if (SDL_GetTicks() - fc->start_time >= 1000.0f) {
-		fc->fps = fc->frame;
-		fc->start_time = SDL_GetTicks();
-		fc->frame = 0;
+	if (SDL_GetTicks() - m_start_time >= 1000) {
+		m_fps = m_frame_cnt;
+		m_start_time = SDL_GetTicks();
+		m_frame_cnt = 0;
 	}
 }
