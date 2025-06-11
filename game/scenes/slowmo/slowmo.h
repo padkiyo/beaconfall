@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core.h"
+#include "game.h"
 
 struct Enemy {
 	glm::vec3 pos;
@@ -12,7 +13,7 @@ struct Enemy {
 
 class SlowmoScene : public Scene {
 public:
-	SlowmoScene();
+	SlowmoScene(const GameState& gs);
 	~SlowmoScene();
 
 public:
@@ -27,4 +28,6 @@ private:
 	b32 m_start_deadeye;
 	f32 m_tick;
 	u32 m_deadeye_start_time;
+
+	const GameState& m_gs;
 };

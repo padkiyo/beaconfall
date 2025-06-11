@@ -1,5 +1,4 @@
 #include "slowmo.h"
-#include "game_state.h"
 #include "config.h"
 
 #define DEAD_EYE_TIME 3000
@@ -39,8 +38,8 @@ b32 intersectRayTriangle(
 	return false;
 }
 
-SlowmoScene::SlowmoScene()
-	: m_start_deadeye(false), m_tick(TICK) {
+SlowmoScene::SlowmoScene(const GameState& gs)
+	: m_start_deadeye(false), m_tick(TICK), m_gs(gs) {
 	m_enemies = {
 		{
 			glm::vec3(-0.5, 0, 1),
@@ -82,33 +81,33 @@ void SlowmoScene::on_update(f64 dt) {
 	std::string text_2 = "Press Space to enter Dead Eye";
 	std::string text_3 = "Press Escape to reset Dead Eye";
 
-	glm::vec2 size_1 = font_calc_size(gs.font_regular, text_1);
-	glm::vec2 size_2 = font_calc_size(gs.font_regular, text_2);
-	glm::vec2 size_3 = font_calc_size(gs.font_regular, text_3);
+	glm::vec2 size_1 = font_calc_size(m_gs.font_regular, text_1);
+	glm::vec2 size_2 = font_calc_size(m_gs.font_regular, text_2);
+	glm::vec2 size_3 = font_calc_size(m_gs.font_regular, text_3);
 
 	glm::vec3 pos_1 = {WIN_WIDTH / 2 - size_1.x / 2, 50, 0};
 	glm::vec3 pos_2 = {WIN_WIDTH / 2 - size_2.x / 2, pos_1.y + size_1.y + 10, 0};
 	glm::vec3 pos_3 = {WIN_WIDTH / 2 - size_3.x / 2, pos_2.y + size_2.y + 10, 0};
 
 	rp_push_text(
-		gs.quad_rp,
-		gs.font_regular,
+		m_gs.quad_rp,
+		m_gs.font_regular,
 		text_1,
 		pos_1,
 		glm::vec4(1, 1, 1, 1)
 	);
 
 	rp_push_text(
-		gs.quad_rp,
-		gs.font_regular,
+		m_gs.quad_rp,
+		m_gs.font_regular,
 		text_2,
 		pos_2,
 		glm::vec4(1, 1, 1, 1)
 	);
 
 	rp_push_text(
-		gs.quad_rp,
-		gs.font_regular,
+		m_gs.quad_rp,
+		m_gs.font_regular,
 		text_3,
 		pos_3,
 		glm::vec4(1, 1, 1, 1)
@@ -125,11 +124,11 @@ void SlowmoScene::on_update(f64 dt) {
 			progress = 0.0f;
 
 		rp_push_quad(
-			gs.quad_rp,
+			m_gs.quad_rp,
 			glm::vec3(-0.5, -0.5, 0),
 			glm::vec2(progress, 0.1),
 			glm::vec4(0.5, 0.5, 0, 1),
-			gs.quad_rp->white_texture.id,
+			m_gs.quad_rp->white_texture.id,
 			glm::vec4(0, 0, 1, 1)
 		);
 
@@ -153,12 +152,12 @@ void SlowmoScene::on_update(f64 dt) {
 
 				// Converting to View Space
 				glm::vec4 ray_clip = glm::vec4(ray_ndc.x, ray_ndc.y, -1.0, 1.0);
-				glm::vec4 ray_eye = glm::inverse(gs.camera->proj) * ray_clip;
+				glm::vec4 ray_eye = glm::inverse(m_gs.camera->proj) * ray_clip;
 				ray_eye = glm::vec4(ray_eye.x, ray_eye.y, -1.0, 0.0); // direction
 
 				// Converting to world space
-				glm::vec3 ray_world = glm::normalize(glm::vec3(glm::inverse(gs.camera->look_at) * ray_eye));
-				glm::vec3 ray_origin = glm::vec3(glm::inverse(gs.camera->look_at)[3]); // camera position
+				glm::vec3 ray_world = glm::normalize(glm::vec3(glm::inverse(m_gs.camera->look_at) * ray_eye));
+				glm::vec3 ray_origin = glm::vec3(glm::inverse(m_gs.camera->look_at)[3]); // camera position
 
 				// std::cout << ray_origin.x << " " << ray_origin.y << " " << ray_origin.z << std::endl;
 				// std::cout << ray_world.x << " " << ray_world.y << " " << ray_world.z << std::endl;
@@ -191,23 +190,23 @@ void SlowmoScene::on_update(f64 dt) {
 	for (auto& enemy : m_enemies) {
 		if (enemy.reacted) {
 			rp_push_quad(
-				gs.quad_rp,
+				m_gs.quad_rp,
 				enemy.pos,
 				enemy.size,
 				glm::vec4(1, 0, 0, 1),
-				gs.quad_rp->white_texture.id,
+				m_gs.quad_rp->white_texture.id,
 				glm::vec4(0, 0, 1, 1)
 			);
 		} else {
 			rp_push_quad(
-				gs.quad_rp,
+				m_gs.quad_rp,
 				enemy.pos,
 				enemy.size,
 				glm::vec4(
 					1 - ((enemy.react_time - enemy.curr_time) / enemy.react_time),
 					0, 0, 1
 				),
-				gs.quad_rp->white_texture.id,
+				m_gs.quad_rp->white_texture.id,
 				glm::vec4(0, 0, 1, 1)
 			);
 		}

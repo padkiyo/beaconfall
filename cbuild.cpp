@@ -163,14 +163,14 @@ void build_game() {
 			"SDL2_ttf",
 		})
 		.src({
-			"./game/systems/dialog_system/dialog_system.cpp",
-			"./game/systems/notebook_system/notebook_system.cpp",
+//			"./game/systems/dialog_system/dialog_system.cpp",
+//			"./game/systems/notebook_system/notebook_system.cpp",
 			"./game/systems/map_system/map_system.cpp",
 			"./game/scenes/map/map.cpp",
 			"./game/scenes/slowmo/slowmo.cpp",
 //			"./game/scenes/notebook/notebook.cpp",
 //			"./game/scenes/dialog/dialog.cpp",
-			"./game/game_state.cpp",
+			"./game/game.cpp",
 			"./game/main.cpp",
 		})
 		.build()

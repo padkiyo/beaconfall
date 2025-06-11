@@ -1,10 +1,13 @@
 #pragma once
 
 #include "core.h"
+#include "game.h"
 
 class MapScene : public Scene {
 public:
-	MapScene() {}
+	MapScene(const GameState& gs)
+		: m_gs(gs)
+	{}
 	~MapScene() {}
 
 public:
@@ -13,4 +16,7 @@ public:
 	void on_update(f64 dt);
 	void on_event(SDL_Event event, f64 dt);
 	void on_imgui_render();
+
+private:
+	const GameState& m_gs;
 };

@@ -9,6 +9,9 @@
 #define WIN_HEIGHT 600
 #define FPS 60
 
+// Controls
+#define CAM_SPEED 1.0f
+
 // Texture
 #define MAX_TEXTURE_SAMPLES 32
 
