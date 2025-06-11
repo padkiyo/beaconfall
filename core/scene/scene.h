@@ -2,14 +2,25 @@
 
 #include "common.h"
 
+/*
+ * This is a Pure Virtual Class for creating Scenes
+ * To create a new scene just inheriet this class and define all these functions
+ */
+
 class Scene {
 public:
-	virtual void on_enter() = 0;
-	virtual void on_exit() = 0;
-	virtual void on_update(f64 dt) = 0;
-	virtual void on_event(SDL_Event event, f64 dt) = 0;
-	virtual void on_imgui_render() = 0;
+	virtual void on_enter() = 0;                              // Called when the scene is entered
+	virtual void on_exit() = 0;                               // Called when the scene is exited
+	virtual void on_update(f64 dt) = 0;                       // Called every frame
+	virtual void on_event(SDL_Event event, f64 dt) = 0;       // Called when an event is triggered
+	virtual void on_imgui_render() = 0;                       // Called inside the imgui rendering block
 };
+
+
+/*
+ * Scene Manager handles the owning and switching of the scenes in game
+ * This holds the actual scenes and is responsible for calling the respective scene functions
+ */
 
 class SceneManager {
 public:
@@ -45,47 +56,3 @@ private:
 	// (ie responsible for allocation and deallocating the scenes)
 	std::unordered_map<i32, Scene*> m_scenes;
 };
-
-
-
-/*
- * To create a scene, copy paste the following function in your some_scene.h file
- * Make sure to rename the `name` prefix to your scene name.
- *
-   void name_entry(void* data);
-   void name_exit(void* data);
-   void name_update(void* data, f64 dt);
-   void name_event(void* data, SDL_Event event, f64 dt);
- */
-
-/*
-struct Scene {
-	void* data;
-
-	// Scene function pointers
-	void (*enter)(void* data);                            // Called once when we enter the scene
-	void (*exit)(void* data);                             // Called once when we exit the scene
-	void (*update)(void* data, f64 dt);                   // Called every frame
-	void (*event)(void* data, SDL_Event event, f64 dt);   // Called when event is occured in the scene
-};
-
-struct SceneManager {
-	i32 current_scene;  // NOTE: Make sure the other scenes id are not -1
-	std::unordered_map<i32, Scene*> scenes;
-};
-
-SceneManager* sm_create();
-void sm_destroy(SceneManager* sm);
-void sm_add_scene(
-	SceneManager* sm, i32 id,
-	void (*enter)(void*),
-	void (*exit)(void*),
-	void (*update)(void*, f64),
-	void (*event)(void*, SDL_Event, f64),
-	void* data
-);
-void sm_remove_scene(SceneManager* sm, i32 id);
-void sm_switch_scene(SceneManager* sm, i32 id);
-void sm_update_scene(SceneManager* sm, f64 dt);
-void sm_handle_event(SceneManager* sm, SDL_Event event, f64 dt);
-*/
