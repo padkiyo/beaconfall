@@ -43,8 +43,13 @@ void gs_init_core() {
 }
 
 void gs_init_scenes() {
-	gs.sm = sm_create();
+	gs.sm = new SceneManager;
 
+	gs.sm->add_scene<MapScene>(SCENE_MAP);
+	gs.sm->add_scene<SlowmoScene>(SCENE_SLOWMO);
+	gs.sm->switch_scene(SCENE_SLOWMO);
+
+	/*
 	sm_add_scene(
 		gs.sm, SCENE_DIALOG,
 		dialog_entry,
@@ -82,6 +87,7 @@ void gs_init_scenes() {
 	);
 
 	sm_switch_scene(gs.sm, SCENE_SLOWMO);
+	*/
 }
 
 void gs_init_systems() {
@@ -124,10 +130,10 @@ void gs_free() {
 	notebook_system_destroy(gs.ns);
 	dialog_system_destroy(gs.ds);
 
-	sm_destroy(gs.sm);
 	camera_destroy(gs.camera);
 	audio_destroy(gs.audio);
 	rp_destroy(gs.quad_rp);
 
+	delete gs.sm;
 	delete gs.window;
 }

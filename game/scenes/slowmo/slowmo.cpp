@@ -9,44 +9,6 @@
 
 extern GameState gs;
 
-Slowmo* slowmo_create() {
-	Slowmo* scene = new Slowmo;
-
-	scene->start_deadeye = false;
-	scene->tick = TICK;
-	scene->enemies = {
-		{
-			glm::vec3(-0.5, 0, 1),
-			glm::vec2(0.2, 0.5),
-			2,
-			0,
-			false,
-		},
-		{
-			glm::vec3(0, 0, 1),
-			glm::vec2(0.2, 0.5),
-			1,
-			0,
-			false,
-		},
-		{
-			glm::vec3(0.5, 0, 1),
-			glm::vec2(0.2, 0.5),
-			3,
-			0,
-			false,
-		},
-	};
-
-	return scene;
-}
-
-void slowmo_entry(void* data) {
-}
-
-void slowmo_exit(void* data) {
-}
-
 b32 intersectRayTriangle(
 	glm::vec3 orig, glm::vec3 dir,
 	glm::vec3 v0, glm::vec3 v1, glm::vec3 v2,
@@ -77,9 +39,45 @@ b32 intersectRayTriangle(
 	return false;
 }
 
-void slowmo_update(void* data, f64 dt) {
-	Slowmo* scene = reinterpret_cast<Slowmo*>(data);
+SlowmoScene::SlowmoScene()
+	: m_start_deadeye(false), m_tick(TICK) {
+	m_enemies = {
+		{
+			glm::vec3(-0.5, 0, 1),
+			glm::vec2(0.2, 0.5),
+			2,
+			0,
+			false,
+		},
+		{
+			glm::vec3(0, 0, 1),
+			glm::vec2(0.2, 0.5),
+			1,
+			0,
+			false,
+		},
+		{
+			glm::vec3(0.5, 0, 1),
+			glm::vec2(0.2, 0.5),
+			3,
+			0,
+			false,
+		},
+	};
+}
 
+SlowmoScene::~SlowmoScene() {
+}
+
+void SlowmoScene::on_enter() {
+	log_info("Slowmo scene is entered\n");
+}
+
+void SlowmoScene::on_exit() {
+	log_info("Slowmo scene is exited\n");
+}
+
+void SlowmoScene::on_update(f64 dt) {
 	std::string text_1 = "Slowmo Scene";
 	std::string text_2 = "Press Space to enter Dead Eye";
 	std::string text_3 = "Press Escape to reset Dead Eye";
@@ -117,10 +115,10 @@ void slowmo_update(void* data, f64 dt) {
 	);
 
 	// Handling dead eye slowmo
-	if (scene->start_deadeye) {
+	if (m_start_deadeye) {
 
 		// Rendering the time bar
-		u32 deadeye_time_elapsed = SDL_GetTicks() - scene->deadeye_start_time;
+		u32 deadeye_time_elapsed = SDL_GetTicks() - m_deadeye_start_time;
 		f32 progress = (100.0f - (((f32) deadeye_time_elapsed / (f32) DEAD_EYE_TIME) * 100.0f)) / 100.0f;
 
 		if (progress <= 0.0f)
@@ -137,14 +135,14 @@ void slowmo_update(void* data, f64 dt) {
 
 		// Switching to normal tick when dead eye effect is over
 		if (deadeye_time_elapsed >= DEAD_EYE_TIME) {
-			scene->tick = TICK;
+			m_tick = TICK;
 		} else {
 
 			// When the deadeye effect is not completed let the player aim
 
 			// TODO: Implement the aiming system
 
-			for (auto& enemy: scene->enemies) {
+			for (auto& enemy: m_enemies) {
 				i32 mp_x, mp_y;
 				SDL_GetMouseState(&mp_x, &mp_y);
 
@@ -180,8 +178,8 @@ void slowmo_update(void* data, f64 dt) {
 		}
 
 		// Updating the enemies reaction time
-		for (auto& enemy : scene->enemies) {
-			enemy.curr_time += ENEMY_REACTION_TIME * dt * scene->tick;
+		for (auto& enemy : m_enemies) {
+			enemy.curr_time += ENEMY_REACTION_TIME * dt * m_tick;
 
 			if (enemy.react_time <= enemy.curr_time) {
 				enemy.reacted = true;
@@ -190,7 +188,7 @@ void slowmo_update(void* data, f64 dt) {
 	}
 
 	// Rendering the enemies
-	for (auto& enemy : scene->enemies) {
+	for (auto& enemy : m_enemies) {
 		if (enemy.reacted) {
 			rp_push_quad(
 				gs.quad_rp,
@@ -216,26 +214,24 @@ void slowmo_update(void* data, f64 dt) {
 	}
 }
 
-void slowmo_event(void* data, SDL_Event event, f64 dt) {
-	Slowmo* scene = reinterpret_cast<Slowmo*>(data);
-
+void SlowmoScene::on_event(SDL_Event event, f64 dt) {
 	if (event.type == SDL_KEYDOWN) {
 		switch (event.key.keysym.sym) {
 
 			// Starting the deadeye
 			case SDLK_SPACE:
-				scene->start_deadeye = true;
-				scene->tick = SLOWMO_TICK;
-				scene->deadeye_start_time = SDL_GetTicks();
+				m_start_deadeye = true;
+				m_tick = SLOWMO_TICK;
+				m_deadeye_start_time = SDL_GetTicks();
 				break;
 
 			// Reset the deadeye
 			case SDLK_ESCAPE: {
-				scene->start_deadeye = false;
-				scene->tick = TICK;
-				scene->deadeye_start_time = SDL_GetTicks();
+				m_start_deadeye = false;
+				m_tick = TICK;
+				m_deadeye_start_time = SDL_GetTicks();
 
-				for (auto& enemy : scene->enemies) {
+				for (auto& enemy : m_enemies) {
 					enemy.curr_time = 0;
 					enemy.reacted = false;
 				}
@@ -243,4 +239,7 @@ void slowmo_event(void* data, SDL_Event event, f64 dt) {
 			} break;
 		}
 	}
+}
+
+void SlowmoScene::on_imgui_render() {
 }

@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
 				notebook_system_handle_event(gs.ns, event);
 			} else {
 				// Events for scenes
-				sm_handle_event(gs.sm, event, gs.fc.dt);
+				gs.sm->handle_event(event, gs.fc.dt);
 			}
 
 			if(event.type == SDL_QUIT) {
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
 		rp_begin(gs.quad_rp);
 		{
 			// Updating the current scene
-			sm_update_scene(gs.sm, gs.fc.dt);
+			gs.sm->update_current_scene(gs.fc.dt);
 
 			// Updating dialog system
 			dialog_system_update(gs.ds);
@@ -119,14 +119,19 @@ int main(int argc, char* argv[]) {
 
 		imgui_begin_frame();
 
+		gs.sm->update_imgui_render();
+
 		if(ImGui::CollapsingHeader("Scenes"))
 		{
 			ImGui::SeparatorText("Scene Manager");
-			for(auto & [key, value] : gs.sm->scenes){
-				std::string button_name = gs.sm->current_scene != key? "[ ] " + scene_name(key) : "[*] " + scene_name(key);
+			for(auto& [key, value] : gs.sm->get_scenes()) {
+				std::string button_name =
+					gs.sm->get_current_scene() != key
+					? "[ ] " + scene_name(key)
+					: "[*] " + scene_name(key);
 				if(ImGui::Button(button_name.c_str()))
 				{
-					sm_switch_scene(gs.sm, key);
+					gs.sm->switch_scene(key);
 				}
 			}
 		}
