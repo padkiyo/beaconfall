@@ -21,9 +21,9 @@ Game::~Game() {
 	mm_destroy(m_gs.mm);
 
 	// Core deinitializatioin
-	camera_destroy(m_gs.camera);
 	rp_destroy(m_gs.quad_rp);
 
+	delete m_gs.camera;
 	delete m_gs.fc;
 	delete m_gs.scene_mgr;
 	delete m_gs.audio_mgr;
@@ -77,24 +77,24 @@ void Game::event() {
 		if (event.type == SDL_KEYDOWN) {
 			switch (event.key.keysym.sym) {
 				case SDLK_q:
-					m_gs.camera->pos.z += CAM_SPEED;
+					m_gs.camera->change_pos({0,0,1}, CAM_SPEED);
 					break;
 				case SDLK_e:
-					m_gs.camera->pos.z -= CAM_SPEED;
+					m_gs.camera->change_pos({0,0,-1}, CAM_SPEED);
 					break;
 
 				case SDLK_w:
-					m_gs.camera->pos.y += CAM_SPEED;
+					m_gs.camera->change_pos({0,1,0}, CAM_SPEED);
 					break;
 				case SDLK_s:
-					m_gs.camera->pos.y -= CAM_SPEED;
+					m_gs.camera->change_pos({0,-1,0}, CAM_SPEED);
 					break;
 
 				case SDLK_a:
-					m_gs.camera->pos.x -= CAM_SPEED;
+					m_gs.camera->change_pos({-1,0,0}, CAM_SPEED);
 					break;
 				case SDLK_d:
-					m_gs.camera->pos.x += CAM_SPEED;
+					m_gs.camera->change_pos({1,0,0}, CAM_SPEED);
 					break;
 			}
 		}
@@ -108,15 +108,16 @@ void Game::event() {
  */
 
 void Game::render() {
-	glc(glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT));
-	glc(glClearColor(0.5f, 0.5f, 0.5f, 1.0f));
-	glc(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+	GLC(glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT));
+	GLC(glClearColor(0.5f, 0.5f, 0.5f, 1.0f));
+	GLC(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
 	// Updating camera matrix
-	glc(glUseProgram(m_gs.quad_rp->shader));
-	glm::mat4 mvp = camera_calc_mvp(m_gs.camera);
-	i32 loc = glc(glGetUniformLocation(m_gs.quad_rp->shader, "mvp"));
-	glc(glUniformMatrix4fv(loc, 1, GL_FALSE, &mvp[0][0]));
+	GLC(glUseProgram(m_gs.quad_rp->shader));
+	m_gs.camera->recalculate_view_proj();
+	glm::mat4 mvp = m_gs.camera->get_view_proj();
+	i32 loc = GLC(glGetUniformLocation(m_gs.quad_rp->shader, "mvp"));
+	GLC(glUniformMatrix4fv(loc, 1, GL_FALSE, &mvp[0][0]));
 
 	// Scene rendering section
 	rp_begin(m_gs.quad_rp);
@@ -217,15 +218,11 @@ void Game::init_core() {
 	init_texture_samples(m_gs.quad_rp);
 
 	// Initializing orthographic camera
-	m_gs.camera = camera_create(glm::vec3(0, 0, -2), {
-		.left = 0,
-		.right = WIN_WIDTH,
-		.top = 0,
-		.bottom = WIN_HEIGHT,
+	m_gs.camera = new Camera(glm::vec3(0, 0, -2), glm::vec3(0, 0, -1), {
+		.fov = 45.0f,
+		.aspect_ratio = WIN_WIDTH/WIN_HEIGHT,
 		.near = 0.1f,
 		.far = 1000.0f,
-		.fov = 45.0f,
-		.aspect_ratio = WIN_WIDTH/WIN_HEIGHT
 	});
 
 	// Initializing the frame controller

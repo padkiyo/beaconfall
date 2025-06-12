@@ -46,8 +46,8 @@ void build_core() {
 		})
 		.src({
 			"./core/base/utils.cpp",
+			"./core/base/error.cpp",
 			"./core/window/window.cpp",
-			"./core/error/error.cpp",
 			"./core/audio/audio.cpp",
 			"./core/imgui/core_imgui.cpp",
 			"./core/shader/shader.cpp",

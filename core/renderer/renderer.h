@@ -2,11 +2,9 @@
 
 #include "common.h"
 
-#include "error/error.h"
 #include "shader/shader.h"
 #include "texture/texture.h"
 #include "font/font.h"
-#include "base/utils.h"
 
 // Calling array of floats as vertices
 typedef std::vector<f32> Vertices;

@@ -39,42 +39,42 @@ Result<Shader, std::string> shader_create(const std::string& v_src_path, const s
 }
 
 Result<Shader, std::string> shader_create_raw(const std::string& v_src, const std::string& f_src) {
-	u32 program = glc(glCreateProgram());
+	u32 program = GLC(glCreateProgram());
 
 	u32 vs = xx(shader_compile(GL_VERTEX_SHADER,	 v_src.c_str()));
 	u32 fs = xx(shader_compile(GL_FRAGMENT_SHADER, f_src.c_str()));
 
 	// Attaching shader
-	glc(glAttachShader(program, vs));
-	glc(glAttachShader(program, fs));
-	glc(glLinkProgram(program));
-	glc(glValidateProgram(program));
+	GLC(glAttachShader(program, vs));
+	GLC(glAttachShader(program, fs));
+	GLC(glLinkProgram(program));
+	GLC(glValidateProgram(program));
 
-	glc(glDeleteShader(vs));
-	glc(glDeleteShader(fs));
+	GLC(glDeleteShader(vs));
+	GLC(glDeleteShader(fs));
 
 	return program;
 }
 
 void shader_destroy(Shader id) {
-	glc(glDeleteProgram(id));
+	GLC(glDeleteProgram(id));
 }
 
 Result<u32, std::string> shader_compile(u32 type, const char* shader_src) {
-	u32 id = glc(glCreateShader(type));
+	u32 id = GLC(glCreateShader(type));
 
-	glc(glShaderSource(id, 1, &shader_src, NULL));
-	glc(glCompileShader(id));
+	GLC(glShaderSource(id, 1, &shader_src, NULL));
+	GLC(glCompileShader(id));
 
 	// Checking error in shader
 	i32 result;
-	glc(glGetShaderiv(id, GL_COMPILE_STATUS, &result));
+	GLC(glGetShaderiv(id, GL_COMPILE_STATUS, &result));
 	if (result == GL_FALSE) {
 		i32 length;
-		glc(glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length));
+		GLC(glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length));
 
 		char message[length];
-		glc(glGetShaderInfoLog(id, length, &length, message));
+		GLC(glGetShaderInfoLog(id, length, &length, message));
 
 		std::stringstream ss;
 		ss

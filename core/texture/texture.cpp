@@ -13,14 +13,14 @@ Result<Texture, std::string> texture_create_from_file(const char* filepath, b32 
 
 	// Binding the texture
 	u32 id;
-	glc(glGenTextures(1, &id));
-	glc(glBindTexture(GL_TEXTURE_2D, id));
+	GLC(glGenTextures(1, &id));
+	GLC(glBindTexture(GL_TEXTURE_2D, id));
 
 	// Setting up some basic modes to display texture
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter.min_filter));
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter.mag_filter));
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, filter.wrap_s));
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, filter.wrap_t));
+	GLC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter.min_filter));
+	GLC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter.mag_filter));
+	GLC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, filter.wrap_s));
+	GLC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, filter.wrap_t));
 
 	// Sending the pixel data to opengl
 	GLenum internal_format, format;
@@ -35,8 +35,8 @@ Result<Texture, std::string> texture_create_from_file(const char* filepath, b32 
 		format = GL_RGBA;
 	}
 
-	glc(glTexImage2D(GL_TEXTURE_2D, 0, internal_format, w, h, 0, format, GL_UNSIGNED_BYTE, data));
-	glc(glBindTexture(GL_TEXTURE_2D, 0));
+	GLC(glTexImage2D(GL_TEXTURE_2D, 0, internal_format, w, h, 0, format, GL_UNSIGNED_BYTE, data));
+	GLC(glBindTexture(GL_TEXTURE_2D, 0));
 
 	if (data) {
 		stbi_image_free(data);
@@ -53,18 +53,18 @@ Result<Texture, std::string> texture_create_from_file(const char* filepath, b32 
 
 Texture texture_create_from_data(i32 width, i32 height, u32* data, GLenum internal_format, GLenum format, TextureFilter filter) {
 	u32 id;
-	glc(glGenTextures(1, &id));
-	glc(glBindTexture(GL_TEXTURE_2D, id));
+	GLC(glGenTextures(1, &id));
+	GLC(glBindTexture(GL_TEXTURE_2D, id));
 
 	// Setting up some basic modes to display texture
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter.min_filter));
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter.mag_filter));
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, filter.wrap_s));
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, filter.wrap_t));
+	GLC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter.min_filter));
+	GLC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter.mag_filter));
+	GLC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, filter.wrap_s));
+	GLC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, filter.wrap_t));
 
 	// Sending the pixel data to opengl
-	glc(glTexImage2D(GL_TEXTURE_2D, 0, internal_format, width, height, 0, format, GL_UNSIGNED_BYTE, data));
-	glc(glBindTexture(GL_TEXTURE_2D, 0));
+	GLC(glTexImage2D(GL_TEXTURE_2D, 0, internal_format, width, height, 0, format, GL_UNSIGNED_BYTE, data));
+	GLC(glBindTexture(GL_TEXTURE_2D, 0));
 
 	return (Texture) {
 		.id = id,
@@ -76,17 +76,17 @@ Texture texture_create_from_data(i32 width, i32 height, u32* data, GLenum intern
 }
 
 void texture_destroy(Texture texture) {
-	glc(glDeleteTextures(1, &texture.id));
+	GLC(glDeleteTextures(1, &texture.id));
 }
 
 void texture_clear(Texture texture) {
 	u32 t = 0;
-	glc(glClearTexImage(texture.id, 0, texture.format, GL_UNSIGNED_BYTE, &t));
+	GLC(glClearTexImage(texture.id, 0, texture.format, GL_UNSIGNED_BYTE, &t));
 }
 
 void texture_update(Texture texture, i32 lod, i32 x_offset, i32 y_offset, u32 width, u32 height, GLenum format, void* data) {
 	texture_bind(texture);
-	glc(glTextureSubImage2D(
+	GLC(glTextureSubImage2D(
 		texture.id, lod, x_offset, y_offset,
 		width, height, format,
 		GL_UNSIGNED_BYTE, data
@@ -94,13 +94,13 @@ void texture_update(Texture texture, i32 lod, i32 x_offset, i32 y_offset, u32 wi
 }
 
 void texture_bind(Texture texture) {
-	// glc(glBindTextureUnit(texture.id, texture.id));
-	glc(glActiveTexture(GL_TEXTURE0 + (i32) texture.id));
-	glc(glBindTexture(GL_TEXTURE_2D, texture.id));
+	// GLC(glBindTextureUnit(texture.id, texture.id));
+	GLC(glActiveTexture(GL_TEXTURE0 + (i32) texture.id));
+	GLC(glBindTexture(GL_TEXTURE_2D, texture.id));
 }
 
 void texture_unbind(Texture texture) {
-	// glc(glBindTextureUnit(texture.id, 0));
-	glc(glActiveTexture(GL_TEXTURE0 + (i32) texture.id));
-	glc(glBindTexture(GL_TEXTURE_2D, 0));
+	// GLC(glBindTextureUnit(texture.id, 0));
+	GLC(glActiveTexture(GL_TEXTURE0 + (i32) texture.id));
+	GLC(glBindTexture(GL_TEXTURE_2D, 0));
 }

@@ -18,19 +18,19 @@ Result<RenderPipeline*, std::string> rp_create(RenderPipelineSpecs* specs) {
 	vb_size = vertex_stride * specs->max_vertices;
 
 	// Creating vertex array objects
-	glc(glGenVertexArrays(1, &rp->vao));
-	glc(glBindVertexArray(rp->vao));
+	GLC(glGenVertexArrays(1, &rp->vao));
+	GLC(glBindVertexArray(rp->vao));
 
 	// Creating Vertex buffer objects
-	glc(glGenBuffers(1, &rp->vbo));
-	glc(glBindBuffer(GL_ARRAY_BUFFER, rp->vbo));
-	glc(glBufferData(GL_ARRAY_BUFFER, vb_size, nullptr, GL_DYNAMIC_DRAW));
+	GLC(glGenBuffers(1, &rp->vbo));
+	GLC(glBindBuffer(GL_ARRAY_BUFFER, rp->vbo));
+	GLC(glBufferData(GL_ARRAY_BUFFER, vb_size, nullptr, GL_DYNAMIC_DRAW));
 
 	// Creating Adding Vertex Attrib Layout
 	u32 id = 0;
 	for (auto& i : specs->format) {
-		glc(glEnableVertexAttribArray(id));
-		glc(glVertexAttribPointer(id, i.count, i.type, GL_FALSE, vertex_stride, reinterpret_cast<const void*>(static_cast<uintptr_t>(offset))));
+		GLC(glEnableVertexAttribArray(id));
+		GLC(glVertexAttribPointer(id, i.count, i.type, GL_FALSE, vertex_stride, reinterpret_cast<const void*>(static_cast<uintptr_t>(offset))));
 		offset += i.count * sizeof_gl_type(i.type);
 		rp->vertex_size += i.count;
 		id++;
@@ -51,19 +51,19 @@ Result<RenderPipeline*, std::string> rp_create(RenderPipelineSpecs* specs) {
 	texture_bind(rp->white_texture);
 
 	// Enabling depth testing
-	glc(glEnable(GL_DEPTH_TEST));
+	GLC(glEnable(GL_DEPTH_TEST));
 
 	// Enabling alpha blending
-	//glc(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
-	glc(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-	glc(glEnable(GL_BLEND));
+	//GLC(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
+	GLC(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+	GLC(glEnable(GL_BLEND));
 
 	return rp;
 }
 
 void rp_destroy(RenderPipeline* rp) {
-	glc(glDeleteVertexArrays(1, &rp->vao));
-	glc(glDeleteBuffers(1, &rp->vbo));
+	GLC(glDeleteVertexArrays(1, &rp->vao));
+	GLC(glDeleteBuffers(1, &rp->vbo));
 	texture_destroy(rp->white_texture);
 	shader_destroy(rp->shader);
 	free(rp->buffer);
@@ -71,17 +71,17 @@ void rp_destroy(RenderPipeline* rp) {
 
 void rp_begin(RenderPipeline* rp) {
 	texture_bind(rp->white_texture);
-	glc(glBindVertexArray(rp->vao));
-	glc(glBindBuffer(GL_ARRAY_BUFFER, rp->vbo));
-	glc(glUseProgram(rp->shader));
+	GLC(glBindVertexArray(rp->vao));
+	GLC(glBindBuffer(GL_ARRAY_BUFFER, rp->vbo));
+	GLC(glUseProgram(rp->shader));
 
 	// Reseting the buffer pointer
 	rp->buffer_index = 0;
 }
 
 void rp_end(RenderPipeline* rp) {
-	glc(glBufferSubData(GL_ARRAY_BUFFER, 0, rp->buffer_index * sizeof(f32), rp->buffer));
-	glc(glDrawArrays(GL_TRIANGLES, 0, rp->buffer_index / rp->vertex_size));
+	GLC(glBufferSubData(GL_ARRAY_BUFFER, 0, rp->buffer_index * sizeof(f32), rp->buffer));
+	GLC(glDrawArrays(GL_TRIANGLES, 0, rp->buffer_index / rp->vertex_size));
 }
 
 void rp_push_vertices(RenderPipeline* rp, const Vertices& vertices) {

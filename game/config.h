@@ -10,7 +10,7 @@
 #define FPS 60
 
 // Controls
-#define CAM_SPEED 1.0f
+#define CAM_SPEED 3.0f
 
 // Texture
 #define MAX_TEXTURE_SAMPLES 32
@@ -50,8 +50,8 @@ static void init_texture_samples(RenderPipeline* rp) {
 		samplers[i] = i;
 
 	// Providing samplers to the shader
-	glc(glUseProgram(rp->shader));
-	i32 loc = glc(glGetUniformLocation(rp->shader, "textures"));
+	GLC(glUseProgram(rp->shader));
+	i32 loc = GLC(glGetUniformLocation(rp->shader, "textures"));
 	panic(loc != -1, "Cannot find uniform: textures\n");
-	glc(glUniform1iv(loc, MAX_TEXTURE_SAMPLES, samplers));
+	GLC(glUniform1iv(loc, MAX_TEXTURE_SAMPLES, samplers));
 }

@@ -1,10 +1,8 @@
 #pragma once
 
 #include "common.h"
-#include "error/error.h"
 #include "shader/shader.h"
 #include "texture/texture.h"
-#include "base/utils.h"
 
 struct FrameBuffer {
 	u32 id;

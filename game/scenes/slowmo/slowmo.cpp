@@ -152,12 +152,12 @@ void SlowmoScene::on_update(f64 dt) {
 
 				// Converting to View Space
 				glm::vec4 ray_clip = glm::vec4(ray_ndc.x, ray_ndc.y, -1.0, 1.0);
-				glm::vec4 ray_eye = glm::inverse(m_gs.camera->proj) * ray_clip;
+				glm::vec4 ray_eye = glm::inverse(m_gs.camera->get_proj()) * ray_clip;
 				ray_eye = glm::vec4(ray_eye.x, ray_eye.y, -1.0, 0.0); // direction
 
 				// Converting to world space
-				glm::vec3 ray_world = glm::normalize(glm::vec3(glm::inverse(m_gs.camera->look_at) * ray_eye));
-				glm::vec3 ray_origin = glm::vec3(glm::inverse(m_gs.camera->look_at)[3]); // camera position
+				glm::vec3 ray_world = glm::normalize(glm::vec3(glm::inverse(m_gs.camera->get_look_at()) * ray_eye));
+				glm::vec3 ray_origin = glm::vec3(glm::inverse(m_gs.camera->get_look_at())[3]); // camera position
 
 				// std::cout << ray_origin.x << " " << ray_origin.y << " " << ray_origin.z << std::endl;
 				// std::cout << ray_world.x << " " << ray_world.y << " " << ray_world.z << std::endl;
