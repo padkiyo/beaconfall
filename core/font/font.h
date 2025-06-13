@@ -6,7 +6,7 @@
 struct Font {
 	i32 size;
 	TTF_Font* ttf_font;
-	Texture atlas;
+	Texture* atlas;
 	std::unordered_map<char, std::pair<glm::vec4, glm::vec2>> glyphs;
 };
 

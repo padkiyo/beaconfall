@@ -23,7 +23,6 @@ Result <Map, const char*> map_load(const char* json, const char* tilesheet) {
 
 	Map map;
 
-	Texture _tilesheet;
 	Json::CharReaderBuilder builder;
 	std::ifstream ifs;
 	JSONCPP_STRING errs;
@@ -38,27 +37,26 @@ Result <Map, const char*> map_load(const char* json, const char* tilesheet) {
 	}
 
 	// Trying to open map tileset
-	auto result = texture_create_from_file(tilesheet);
+	// auto result = texture_create_from_file(tilesheet);
 
-	if (result.is_err())
-	{
-		return "Unable to parse map tilesheet";
-	}
-	else{
-		_tilesheet = result.unwrap();
-	}
+	map.tilesheet = new Texture(
+		std::string(tilesheet), {
+			.min_filter = GL_NEAREST,
+			.mag_filter = GL_NEAREST,
+			.wrap_s = GL_CLAMP_TO_EDGE,
+			.wrap_t = GL_CLAMP_TO_EDGE,
+			.flip = false,
+		}
+	);
 
-	map.tilesheet = _tilesheet;
 	return map;
-
 }
 
 void map_render(RenderPipeline* quad_rp, Map* map, f32 size){
-
 	auto layers = map->root["layers"];
 	f32 tile_size = map->root["tileSize"].asFloat();
 
-	texture_bind(map->tilesheet);
+	map->tilesheet->bind();
 
 	// Rendering layers
 	for (Json::Value::ArrayIndex layer  = (layers.size() -1); layer != -1; layer--)
@@ -86,11 +84,11 @@ void map_render(RenderPipeline* quad_rp, Map* map, f32 size){
 
 					// scary shit here
 					std::stof(tiles[i]["id"].asString()),
-					map->tilesheet.width / tile_size,
-					map->tilesheet.height / tile_size
+					map->tilesheet->get_width() / tile_size,
+					map->tilesheet->get_height() / tile_size
 					);
 
-			rp_push_quad(quad_rp, position, render_size, glm::vec4(1, 1, 1, 1), map->tilesheet.id, texcoords);
+			rp_push_quad(quad_rp, position, render_size, glm::vec4(1, 1, 1, 1), map->tilesheet->get_id(), texcoords);
 
 		}
 	}
@@ -104,6 +102,9 @@ MapManager* mm_create() {
 }
 
 void mm_destroy(MapManager* mm) {
+	for (auto& [id, map] : mm->maps) {
+		delete map;
+	}
 	delete mm;
 }
 

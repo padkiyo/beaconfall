@@ -61,12 +61,18 @@ Result<Font*, std::string> font_create(const std::string& path, i32 size) {
 		.min_filter = GL_LINEAR,
 		.mag_filter = GL_LINEAR,
 		.wrap_s = GL_CLAMP_TO_EDGE,
-		.wrap_t = GL_CLAMP_TO_EDGE
+		.wrap_t = GL_CLAMP_TO_EDGE,
+		.flip = false,
 	};
 
-	Texture atlas = texture_create_from_data(
+	TextureFormat format = {
+		.internal_format = GL_RGBA8,
+		.format = GL_RGBA,
+	};
+
+	Texture* atlas = new Texture(
 		atlas_width, atlas_height, NULL,
-		GL_RGBA8, GL_RGBA, filter
+		format, filter
 	);
 
 	std::unordered_map<char, std::pair<glm::vec4, glm::vec2>> glyphs;
@@ -80,14 +86,12 @@ Result<Font*, std::string> font_create(const std::string& path, i32 size) {
 		//printf("SDL Surface format: %s\n", SDL_GetPixelFormatName(surf->format->format));
 
 		// Updating the texture atlas
-		texture_update(
-			atlas,
+		atlas->update(
 			0,
 			x_offset,
 			0,
 			surf->w,
 			surf->h,
-			GL_RGBA,
 			surf->pixels
 		);
 
@@ -103,8 +107,6 @@ Result<Font*, std::string> font_create(const std::string& path, i32 size) {
 		SDL_FreeSurface(surf);
 	}
 
-	texture_bind(atlas);
-
 	Font* font = new Font;
 	font->size = size;
 	font->ttf_font = ttf_font;
@@ -115,13 +117,13 @@ Result<Font*, std::string> font_create(const std::string& path, i32 size) {
 
 void font_destroy(Font* font) {
 	TTF_CloseFont(font->ttf_font);
-	texture_destroy(font->atlas);
 	font->glyphs.clear();
+	delete font->atlas;
 	delete font;
 }
 
 void font_bind(Font* font) {
-	texture_bind(font->atlas);
+	font->atlas->bind();
 }
 
 glm::vec2 font_calc_size(Font* font, const std::string& text) {
@@ -129,7 +131,7 @@ glm::vec2 font_calc_size(Font* font, const std::string& text) {
 	f32 line_width = 0.0f;
 	for (char c : text) {
 		if (c == '\n') {
-			final_size.y += font->atlas.height;
+			final_size.y += font->atlas->get_height();
 			line_width = 0;
 			continue;
 		}

@@ -40,7 +40,7 @@ struct RenderPipeline {
 	u32 buffer_size;
 	u32 buffer_index;
 
-	Texture white_texture;
+	Texture* white_texture;
 };
 
 Result<RenderPipeline*, std::string> rp_create(RenderPipelineSpecs* specs);

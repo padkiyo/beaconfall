@@ -5,8 +5,20 @@ Result<FrameBuffer, const char*> fb_create(u32 width, u32 height) {
 	GLC(glGenFramebuffers(1, &fb.id));
 	GLC(glBindFramebuffer(GL_FRAMEBUFFER, fb.id));
 
-	fb.color_texture = texture_create_from_data(width, height, NULL, GL_RGB, GL_RGB);
-	GLC(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fb.color_texture.id, 0));
+	TextureFormat format = {
+		.internal_format = GL_RGBA8,
+		.format = GL_RGBA,
+	};
+
+	TextureFilter filter = {
+		.min_filter = GL_NEAREST,
+		.mag_filter = GL_NEAREST,
+		.wrap_s = GL_CLAMP_TO_EDGE,
+		.wrap_t = GL_CLAMP_TO_EDGE,
+	};
+
+	fb.color_texture = new Texture(width, height, NULL, format, filter);
+	GLC(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fb.color_texture->get_id(), 0));
 
 	// Setting up the attachments
 	GLuint attachments[1] = { GL_COLOR_ATTACHMENT0 };
@@ -17,22 +29,23 @@ Result<FrameBuffer, const char*> fb_create(u32 width, u32 height) {
 		return "Failed to create frame buffer.";
 
 	// Unbinding the buffer
-	texture_unbind(fb.color_texture);
+	fb.color_texture->unbind();
 	GLC(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
 	return fb;
 }
 
 void fb_destroy(FrameBuffer fb) {
-	texture_destroy(fb.color_texture);
+	delete fb.color_texture;
 	GLC(glDeleteFramebuffers(1, &fb.id));
 }
 
 void fb_bind(FrameBuffer fb) {
-	texture_bind(fb.color_texture);
+	fb.color_texture->bind();
 	GLC(glBindFramebuffer(GL_FRAMEBUFFER, fb.id));
 }
 
 void fb_unbind(FrameBuffer fb) {
+	fb.color_texture->unbind();
 	GLC(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }

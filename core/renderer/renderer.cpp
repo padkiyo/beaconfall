@@ -44,12 +44,23 @@ Result<RenderPipeline*, std::string> rp_create(RenderPipelineSpecs* specs) {
 	std::string vs = specs->shaders.vertex_shader;
 	std::string fs = specs->shaders.fragment_shader;
 	rp->shader = new Shader(vs, fs, ShaderLoadType::FromFile);
-	// rp->shader = xx(shader_create(vs, fs));
 
 	// Generating white texture
 	u32 data = 0xffffffff;
-	rp->white_texture = texture_create_from_data(1, 1, &data);
-	texture_bind(rp->white_texture);
+	rp->white_texture = new Texture(
+		1, 1, &data,
+		{
+			.internal_format = GL_RGBA8,
+			.format = GL_RGBA,
+		},
+		{
+			.min_filter = GL_NEAREST,
+			.mag_filter = GL_NEAREST,
+			.wrap_s = GL_CLAMP_TO_EDGE,
+			.wrap_t = GL_CLAMP_TO_EDGE,
+			.flip = false,
+		}
+	);
 
 	// Enabling depth testing
 	GLC(glEnable(GL_DEPTH_TEST));
@@ -65,14 +76,13 @@ Result<RenderPipeline*, std::string> rp_create(RenderPipelineSpecs* specs) {
 void rp_destroy(RenderPipeline* rp) {
 	GLC(glDeleteVertexArrays(1, &rp->vao));
 	GLC(glDeleteBuffers(1, &rp->vbo));
-	texture_destroy(rp->white_texture);
+	delete rp->white_texture;
 	delete rp->shader;
-	// shader_destroy(rp->shader);
 	free(rp->buffer);
 }
 
 void rp_begin(RenderPipeline* rp) {
-	texture_bind(rp->white_texture);
+	rp->white_texture->bind();
 	GLC(glBindVertexArray(rp->vao));
 	GLC(glBindBuffer(GL_ARRAY_BUFFER, rp->vbo));
 	rp->shader->bind();
@@ -200,7 +210,7 @@ Vertices rp_create_text(Font* font, const std::string& text, glm::vec3 pos, glm:
 		auto [uv, size] = font->glyphs[c];
 
 		// Generating quad for each character
-		Vertices v = rp_create_quad(quad_p, size, color, font->atlas.id, uv);
+		Vertices v = rp_create_quad(quad_p, size, color, font->atlas->get_id(), uv);
 		quad_p.x += size.x;
 
 		// Copying the vertices to buffer

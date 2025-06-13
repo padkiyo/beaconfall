@@ -6,7 +6,7 @@
 
 struct FrameBuffer {
 	u32 id;
-	Texture color_texture;
+	Texture* color_texture;
 };
 
 Result<FrameBuffer, const char*> fb_create(u32 width, u32 height);
