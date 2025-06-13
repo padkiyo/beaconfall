@@ -43,7 +43,8 @@ Result<RenderPipeline*, std::string> rp_create(RenderPipelineSpecs* specs) {
 	// Will crash the whole system! TODO do error handling here
 	std::string vs = specs->shaders.vertex_shader;
 	std::string fs = specs->shaders.fragment_shader;
-	rp->shader = xx(shader_create(vs, fs));
+	rp->shader = new Shader(vs, fs, ShaderLoadType::FromFile);
+	// rp->shader = xx(shader_create(vs, fs));
 
 	// Generating white texture
 	u32 data = 0xffffffff;
@@ -65,7 +66,8 @@ void rp_destroy(RenderPipeline* rp) {
 	GLC(glDeleteVertexArrays(1, &rp->vao));
 	GLC(glDeleteBuffers(1, &rp->vbo));
 	texture_destroy(rp->white_texture);
-	shader_destroy(rp->shader);
+	delete rp->shader;
+	// shader_destroy(rp->shader);
 	free(rp->buffer);
 }
 
@@ -73,7 +75,8 @@ void rp_begin(RenderPipeline* rp) {
 	texture_bind(rp->white_texture);
 	GLC(glBindVertexArray(rp->vao));
 	GLC(glBindBuffer(GL_ARRAY_BUFFER, rp->vbo));
-	GLC(glUseProgram(rp->shader));
+	rp->shader->bind();
+	// GLC(glUseProgram(rp->shader));
 
 	// Reseting the buffer pointer
 	rp->buffer_index = 0;

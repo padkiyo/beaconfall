@@ -9,11 +9,11 @@
 
 class Scene {
 public:
-	virtual void on_enter() = 0;                              // Called when the scene is entered
-	virtual void on_exit() = 0;                               // Called when the scene is exited
-	virtual void on_update(f64 dt) = 0;                       // Called every frame
-	virtual void on_event(SDL_Event event, f64 dt) = 0;       // Called when an event is triggered
-	virtual void on_imgui_render() = 0;                       // Called inside the imgui rendering block
+	virtual void on_enter() = 0;                                // Called when the scene is entered
+	virtual void on_exit() = 0;                                 // Called when the scene is exited
+	virtual void on_update(f64 dt) = 0;                         // Called every frame
+	virtual void on_event(const SDL_Event& event, f64 dt) = 0;  // Called when an event is triggered
+	virtual void on_imgui_render() = 0;                         // Called inside the imgui rendering block
 };
 
 
@@ -47,7 +47,7 @@ public:
 	void switch_scene(i32 id);
 	void update_current_scene(f64 dt);
 	void update_imgui_render();
-	void handle_event(SDL_Event event, f64 dt);
+	void handle_event(const SDL_Event& event, f64 dt);
 
 private:
 	i32 m_curr_scene = -1;

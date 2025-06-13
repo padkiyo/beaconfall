@@ -113,11 +113,10 @@ void Game::render() {
 	GLC(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
 	// Updating camera matrix
-	GLC(glUseProgram(m_gs.quad_rp->shader));
+	m_gs.quad_rp->shader->bind();
 	m_gs.camera->recalculate_view_proj();
 	glm::mat4 mvp = m_gs.camera->get_view_proj();
-	i32 loc = GLC(glGetUniformLocation(m_gs.quad_rp->shader, "mvp"));
-	GLC(glUniformMatrix4fv(loc, 1, GL_FALSE, &mvp[0][0]));
+	m_gs.quad_rp->shader->set_mat4f("mvp", mvp, false);
 
 	// Scene rendering section
 	rp_begin(m_gs.quad_rp);
@@ -217,7 +216,7 @@ void Game::init_core() {
 	m_gs.quad_rp = rp_create(&QuadRendererSpecs).unwrap();
 	init_texture_samples(m_gs.quad_rp);
 
-	// Initializing orthographic camera
+	// Initializing perspective camera
 	m_gs.camera = new Camera(glm::vec3(0, 0, -2), glm::vec3(0, 0, -1), {
 		.fov = 45.0f,
 		.aspect_ratio = WIN_WIDTH/WIN_HEIGHT,
@@ -236,9 +235,10 @@ void Game::init_core() {
 
 void Game::init_scenes() {
 	m_gs.scene_mgr->add_scene<MapScene>(SCENE_MAP, m_gs);
-	m_gs.scene_mgr->add_scene<SlowmoScene>(SCENE_SLOWMO, m_gs);
+	// m_gs.scene_mgr->add_scene<SlowmoScene>(SCENE_SLOWMO, m_gs);
+	m_gs.scene_mgr->add_scene<TestScene>(SCENE_TEST);
 
-	m_gs.scene_mgr->switch_scene(SCENE_SLOWMO);
+	m_gs.scene_mgr->switch_scene(SCENE_MAP);
 }
 
 

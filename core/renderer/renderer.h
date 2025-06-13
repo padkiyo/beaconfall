@@ -31,7 +31,7 @@ struct RenderPipelineSpecs {
 struct RenderPipeline {
 	u32 vbo;
 	u32 vao;
-	u32 shader;
+	Shader* shader;
 
 	i32 max_vertices;
 	i32 vertex_size; // No of items in a vertex

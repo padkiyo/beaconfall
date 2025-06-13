@@ -2,21 +2,39 @@
 
 #include "common.h"
 
-typedef u32 Shader;
+enum class ShaderLoadType {
+	FromFile,
+	FromStr,
+};
 
-/*
- * This doesnt provide functions to bind and unbind and also uniforms.
- * Bindings and Uniforms will be handled using raw opengl calls
- */
+class Shader {
+public:
+	Shader(const std::string& v_src, const std::string& f_src, ShaderLoadType ltype);
+	~Shader();
 
-// Creates shader from file
-Result<Shader, std::string> shader_create(const std::string& v_src_path, const std::string& f_src_path);
+	void bind();
+	void unbind();
 
-// Creates shader from strings
-Result<Shader, std::string> shader_create_raw(const std::string& v_src, const std::string& f_src);
+	//---------
+	// Getters
+	//---------
 
-// Use this to delete the shader
-void shader_destroy(Shader id);
+	inline u32 get_id() const { return m_id; }
+	i32 get_uniform_loc(const std::string& name);
 
-// Compiles individual shader source
-Result<u32, std::string> shader_compile(u32 type, const char* shader_src);
+	//---------
+	// Setters
+	//---------
+
+	void set_arrayi(const std::string& name, i32* value, u32 count);
+	void set_mat4f(const std::string& name, const glm::mat4& value, b32 transpose);
+
+private:
+	void load_from_file(const std::string& v_path, const std::string& f_path);
+	void load_from_str(const std::string& v_src, const std::string& f_src);
+	u32 compile(u32 type, const char* src);
+
+private:
+	u32 m_id;
+	std::unordered_map<std::string, i32> m_uniforms;
+};

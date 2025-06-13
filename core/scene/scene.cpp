@@ -65,7 +65,7 @@ void SceneManager::update_imgui_render() {
 	scene->on_imgui_render();
 }
 
-void SceneManager::handle_event(SDL_Event event, f64 dt) {
+void SceneManager::handle_event(const SDL_Event& event, f64 dt) {
 	panic(m_curr_scene >= 0, "No current scene is found.");
 
 	Scene* scene = m_scenes[m_curr_scene];

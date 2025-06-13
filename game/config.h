@@ -50,8 +50,6 @@ static void init_texture_samples(RenderPipeline* rp) {
 		samplers[i] = i;
 
 	// Providing samplers to the shader
-	GLC(glUseProgram(rp->shader));
-	i32 loc = GLC(glGetUniformLocation(rp->shader, "textures"));
-	panic(loc != -1, "Cannot find uniform: textures\n");
-	GLC(glUniform1iv(loc, MAX_TEXTURE_SAMPLES, samplers));
+	rp->shader->bind();
+	rp->shader->set_arrayi("textures", samplers, MAX_TEXTURE_SAMPLES);
 }

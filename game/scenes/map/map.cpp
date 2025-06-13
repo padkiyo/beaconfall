@@ -20,7 +20,7 @@ void MapScene::on_update(f64 dt) {
 	mm_render_current(m_gs.quad_rp, m_gs.mm, 1.0f);
 }
 
-void MapScene::on_event(SDL_Event event, f64 dt) {
+void MapScene::on_event(const SDL_Event& event, f64 dt) {
 }
 
 void MapScene::on_imgui_render() {
