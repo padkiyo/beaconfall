@@ -58,6 +58,7 @@ public:
 	// Getters
 	//---------
 
+	inline glm::vec3 get_pos() const { return m_pos; }
 	inline glm::mat4 get_proj() const { return m_proj; }
 	inline glm::mat4 get_view_proj() const { return m_view_proj; }
 	inline glm::mat4 get_look_at() const {

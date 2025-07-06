@@ -13,7 +13,7 @@
 #define CAM_SPEED 3.0f
 
 // Texture
-#define MAX_TEXTURE_SAMPLES 32
+// #define MAX_TEXTURE_SAMPLES 32
 
 // Dialog
 #define BUBBLE_PADDING 15
@@ -30,6 +30,7 @@
 #define NOTEBOOK_PAD_X 10
 #define NOTEBOOK_PAD_Y 10
 
+/*
 static RenderPipelineSpecs QuadRendererSpecs = {
 	.format = {
 		{ .type = GL_FLOAT, .count = 3 }, // Position
@@ -53,3 +54,4 @@ static void init_texture_samples(RenderPipeline* rp) {
 	rp->shader->bind();
 	rp->shader->set_arrayi("textures", samplers, MAX_TEXTURE_SAMPLES);
 }
+*/

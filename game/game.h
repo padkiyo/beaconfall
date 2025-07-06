@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core.h"
-#include "systems/map_system/map_system.h"
+// #include "systems/map_system/map_system.h"
 
 
 /*
@@ -13,14 +13,15 @@
 struct GameState {
 	// Core
 	Window* window;
-	RenderPipeline* quad_rp;
+	//RenderPipeline* quad_rp;
+	Renderer* renderer;
 	AudioManager* audio_mgr;
 	Camera* camera;
 	SceneManager* scene_mgr;
 	FrameController* fc;
 
 	// Systems
-	MapManager* mm;
+	// MapManager* mm;
 
 	// Resources
 	Font* font_regular;

@@ -1,8 +1,8 @@
 #include "game.h"
 #include "config.h"
 #include "scenes/scenes.h"
-#include "systems/map_system/map_system.h"
-#include "systems/map_system/maps.h"
+// #include "systems/map_system/map_system.h"
+// #include "systems/map_system/maps.h"
 
 Game::Game() {
 	init_core();
@@ -18,15 +18,14 @@ Game::~Game() {
 	font_destroy(m_gs.font_regular);
 
 	// Destroying the systems
-	mm_destroy(m_gs.mm);
+	// mm_destroy(m_gs.mm);
 
 	// Core deinitializatioin
-	rp_destroy(m_gs.quad_rp);
-
 	delete m_gs.camera;
 	delete m_gs.fc;
 	delete m_gs.scene_mgr;
 	delete m_gs.audio_mgr;
+	delete m_gs.renderer;
 	delete m_gs.window;
 }
 
@@ -112,6 +111,15 @@ void Game::render() {
 	GLC(glClearColor(0.5f, 0.5f, 0.5f, 1.0f));
 	GLC(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
+	m_gs.renderer->begin(*m_gs.camera);
+
+	auto pos = m_gs.camera->get_pos();
+	std::cout << pos.x << " " << pos.y << " " << pos.z << std::endl;
+	m_gs.renderer->push_quad({0, 0, 0}, {1,1}, {1,1,1,1});
+
+	m_gs.renderer->end();
+
+	/*
 	// Updating camera matrix
 	m_gs.quad_rp->shader->bind();
 	m_gs.camera->recalculate_view_proj();
@@ -119,12 +127,15 @@ void Game::render() {
 	m_gs.quad_rp->shader->set_mat4f("mvp", mvp, false);
 
 	// Scene rendering section
-	rp_begin(m_gs.quad_rp);
+	// rp_begin(m_gs.quad_rp);
+	m_gs.renderer->begin(*m_gs.camera)
 	{
 		// Updating the current scene
 		m_gs.scene_mgr->update_current_scene(m_gs.fc->dt());
 	}
-	rp_end(m_gs.quad_rp);
+	m_gs.renderer->end()
+	// rp_end(m_gs.quad_rp);
+	*/
 }
 
 
@@ -135,19 +146,19 @@ void Game::render() {
  */
 
 void Game::overlay() {
-	rp_begin(m_gs.quad_rp);
-	{
-		// Rendering the FPS counter
-		std::string fps = std::to_string(m_gs.fc->fps());
-		rp_push_text(
-			m_gs.quad_rp,
-			m_gs.font_regular,
-			fps,
-			glm::vec3(0, 0, 1),
-			glm::vec4(0, 1, 0.2, 1)
-		);
-	}
-	rp_end(m_gs.quad_rp);
+	// rp_begin(m_gs.quad_rp);
+	// {
+	// 	// Rendering the FPS counter
+	// 	std::string fps = std::to_string(m_gs.fc->fps());
+	// 	rp_push_text(
+	// 		m_gs.quad_rp,
+	// 		m_gs.font_regular,
+	// 		fps,
+	// 		glm::vec3(0, 0, 1),
+	// 		glm::vec4(0, 1, 0.2, 1)
+	// 	);
+	// }
+	// rp_end(m_gs.quad_rp);
 }
 
 
@@ -176,6 +187,7 @@ void Game::imgui_render() {
 		}
 	}
 
+	/*
 	if(ImGui::CollapsingHeader("Map Manager")) {
 		ImGui::SeparatorText("Map Manager");
 		for(auto & [key, value] : m_gs.mm->maps) {
@@ -188,6 +200,7 @@ void Game::imgui_render() {
 			}
 		}
 	}
+	*/
 
 	imgui_end_frame();
 }
@@ -213,8 +226,9 @@ void Game::init_core() {
 	m_gs.scene_mgr = new SceneManager;
 
 	// Initializing the render pipeline
-	m_gs.quad_rp = rp_create(&QuadRendererSpecs).unwrap();
-	init_texture_samples(m_gs.quad_rp);
+	//m_gs.quad_rp = rp_create(&QuadRendererSpecs).unwrap();
+	//init_texture_samples(m_gs.quad_rp);
+	m_gs.renderer = new Renderer();
 
 	// Initializing perspective camera
 	m_gs.camera = new Camera(glm::vec3(0, 0, -2), glm::vec3(0, 0, -1), {
@@ -234,11 +248,11 @@ void Game::init_core() {
  */
 
 void Game::init_scenes() {
-	m_gs.scene_mgr->add_scene<MapScene>(SCENE_MAP, m_gs);
+	// m_gs.scene_mgr->add_scene<MapScene>(SCENE_MAP, m_gs);
 	// m_gs.scene_mgr->add_scene<SlowmoScene>(SCENE_SLOWMO, m_gs);
 	m_gs.scene_mgr->add_scene<TestScene>(SCENE_TEST);
 
-	m_gs.scene_mgr->switch_scene(SCENE_MAP);
+	m_gs.scene_mgr->switch_scene(SCENE_TEST);
 }
 
 
@@ -247,6 +261,7 @@ void Game::init_scenes() {
  */
 
 void Game::init_systems() {
+	/*
 	// Initializing map manager
 	m_gs.mm = mm_create();
 
@@ -262,6 +277,7 @@ void Game::init_systems() {
 		"./assets/maps/test2_map/map.json",
 		"./assets/maps/test2_map/spritesheet.png"
 	).unwrap();
+	*/
 }
 
 
