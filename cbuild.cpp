@@ -46,12 +46,14 @@ void build_core() {
 		})
 		.src({
 			"./core/base/utils.cpp",
+			"./core/base/error.cpp",
 			"./core/window/window.cpp",
-			"./core/error/error.cpp",
 			"./core/audio/audio.cpp",
 			"./core/imgui/core_imgui.cpp",
 			"./core/shader/shader.cpp",
 			"./core/texture/texture.cpp",
+			"./core/buffers/vertex_buffer.cpp",
+			"./core/buffers/vertex_array.cpp",
 			"./core/renderer/renderer.cpp",
 			"./core/camera/camera.cpp",
 			"./core/font/font.cpp",
@@ -163,14 +165,15 @@ void build_game() {
 			"SDL2_ttf",
 		})
 		.src({
-			"./game/systems/dialog_system/dialog_system.cpp",
-			"./game/systems/notebook_system/notebook_system.cpp",
-			"./game/systems/map_system/map_system.cpp",
-			"./game/scenes/dialog/dialog.cpp",
-			"./game/scenes/map/map.cpp",
-			"./game/scenes/notebook/notebook.cpp",
-			"./game/scenes/slowmo/slowmo.cpp",
-			"./game/game_state.cpp",
+//			"./game/systems/dialog_system/dialog_system.cpp",
+//			"./game/systems/notebook_system/notebook_system.cpp",
+//			"./game/systems/map_system/map_system.cpp",
+			"./game/scenes/test/test.cpp",
+//			"./game/scenes/map/map.cpp",
+//			"./game/scenes/slowmo/slowmo.cpp",
+//			"./game/scenes/notebook/notebook.cpp",
+//			"./game/scenes/dialog/dialog.cpp",
+			"./game/game.cpp",
 			"./game/main.cpp",
 		})
 		.build()

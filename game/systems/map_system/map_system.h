@@ -6,7 +6,7 @@
 
 struct Map {
 	Json::Value root;
-	Texture tilesheet;
+	Texture* tilesheet;
 };
 
 struct  MapManager {

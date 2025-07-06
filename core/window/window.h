@@ -1,15 +1,26 @@
 #include "common.h"
 
-struct Window {
-	i32 width;
-	i32 height;
-	const char*  title;
-	SDL_Window* sdl_window;
-	SDL_GLContext gl_context;
-	i32 version;
-};
+class Window {
+public:
+	Window(i32 width, i32 height, const std::string& title);
+	~Window();
+	void swap();
 
-Result<Window*, const char*> window_create(i32 width, i32 height, const char* title);
-void window_swap(Window* window);
-std::string window_gl_version(Window* window);
-void window_destroy(Window* window);
+public:
+	inline std::string get_gl_version() const {
+		return std::format("{}.{}",
+			std::to_string(GLAD_VERSION_MAJOR(m_gl_version)),
+			std::to_string(GLAD_VERSION_MINOR(m_gl_version)));
+	}
+
+	inline SDL_Window* get_sdl_window()   const { return m_sdl_window; }
+	inline SDL_GLContext get_gl_context() const { return m_gl_context; }
+
+private:
+	i32 m_width, m_height;
+	std::string m_title;
+
+	SDL_Window* m_sdl_window;
+	SDL_GLContext m_gl_context;
+	i32 m_gl_version;
+};

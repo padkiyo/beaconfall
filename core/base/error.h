@@ -1,7 +1,7 @@
 #pragma once
 #include "common.h"
 
-#define glc(x)\
+#define GLC(x)\
 	(\
 		gl_clear_error(),\
 		x\

@@ -1,21 +1,61 @@
 #include "shader.h"
 
-Result<Shader, std::string> shader_create(const std::string& v_src_path, const std::string& f_src_path) {
-	// Opening vertex shader file
-	std::ifstream v_src_file(v_src_path);
-	if (!v_src_file.is_open()) {
-		std::stringstream ss;
-		ss << "Failed to open shader file: " << v_src_path << std::endl;
-		return ss.str();
+Shader::Shader(const std::string& v_src, const std::string& f_src, ShaderLoadType ltype) {
+	switch (ltype) {
+		case ShaderLoadType::FromFile:
+			load_from_file(v_src, f_src);
+			break;
+		case ShaderLoadType::FromStr:
+			load_from_str(v_src, f_src);
+			break;
+		default:
+			panic(false, "Unhandled ShaderLoadType");
 	}
+}
+
+Shader::~Shader() {
+	GLC(glDeleteProgram(m_id));
+}
+
+void Shader::bind() {
+	GLC(glUseProgram(m_id));
+}
+
+void Shader::unbind() {
+	GLC(glUseProgram(0));
+}
+
+i32 Shader::get_uniform_loc(const std::string& name) {
+	if (m_uniforms.find(name) != m_uniforms.end())
+		return m_uniforms[name];
+
+	i32 loc = GLC(glGetUniformLocation(m_id, name.c_str()));
+	panic(loc != -1, "Cannot find uniform: %s", name.c_str());
+
+	// Caching the uniform locations
+	m_uniforms.insert_or_assign(name, loc);
+
+	return loc;
+}
+
+void Shader::set_arrayi(const std::string& name, i32* value, u32 count) {
+	i32 loc = get_uniform_loc(name);
+	GLC(glUniform1iv(loc, count, value));
+}
+
+void Shader::set_mat4f(const std::string& name, const glm::mat4& value, b32 transpose) {
+	i32 loc = get_uniform_loc(name);
+	GLC(glUniformMatrix4fv(loc, 1, transpose, &value[0][0]));
+}
+
+void Shader::load_from_file(const std::string& v_path, const std::string& f_path) {
+	// Opening vertex shader file
+	std::ifstream v_src_file(v_path);
+	panic(v_src_file.is_open(), "Failed to open Shader File: %s", v_path.c_str());
 
 	// Opening fragment shader file
-	std::ifstream f_src_file(f_src_path);
-	if (!f_src_file.is_open()) {
-		std::stringstream ss;
-		ss << "Failed to open shader file: " << f_src_path << std::endl;
-		return ss.str();
-	}
+	std::ifstream f_src_file(f_path);
+	panic(f_src_file.is_open(), "Failed to open Shader File: %s", f_path.c_str());
 
 	// Reading vertex shader src
 	std::ostringstream ss;
@@ -34,47 +74,44 @@ Result<Shader, std::string> shader_create(const std::string& v_src_path, const s
 	v_src_file.close();
 	f_src_file.close();
 
-	// Creating shader from strings
-	return shader_create_raw(v_src, f_src);
+	// Loading shader from strings
+	load_from_str(v_src, f_src);
 }
 
-Result<Shader, std::string> shader_create_raw(const std::string& v_src, const std::string& f_src) {
-	u32 program = glc(glCreateProgram());
+void Shader::load_from_str(const std::string& v_src, const std::string& f_src) {
+	u32 program = GLC(glCreateProgram());
 
-	u32 vs = xx(shader_compile(GL_VERTEX_SHADER,	 v_src.c_str()));
-	u32 fs = xx(shader_compile(GL_FRAGMENT_SHADER, f_src.c_str()));
+	u32 vs = compile(GL_VERTEX_SHADER, v_src.c_str());
+	u32 fs = compile(GL_FRAGMENT_SHADER, f_src.c_str());
 
 	// Attaching shader
-	glc(glAttachShader(program, vs));
-	glc(glAttachShader(program, fs));
-	glc(glLinkProgram(program));
-	glc(glValidateProgram(program));
+	GLC(glAttachShader(program, vs));
+	GLC(glAttachShader(program, fs));
+	GLC(glLinkProgram(program));
+	GLC(glValidateProgram(program));
 
-	glc(glDeleteShader(vs));
-	glc(glDeleteShader(fs));
+	GLC(glDeleteShader(vs));
+	GLC(glDeleteShader(fs));
 
-	return program;
+	// Setting up the shader id
+	m_id = program;
 }
 
-void shader_destroy(Shader id) {
-	glc(glDeleteProgram(id));
-}
+u32 Shader::compile(u32 type, const char* src) {
+	u32 id = GLC(glCreateShader(type));
 
-Result<u32, std::string> shader_compile(u32 type, const char* shader_src) {
-	u32 id = glc(glCreateShader(type));
-
-	glc(glShaderSource(id, 1, &shader_src, NULL));
-	glc(glCompileShader(id));
+	GLC(glShaderSource(id, 1, &src, NULL));
+	GLC(glCompileShader(id));
 
 	// Checking error in shader
 	i32 result;
-	glc(glGetShaderiv(id, GL_COMPILE_STATUS, &result));
+	GLC(glGetShaderiv(id, GL_COMPILE_STATUS, &result));
 	if (result == GL_FALSE) {
 		i32 length;
-		glc(glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length));
+		GLC(glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length));
 
 		char message[length];
-		glc(glGetShaderInfoLog(id, length, &length, message));
+		GLC(glGetShaderInfoLog(id, length, &length, message));
 
 		std::stringstream ss;
 		ss
@@ -83,8 +120,9 @@ Result<u32, std::string> shader_compile(u32 type, const char* shader_src) {
 			<< " shader]\n"
 			<< message
 			<< "\n";
-
-		return ss.str();
+		std::string error = ss.str();
+		panic(false, "%s", error.c_str());
 	}
+
 	return id;
 }
