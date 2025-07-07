@@ -10,6 +10,24 @@ Game::Game() {
 	init_systems();
 	init_resources();
 
+	l1 = {
+		.pos = {-50, 50},
+		.radius = 10.0f,
+		.intensity = 1.0f,
+		.dir = 3.14 / 4,
+		.fov = 3.14 / 4,
+		.color = {0.8,0.5,0,1}
+	};
+
+	l2 = {
+		.pos = {150, 50},
+		.radius = 10.0f,
+		.intensity = 1.0f,
+		.dir = - 3.14 / 4,
+		.fov = 3.14 / 4,
+		.color = {0.8,0.0,0.8,1}
+	};
+
 	m_running = true;
 }
 
@@ -107,15 +125,23 @@ void Game::event() {
  */
 
 void Game::render() {
-	GLC(glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT));
-	GLC(glClearColor(0.5f, 0.5f, 0.5f, 1.0f));
-	GLC(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-
+	m_gs.renderer->set_clear_color({0.5,0.5,0.5,1});
 	m_gs.renderer->begin(*m_gs.camera);
 
 	auto pos = m_gs.camera->get_pos();
-	std::cout << pos.x << " " << pos.y << " " << pos.z << std::endl;
-	m_gs.renderer->push_quad({0, 0, 0}, {1,1}, {1,1,1,1});
+	// std::cout << pos.x << " " << pos.y << " " << pos.z << std::endl;
+
+	m_gs.renderer->push_light(l1);
+	m_gs.renderer->push_light(l2);
+
+	m_gs.renderer->push_quad(
+		{0, 0, 0},
+		{50, 50},
+		glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), {0,0,1}),
+		m_gs.renderer->white_texture(),
+		{0,0,1,1},
+		{1,0,0,1}
+	);
 
 	m_gs.renderer->end();
 
@@ -187,6 +213,24 @@ void Game::imgui_render() {
 		}
 	}
 
+	if (ImGui::CollapsingHeader("Light")) {
+		ImGui::SeparatorText("Light 1");
+		ImGui::DragFloat2("Position1", (float*)&l1.pos, 1.0f, -500.0f, 500.0f);
+		ImGui::DragFloat("Radius1", &l1.radius, 1.0f, 0.0f, 100.0f);
+		ImGui::DragFloat("Intensity1", &l1.intensity, 0.01f, 0.0f, 10.0f);
+		ImGui::SliderAngle("Direction1", &l1.dir, 0.0f, 360.0f);
+		ImGui::SliderAngle("FOV1", &l1.fov, 0.0f, 360.0f);
+		ImGui::ColorEdit4("Color1", (float*)&l1.color);
+
+		ImGui::SeparatorText("Light 2");
+		ImGui::DragFloat2("Position2", (float*)&l2.pos, 1.0f, -500.0f, 500.0f);
+		ImGui::DragFloat("Radius2", &l2.radius, 1.0f, 0.0f, 100.0f);
+		ImGui::DragFloat("Intensity2", &l2.intensity, 0.01f, 0.0f, 10.0f);
+		ImGui::SliderAngle("Direction2", &l2.dir, 0.0f, 360.0f);
+		ImGui::SliderAngle("FOV2", &l2.fov, 0.0f, 360.0f);
+		ImGui::ColorEdit4("Color2", (float*)&l2.color);
+	}
+
 	/*
 	if(ImGui::CollapsingHeader("Map Manager")) {
 		ImGui::SeparatorText("Map Manager");
@@ -228,14 +272,22 @@ void Game::init_core() {
 	// Initializing the render pipeline
 	//m_gs.quad_rp = rp_create(&QuadRendererSpecs).unwrap();
 	//init_texture_samples(m_gs.quad_rp);
-	m_gs.renderer = new Renderer();
+	m_gs.renderer = new Renderer({WIN_WIDTH, WIN_HEIGHT});
 
 	// Initializing perspective camera
-	m_gs.camera = new Camera(glm::vec3(0, 0, -2), glm::vec3(0, 0, -1), {
-		.fov = 45.0f,
-		.aspect_ratio = WIN_WIDTH/WIN_HEIGHT,
-		.near = 0.1f,
-		.far = 1000.0f,
+	// m_gs.camera = new Camera(glm::vec3(0, 0, -2), glm::vec3(0, 0, -1), {
+	// 	.fov = 45.0f,
+	// 	.aspect_ratio = WIN_WIDTH/WIN_HEIGHT,
+	// 	.near = 0.1f,
+	// 	.far = 1000.0f,
+	// });
+	m_gs.camera = new Camera(glm::vec3(-WIN_WIDTH/2.0f,-WIN_HEIGHT/2.0f,0), {
+		.left = 0,
+		.right = WIN_WIDTH,
+		.top = WIN_HEIGHT,
+		.bottom = 0,
+		.near = 0,
+		.far = 1000,
 	});
 
 	// Initializing the frame controller

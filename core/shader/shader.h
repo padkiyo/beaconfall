@@ -26,6 +26,11 @@ public:
 	// Setters
 	//---------
 
+	void set_1i(const std::string& name, i32 x);
+	void set_1f(const std::string& name, f32 x);
+	void set_2f(const std::string& name, f32 x, f32 y);
+	void set_3f(const std::string& name, f32 x, f32 y, f32 z);
+	void set_4f(const std::string& name, f32 x, f32 y, f32 z, f32 w);
 	void set_arrayi(const std::string& name, i32* value, u32 count);
 	void set_mat4f(const std::string& name, const glm::mat4& value, b32 transpose);
 

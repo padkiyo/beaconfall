@@ -7,13 +7,14 @@ layout(location = 3) in float tex_id;
 out vec4 o_color;
 out vec2 o_uv;
 out float o_tex_id;
+out mat4 o_mvp;
 
 uniform mat4 mvp;
 
-void main()
-{
+void main() {
 	o_color = color;
 	o_uv = uv;
 	o_tex_id = tex_id;
-	gl_Position = mvp * vec4(position, 1.0f);
+	o_mvp = mvp;
+	gl_Position = vec4(position, 1.0f);
 }

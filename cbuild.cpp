@@ -54,10 +54,10 @@ void build_core() {
 			"./core/texture/texture.cpp",
 			"./core/buffers/vertex_buffer.cpp",
 			"./core/buffers/vertex_array.cpp",
+			"./core/buffers/frame_buffer.cpp",
 			"./core/renderer/renderer.cpp",
 			"./core/camera/camera.cpp",
 			"./core/font/font.cpp",
-			"./core/frame_buffer/frame_buffer.cpp",
 			"./core/scene/scene.cpp",
 			"./core/frame_controller/frame_controller.cpp",
 		})
