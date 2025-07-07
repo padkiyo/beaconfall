@@ -8,9 +8,11 @@
 #include "camera/camera.h"
 #include "buffers/vertex_buffer.h"
 #include "buffers/vertex_array.h"
+#include "buffers/frame_buffer.h"
 
 #define MAX_VERTEX_COUNT 1000
 #define MAX_TEXTURE_SAMPLES 32
+#define MAX_LIGHTS 32
 
 struct Vertex {
 	glm::vec3 pos;
@@ -19,96 +21,70 @@ struct Vertex {
 	f32 tex_id;
 };
 
+struct Light {
+	glm::vec2 pos;
+	f32 radius;
+	f32 intensity;
+	f32 dir;
+	f32 fov;
+	glm::vec4 color;
+};
+
+// TODO(slok): Add Index Buffer support
+
 class Renderer {
 public:
-	Renderer();
+	Renderer(const glm::vec2& resolution);
 	~Renderer();
 
 	void begin(Camera& camera);
 	void end();
 
-	void push_quad(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& color);
+	// Render Commands
+	void set_clear_color(const glm::vec4& color);
+	void push_quad(
+		const glm::vec3& pos, const glm::vec2& size, const glm::mat4& rot,
+		const Texture& texture, const glm::vec4& uv, const glm::vec4& color
+	);
 	void push_vertex(const Vertex& v);
+	void push_light(const Light& l);
+
+	// Light configs
+	void set_ambient_color(const glm::vec3& color);
+	void set_light_pixel_size(const glm::vec2& size);
+
+public:
+	const Texture& white_texture() const { return *m_white_texture; }
 
 private:
+	void execute_draw_call();
+	void execute_color_pass();
+	void execute_light_pass();
+
+private:
+	glm::vec2 m_res;
+	glm::mat4 m_view_proj;
+	glm::vec4 m_clear_color = { 0, 0, 0, 1 };
+	glm::vec3 m_ambient_color = { 0.1, 0.1, 0.1 };
+	glm::vec2 m_light_pixel_size = glm::vec2(2);
+
+	// Buffers
 	VertexBuffer* m_vbo;
 	VertexArray* m_vao;
+
+	// CPU Buffers
+	std::vector<f32> m_buffer;
+	std::vector<Light> m_lights;
+
+	// Framebuffers
+	FrameBuffer* m_color_pass;
+	FrameBuffer* m_light_pass;
 
 	// This texture is used by default if no texture is given
 	Texture* m_white_texture;
 
-	// Current Shader holds the shader that is used to render
-	// Default Shader holds the default renderer shader
-	// NOTE(slok): Introduced this to make sure we can switch shaders
-	Shader* m_current_shader;
-	Shader* m_default_shader;
-
-	glm::mat4 m_view_proj;
-
-	// CPU Vertex Buffer
-	std::vector<f32> m_buffer;
+	// Shaders
+	Shader* m_color_shader;
+	Shader* m_light_shader;
+	Shader* m_final_shader;
 };
-
-
-/*
-// Calling array of floats as vertices
-typedef std::vector<f32> Vertices;
-
-// Sepcifications for shader
-struct ShaderSpec {
-	const char* vertex_shader;
-	const char* fragment_shader;
-};
-
-// Sepcifications for vertex format
-struct FormatSpec {
-	u32 type;
-	i32 count;
-};
-
-// Sepcifications for render pipeline
-struct RenderPipelineSpecs {
-	std::vector<FormatSpec> format;
-	i32 max_vertices;
-	ShaderSpec shaders;
-};
-
-struct RenderPipeline {
-	u32 vbo;
-	u32 vao;
-	Shader* shader;
-
-	i32 max_vertices;
-	i32 vertex_size; // No of items in a vertex
-
-	f32* buffer;
-	u32 buffer_size;
-	u32 buffer_index;
-
-	Texture* white_texture;
-};
-
-Result<RenderPipeline*, std::string> rp_create(RenderPipelineSpecs* specs);
-void rp_destroy(RenderPipeline* rp);
-
-void rp_begin(RenderPipeline* rp);
-void rp_end(RenderPipeline* rp);
-void rp_push_vertices(RenderPipeline* rp, const Vertices& vertices);
-
-// Quads
-Vertices rp_create_quad(glm::vec3 pos, glm::vec2 size, glm::vec4 color);
-Vertices rp_create_quad(glm::vec3 pos, glm::vec2 size, glm::vec4 color, u32 tex_id, glm::vec4 tex_coord, glm::mat4 rot = glm::mat4(1));
-
-#define rp_push_quad(rp, ...) do {\
-	Vertices x = rp_create_quad(__VA_ARGS__);\
-	rp_push_vertices((rp), x);\
-} while (0)
-
-// Text
-Vertices rp_create_text(Font* font, const std::string& text, glm::vec3 pos, glm::vec4 color);
-
-#define rp_push_text(rp, ...) do {\
-	Vertices x = rp_create_text(__VA_ARGS__);\
-	rp_push_vertices((rp), x);\
-} while (0)
-*/

@@ -30,12 +30,38 @@ i32 Shader::get_uniform_loc(const std::string& name) {
 		return m_uniforms[name];
 
 	i32 loc = GLC(glGetUniformLocation(m_id, name.c_str()));
-	panic(loc != -1, "Cannot find uniform: %s", name.c_str());
+	if (loc == -1)
+		log_error("Cannot find uniform: %s\n", name.c_str());
 
 	// Caching the uniform locations
 	m_uniforms.insert_or_assign(name, loc);
 
 	return loc;
+}
+
+void Shader::set_1i(const std::string& name, i32 x) {
+	i32 loc = get_uniform_loc(name);
+	GLC(glUniform1i(loc, x));
+}
+
+void Shader::set_1f(const std::string& name, f32 x) {
+	i32 loc = get_uniform_loc(name);
+	GLC(glUniform1f(loc, x));
+}
+
+void Shader::set_2f(const std::string& name, f32 x, f32 y) {
+	i32 loc = get_uniform_loc(name);
+	GLC(glUniform2f(loc, x, y));
+}
+
+void Shader::set_3f(const std::string& name, f32 x, f32 y, f32 z) {
+	i32 loc = get_uniform_loc(name);
+	GLC(glUniform3f(loc, x, y, z));
+}
+
+void Shader::set_4f(const std::string& name, f32 x, f32 y, f32 z, f32 w) {
+	i32 loc = get_uniform_loc(name);
+	GLC(glUniform4f(loc, x, y, z, w));
 }
 
 void Shader::set_arrayi(const std::string& name, i32* value, u32 count) {
