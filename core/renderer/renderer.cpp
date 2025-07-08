@@ -111,7 +111,7 @@ void Renderer::end() {
 	m_final_shader->bind();
 
 	push_quad(
-		{0,0,0},
+		{-1,-1,0},
 		{2, 2},
 		glm::mat4(1.0f),
 		m_light_pass->get_color_texture(),
@@ -176,7 +176,7 @@ void Renderer::execute_light_pass() {
 		m_color_pass->bind_color_channel();
 		push_quad(
 			{0,0,0},
-			{2, 2},
+			m_res,
 			glm::mat4(1.0f),
 			m_color_pass->get_color_texture(),
 			{0,0,1,1},
@@ -208,10 +208,10 @@ void Renderer::push_quad(
 		* glm::scale(glm::mat4(1.0f), {size.x, size.y, 1.0f});
 
 	glm::vec4 quad_pos[4] = {
-		{ -0.5f, -0.5f, 0.0f, 1.0f },
-		{  0.5f, -0.5f, 0.0f, 1.0f },
-		{  0.5f,  0.5f, 0.0f, 1.0f },
-		{ -0.5f,  0.5f, 0.0f, 1.0f }
+		{ 0.0f, 0.0f, 0.0f, 1.0f },
+		{ 1.0f, 0.0f, 0.0f, 1.0f },
+		{ 1.0f, 1.0f, 0.0f, 1.0f },
+		{ 0.0f, 1.0f, 0.0f, 1.0f }
 	};
 
 	Vertex v1, v2, v3, v4, v5, v6;

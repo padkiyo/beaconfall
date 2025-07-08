@@ -1,7 +1,7 @@
 #pragma once
 #include "common.h"
 
-// NOTE(slok): The delta time is in miliseconds
+// NOTE(slok): The delta time is in seconds (eg: 0.016)
 
 class FrameController {
 public:
