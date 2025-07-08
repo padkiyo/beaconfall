@@ -1,6 +1,9 @@
 #pragma once
 
 #include "core.h"
+
+#include "systems/sprite_system/sprite_system.h"
+
 // #include "systems/map_system/map_system.h"
 
 
@@ -25,6 +28,10 @@ struct GameState {
 
 	// Resources
 	Font* font_regular;
+	Texture* player_texture;
+
+	SpriteManager* sprt_mgr;
+	Animator* anim_mgr;
 };
 
 

@@ -3,6 +3,8 @@
 #include "scenes/scenes.h"
 // #include "systems/map_system/map_system.h"
 // #include "systems/map_system/maps.h"
+//
+// TODO add ts in config.h
 
 Game::Game() {
 	init_core();
@@ -29,6 +31,16 @@ Game::Game() {
 	};
 
 	m_running = true;
+
+	TextureFilter sprite_filter = {
+				.min_filter = GL_LINEAR,
+				.mag_filter = GL_LINEAR,
+				.wrap_s = GL_CLAMP_TO_EDGE,
+				.wrap_t = GL_CLAMP_TO_EDGE,
+				.flip = true
+			};
+	Texture* sprite_sheet = new Texture("assets/Slime1_Idle_body.png", sprite_filter);
+	m_gs.player_texture = sprite_sheet;
 }
 
 Game::~Game() {
@@ -93,6 +105,12 @@ void Game::event() {
 
 		if (event.type == SDL_KEYDOWN) {
 			switch (event.key.keysym.sym) {
+				case SDLK_1:
+					m_gs.anim_mgr->switch_frame(PLAYER_IDLE);
+					break;
+				case SDLK_2:
+					m_gs.anim_mgr->switch_frame(PLAYER_DIE);
+					break;
 				case SDLK_q:
 					m_gs.camera->change_pos({0,0,1}, CAM_SPEED);
 					break;
@@ -134,14 +152,19 @@ void Game::render() {
 	m_gs.renderer->push_light(l1);
 	m_gs.renderer->push_light(l2);
 
+	m_gs.sprt_mgr->activate_spritesheet(PLAYER);
 	m_gs.renderer->push_quad(
 		{0, 0, 0},
-		{50, 50},
+		{500, 500},
 		glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), {0,0,1}),
-		m_gs.renderer->white_texture(),
-		{0,0,1,1},
-		{1,0,0,1}
+		m_gs.sprt_mgr->get_spritesheet_texture(PLAYER),
+		m_gs.anim_mgr->get_frame(*m_gs.sprt_mgr),
+		{1,1,1,1}
 	);
+
+	glm::vec4 tex_coords = m_gs.anim_mgr->get_frame(*m_gs.sprt_mgr);
+
+	// std::cout << tex_coords.x << "," << tex_coords.y << " " <<tex_coords.z << "," << tex_coords.w  << std::endl;
 
 	m_gs.renderer->end();
 
@@ -330,6 +353,8 @@ void Game::init_systems() {
 		"./assets/maps/test2_map/spritesheet.png"
 	).unwrap();
 	*/
+	m_gs.sprt_mgr = new SpriteManager();
+	m_gs.anim_mgr = new Animator(PLAYER, PLAYER_IDLE);
 }
 
 
@@ -339,6 +364,19 @@ void Game::init_systems() {
 
 void Game::init_resources() {
 	m_gs.font_regular = font_create("./assets/Ac437_ToshibaSat_9x8.ttf", 25).unwrap();
+
+	// loading sprites
+	Sprite player_sprite = {
+		.path = "./assets/samurai.png",
+		.x_cnt = 14,
+		.y_cnt = 8
+	};
+
+	m_gs.sprt_mgr->add_sprite(player_sprite, PLAYER);
+	m_gs.sprt_mgr->create_frame(PLAYER, 7,7, PLAYER_IDLE);
+	m_gs.sprt_mgr->create_frame(PLAYER, 0, 13, PLAYER_DIE);
+	m_gs.anim_mgr->add_animation(PLAYER_IDLE, 100 * 8, true);
+	m_gs.anim_mgr->add_animation(PLAYER_DIE, 100 * 14, false);
 }
 
 

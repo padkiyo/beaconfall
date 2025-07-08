@@ -165,6 +165,7 @@ void build_game() {
 			"SDL2_ttf",
 		})
 		.src({
+				"./game/systems/sprite_system/sprite_system.cpp",
 //			"./game/systems/dialog_system/dialog_system.cpp",
 //			"./game/systems/notebook_system/notebook_system.cpp",
 //			"./game/systems/map_system/map_system.cpp",
