@@ -22,7 +22,7 @@ void FrameController::end() {
 
 	m_dt = (SDL_GetTicks() - m_start_tick) / 1000.0; // Converting to seconds
 
-	// If the time between frame (dt) is smaller then unit frame (1000/fps) then sleep for remaining amount of time
+	// If the time between frame (dt) is smaller then unit frame (1/fps) then sleep for remaining amount of time
 	if (m_unit_frame > m_dt) {
 		u32 secs = m_unit_frame - m_dt;
 		sleep(secs);

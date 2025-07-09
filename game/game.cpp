@@ -13,21 +13,28 @@ Game::Game() {
 	init_resources();
 
 	l1 = {
-		.pos = {-50, 50},
-		.radius = 10.0f,
+		.pos = {0, 0},
+		.radius = 1.0f,
 		.intensity = 1.0f,
-		.dir = 3.14 / 4,
+		.dir = - 3.14 / 4,
 		.fov = 3.14 / 4,
 		.color = {0.8,0.5,0,1}
 	};
 
 	l2 = {
 		.pos = {150, 50},
-		.radius = 10.0f,
+		.radius = 1.0f,
 		.intensity = 1.0f,
 		.dir = - 3.14 / 4,
 		.fov = 3.14 / 4,
 		.color = {0.8,0.0,0.8,1}
+	};
+
+	a = Rect({400, 300, 50, 50});
+	boxes = {
+		Rect({10, 10, 200, 20}),
+		Rect({10, 20, 20, 200}),
+		Rect({200, 10, 200, 20})
 	};
 
 	m_running = true;
@@ -46,9 +53,6 @@ Game::Game() {
 Game::~Game() {
 	// Freeing resources
 	font_destroy(m_gs.font_regular);
-
-	// Destroying the systems
-	// mm_destroy(m_gs.mm);
 
 	// Core deinitializatioin
 	delete m_gs.camera;
@@ -119,17 +123,21 @@ void Game::event() {
 					break;
 
 				case SDLK_w:
-					m_gs.camera->change_pos({0,1,0}, CAM_SPEED);
+					move.y += move_speed;
+					// m_gs.camera->change_pos({0,1,0}, CAM_SPEED);
 					break;
 				case SDLK_s:
-					m_gs.camera->change_pos({0,-1,0}, CAM_SPEED);
+					move.y -= move_speed;
+					// m_gs.camera->change_pos({0,-1,0}, CAM_SPEED);
 					break;
 
 				case SDLK_a:
-					m_gs.camera->change_pos({-1,0,0}, CAM_SPEED);
+					move.x -= move_speed;
+					// m_gs.camera->change_pos({-1,0,0}, CAM_SPEED);
 					break;
 				case SDLK_d:
-					m_gs.camera->change_pos({1,0,0}, CAM_SPEED);
+					move.x += move_speed;
+					// m_gs.camera->change_pos({1,0,0}, CAM_SPEED);
 					break;
 			}
 		}
@@ -144,47 +152,48 @@ void Game::event() {
 
 void Game::render() {
 	m_gs.renderer->set_clear_color({0.5,0.5,0.5,1});
-	m_gs.renderer->begin(*m_gs.camera);
+	m_gs.renderer->set_ambient_color(ambient_color);
+	m_gs.renderer->set_light_pixel_size({pixel_size, pixel_size});
 
-	auto pos = m_gs.camera->get_pos();
-	// std::cout << pos.x << " " << pos.y << " " << pos.z << std::endl;
+	m_gs.renderer->begin(*m_gs.camera);
 
 	m_gs.renderer->push_light(l1);
 	m_gs.renderer->push_light(l2);
 
 	m_gs.sprt_mgr->activate_spritesheet(PLAYER);
 	m_gs.renderer->push_quad(
-		{0, 0, 0},
-		{500, 500},
+		{a.x, a.y, 0},
+		{a.w, a.h},
 		glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), {0,0,1}),
 		m_gs.sprt_mgr->get_spritesheet_texture(PLAYER),
 		m_gs.anim_mgr->get_frame(*m_gs.sprt_mgr),
 		{1,1,1,1}
 	);
 
-	glm::vec4 tex_coords = m_gs.anim_mgr->get_frame(*m_gs.sprt_mgr);
+	for (auto box : boxes) {
+		m_gs.renderer->push_quad(
+			{box.x, box.y, 0},
+			{box.w, box.h},
+			glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), {0,0,1}),
+			m_gs.renderer->white_texture(),
+			{0,0,1,1},
+			{1,0,1,1}
+		);
+	}
 
-	// std::cout << tex_coords.x << "," << tex_coords.y << " " <<tex_coords.z << "," << tex_coords.w  << std::endl;
+	a.resolve(boxes, move, m_gs.fc->dt());
+
+	std::cout
+		<< "left: " << a.intersect_at_left() << "\n"
+		<< "right: " << a.intersect_at_right() << "\n"
+		<< "up: " << a.intersect_at_up() << "\n"
+		<< "down: " << a.intersect_at_down() << "\n"
+		<< std::endl;
 
 	m_gs.renderer->end();
 
-	/*
-	// Updating camera matrix
-	m_gs.quad_rp->shader->bind();
-	m_gs.camera->recalculate_view_proj();
-	glm::mat4 mvp = m_gs.camera->get_view_proj();
-	m_gs.quad_rp->shader->set_mat4f("mvp", mvp, false);
-
-	// Scene rendering section
-	// rp_begin(m_gs.quad_rp);
-	m_gs.renderer->begin(*m_gs.camera)
-	{
-		// Updating the current scene
-		m_gs.scene_mgr->update_current_scene(m_gs.fc->dt());
-	}
-	m_gs.renderer->end()
-	// rp_end(m_gs.quad_rp);
-	*/
+	// Reset move
+	move = glm::vec2(0);
 }
 
 
@@ -236,10 +245,17 @@ void Game::imgui_render() {
 		}
 	}
 
+	if (ImGui::CollapsingHeader("Setting")) {
+		ImGui::DragFloat("Speed", &move_speed, 10.0f, 1.0f, 1000.0f);
+	}
+
 	if (ImGui::CollapsingHeader("Light")) {
+		ImGui::ColorEdit3("Ambient Color", (f32*) &ambient_color);
+		ImGui::DragFloat("Pixel Size", &pixel_size, 0.1f, 1.0f, 50.0f);
+
 		ImGui::SeparatorText("Light 1");
 		ImGui::DragFloat2("Position1", (float*)&l1.pos, 1.0f, -500.0f, 500.0f);
-		ImGui::DragFloat("Radius1", &l1.radius, 1.0f, 0.0f, 100.0f);
+		ImGui::DragFloat("Radius1", &l1.radius, 0.5f, 0.0f, 50.0f);
 		ImGui::DragFloat("Intensity1", &l1.intensity, 0.01f, 0.0f, 10.0f);
 		ImGui::SliderAngle("Direction1", &l1.dir, 0.0f, 360.0f);
 		ImGui::SliderAngle("FOV1", &l1.fov, 0.0f, 360.0f);
@@ -247,7 +263,7 @@ void Game::imgui_render() {
 
 		ImGui::SeparatorText("Light 2");
 		ImGui::DragFloat2("Position2", (float*)&l2.pos, 1.0f, -500.0f, 500.0f);
-		ImGui::DragFloat("Radius2", &l2.radius, 1.0f, 0.0f, 100.0f);
+		ImGui::DragFloat("Radius2", &l2.radius, 0.5f, 0.0f, 50.0f);
 		ImGui::DragFloat("Intensity2", &l2.intensity, 0.01f, 0.0f, 10.0f);
 		ImGui::SliderAngle("Direction2", &l2.dir, 0.0f, 360.0f);
 		ImGui::SliderAngle("FOV2", &l2.fov, 0.0f, 360.0f);
@@ -304,7 +320,7 @@ void Game::init_core() {
 	// 	.near = 0.1f,
 	// 	.far = 1000.0f,
 	// });
-	m_gs.camera = new Camera(glm::vec3(-WIN_WIDTH/2.0f,-WIN_HEIGHT/2.0f,0), {
+	m_gs.camera = new Camera(glm::vec3(0,0,0), {
 		.left = 0,
 		.right = WIN_WIDTH,
 		.top = WIN_HEIGHT,

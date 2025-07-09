@@ -16,5 +16,5 @@ void main() {
 	o_uv = uv;
 	o_tex_id = tex_id;
 	o_mvp = mvp;
-	gl_Position = vec4(position, 1.0f);
+	gl_Position = o_mvp * vec4(position, 1.0f);
 }

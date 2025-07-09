@@ -14,3 +14,4 @@
 #include "buffers/frame_buffer.h"
 #include "scene/scene.h"
 #include "frame_controller/frame_controller.h"
+#include "rect/rect.h"
