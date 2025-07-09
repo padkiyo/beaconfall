@@ -2,6 +2,11 @@
 
 #include "core.h"
 
+#include "systems/sprite_system/sprite_system.h"
+#include "systems/animation_system/animation_system.h"
+
+// #include "systems/map_system/map_system.h"
+
 
 /*
  * This is the global state of the game.
@@ -20,6 +25,10 @@ struct GameState {
 
 	// Resources
 	Font* font_regular;
+	Texture* player_texture;
+
+	SpriteManager* sprt_mgr;
+	Animator* anim_mgr;
 };
 
 

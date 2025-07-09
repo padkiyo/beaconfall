@@ -3,6 +3,7 @@
 #include "scenes/scenes.h"
 // #include "systems/map_system/map_system.h"
 // #include "systems/map_system/maps.h"
+//
 
 Game::Game() {
 	init_core();
@@ -36,6 +37,14 @@ Game::Game() {
 	};
 
 	m_running = true;
+
+	TextureFilter sprite_filter = {
+				.min_filter = GL_LINEAR,
+				.mag_filter = GL_LINEAR,
+				.wrap_s = GL_CLAMP_TO_EDGE,
+				.wrap_t = GL_CLAMP_TO_EDGE,
+				.flip = true
+			};
 }
 
 Game::~Game() {
@@ -142,13 +151,14 @@ void Game::render() {
 	m_gs.renderer->push_light(l1);
 	m_gs.renderer->push_light(l2);
 
+	m_gs.sprt_mgr->activate_spritesheet(PLAYER);
 	m_gs.renderer->push_quad(
 		{a.x, a.y, 0},
 		{a.w, a.h},
 		glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), {0,0,1}),
-		m_gs.renderer->white_texture(),
-		{0,0,1,1},
-		{1,0,0,1}
+		m_gs.sprt_mgr->get_spritesheet_texture(PLAYER),
+		m_gs.anim_mgr->get_frame(*m_gs.sprt_mgr),
+		{1,1,1,1}
 	);
 
 	for (auto box : boxes) {
@@ -251,6 +261,18 @@ void Game::imgui_render() {
 		ImGui::ColorEdit4("Color2", (float*)&l2.color);
 	}
 
+	if(ImGui::CollapsingHeader("Animator")){
+		ImGui::SeparatorText("Player");
+		if (ImGui::Button("Idle")) {
+					m_gs.anim_mgr->switch_frame(PLAYER_IDLE);
+		}
+
+		if(ImGui::Button("Die")) {
+					m_gs.anim_mgr->switch_frame(PLAYER_DIE);
+
+		}
+	}
+
 	/*
 	if(ImGui::CollapsingHeader("Map Manager")) {
 		ImGui::SeparatorText("Map Manager");
@@ -350,6 +372,8 @@ void Game::init_systems() {
 		"./assets/maps/test2_map/spritesheet.png"
 	).unwrap();
 	*/
+	m_gs.sprt_mgr = new SpriteManager();
+	m_gs.anim_mgr = new Animator(PLAYER, PLAYER_IDLE);
 }
 
 
@@ -359,6 +383,19 @@ void Game::init_systems() {
 
 void Game::init_resources() {
 	m_gs.font_regular = font_create("./assets/Ac437_ToshibaSat_9x8.ttf", 25).unwrap();
+
+	// loading sprites
+	Sprite player_sprite = {
+		.path = "./assets/samurai.png",
+		.x_cnt = 14,
+		.y_cnt = 8
+	};
+
+	m_gs.sprt_mgr->add_sprite(player_sprite, PLAYER);
+	m_gs.sprt_mgr->create_frame(PLAYER, 7,7, PLAYER_IDLE);
+	m_gs.sprt_mgr->create_frame(PLAYER, 0, 13, PLAYER_DIE);
+	m_gs.anim_mgr->add_animation(PLAYER_IDLE, 100 * 8, true);
+	m_gs.anim_mgr->add_animation(PLAYER_DIE, 100 * 14, false);
 }
 
 
