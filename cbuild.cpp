@@ -167,6 +167,7 @@ void build_game() {
 		})
 		.src({
 				"./game/systems/sprite_system/sprite_system.cpp",
+				"./game/systems/animation_system/animation_system.cpp",
 //			"./game/systems/dialog_system/dialog_system.cpp",
 //			"./game/systems/notebook_system/notebook_system.cpp",
 //			"./game/systems/map_system/map_system.cpp",

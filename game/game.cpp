@@ -4,7 +4,6 @@
 // #include "systems/map_system/map_system.h"
 // #include "systems/map_system/maps.h"
 //
-// TODO add ts in config.h
 
 Game::Game() {
 	init_core();
@@ -46,8 +45,6 @@ Game::Game() {
 				.wrap_t = GL_CLAMP_TO_EDGE,
 				.flip = true
 			};
-	Texture* sprite_sheet = new Texture("assets/Slime1_Idle_body.png", sprite_filter);
-	m_gs.player_texture = sprite_sheet;
 }
 
 Game::~Game() {
@@ -109,12 +106,6 @@ void Game::event() {
 
 		if (event.type == SDL_KEYDOWN) {
 			switch (event.key.keysym.sym) {
-				case SDLK_1:
-					m_gs.anim_mgr->switch_frame(PLAYER_IDLE);
-					break;
-				case SDLK_2:
-					m_gs.anim_mgr->switch_frame(PLAYER_DIE);
-					break;
 				case SDLK_q:
 					m_gs.camera->change_pos({0,0,1}, CAM_SPEED);
 					break;
@@ -268,6 +259,18 @@ void Game::imgui_render() {
 		ImGui::SliderAngle("Direction2", &l2.dir, 0.0f, 360.0f);
 		ImGui::SliderAngle("FOV2", &l2.fov, 0.0f, 360.0f);
 		ImGui::ColorEdit4("Color2", (float*)&l2.color);
+	}
+
+	if(ImGui::CollapsingHeader("Animator")){
+		ImGui::SeparatorText("Player");
+		if (ImGui::Button("Idle")) {
+					m_gs.anim_mgr->switch_frame(PLAYER_IDLE);
+		}
+
+		if(ImGui::Button("Die")) {
+					m_gs.anim_mgr->switch_frame(PLAYER_DIE);
+
+		}
 	}
 
 	/*
