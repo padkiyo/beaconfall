@@ -170,7 +170,7 @@ void build_game() {
 				"./game/systems/animation_system/animation_system.cpp",
 //			"./game/systems/dialog_system/dialog_system.cpp",
 //			"./game/systems/notebook_system/notebook_system.cpp",
-//			"./game/systems/map_system/map_system.cpp",
+				"./game/systems/map_system/map_system.cpp",
 			"./game/scenes/test/test.cpp",
 //			"./game/scenes/map/map.cpp",
 //			"./game/scenes/slowmo/slowmo.cpp",

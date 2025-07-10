@@ -1,37 +1,43 @@
+
 #pragma once
 
 #include "common.h"
 #include "core.h"
 
-
-struct Map {
-	Json::Value root;
-	Texture* tilesheet;
+struct MapEntry {
+	const char* map_file;
+	const char* map_tileset;
+	Renderer* renderer;
+	f32 render_scale;
 };
 
-struct  MapManager {
-	i32 current_map;
-	std::unordered_map<i32, Map*> maps;
+class Map {
+	private:
+		f32 tile_size;
+		f32 map_width;
+		f32 map_height;
+		f32 render_scale;
+
+		Renderer* renderer;
+		const char* map_tileset;
+		const char* map_file;
+		Json::Value root;
+
+		Texture* map_texture;
+
+		TextureFilter sprite_filter = {
+			.min_filter = GL_NEAREST,
+			.mag_filter = GL_NEAREST,
+			.wrap_s = GL_CLAMP_TO_EDGE,
+			.wrap_t = GL_CLAMP_TO_EDGE,
+			.flip = true
+		};
+
+		glm::vec4 get_texcoords(f32 index, f32 width, f32 height);
+
+	public:
+		Map(MapEntry map_config);
+		~Map();
+
+		void render();
 };
-
-
-MapManager* mm_create();
-void mm_destroy(MapManager* mm);
-
-Result<i32 , const char*> mm_add_map(
-	MapManager* mm, i32 id,
-	const char* json,
-	const char* tilesheet
-);
-
-void mm_switch_map(MapManager* mm, i32 id);
-void mm_remove_map(MapManager* mm, i32 id);
-void mm_render_current(RenderPipeline* quad_rp, MapManager* mm, f32 size);
-
-
-glm::vec4 map_get_texcoords(f32 id, f32  width, f32 height);
-Result <Map, const char*> map_load(const char* json, const char* tilesheet);
-void map_render(RenderPipeline* quad_rp, Map* map, f32 size);
-
-
-

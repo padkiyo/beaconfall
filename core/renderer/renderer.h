@@ -10,7 +10,7 @@
 #include "buffers/vertex_array.h"
 #include "buffers/frame_buffer.h"
 
-#define MAX_VERTEX_COUNT 1000
+#define MAX_VERTEX_COUNT 10000
 #define MAX_TEXTURE_SAMPLES 32
 #define MAX_LIGHTS 32
 
@@ -55,6 +55,7 @@ public:
 
 public:
 	const Texture& white_texture() const { return *m_white_texture; }
+	glm::vec2 m_res;
 
 private:
 	void execute_draw_call();
@@ -62,7 +63,6 @@ private:
 	void execute_light_pass();
 
 private:
-	glm::vec2 m_res;
 	glm::mat4 m_view_proj;
 	glm::vec4 m_clear_color = { 0, 0, 0, 1 };
 	glm::vec3 m_ambient_color = { 0.1, 0.1, 0.1 };
