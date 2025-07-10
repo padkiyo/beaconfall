@@ -29,7 +29,7 @@ Game::Game() {
 		.color = {0.8,0.0,0.8,1}
 	};
 
-	a = Rect({400, 300, 50, 50});
+	a = Rect({400, 350, 50, 50});
 	boxes = {
 		Rect({10, 10, 200, 20}),
 		Rect({10, 20, 20, 200}),
@@ -151,6 +151,8 @@ void Game::render() {
 	m_gs.renderer->push_light(l1);
 	m_gs.renderer->push_light(l2);
 
+	m_gs.map->render();
+
 	m_gs.sprt_mgr->activate_spritesheet(PLAYER);
 	m_gs.renderer->push_quad(
 		{a.x, a.y, 0},
@@ -160,6 +162,8 @@ void Game::render() {
 		m_gs.anim_mgr->get_frame(*m_gs.sprt_mgr),
 		{1,1,1,1}
 	);
+
+
 
 	for (auto box : boxes) {
 		m_gs.renderer->push_quad(
@@ -172,6 +176,7 @@ void Game::render() {
 		);
 	}
 
+
 	a.resolve(boxes, move, m_gs.fc->dt());
 
 	std::cout
@@ -180,6 +185,7 @@ void Game::render() {
 		<< "up: " << a.intersect_at_up() << "\n"
 		<< "down: " << a.intersect_at_down() << "\n"
 		<< std::endl;
+
 
 	m_gs.renderer->end();
 
@@ -373,6 +379,10 @@ void Game::init_systems() {
 	).unwrap();
 	*/
 	m_gs.sprt_mgr = new SpriteManager();
+
+	auto sprite_id = PLAYER;
+	auto init_anim = PLAYER_IDLE;
+
 	m_gs.anim_mgr = new Animator(PLAYER, PLAYER_IDLE);
 }
 
@@ -387,8 +397,8 @@ void Game::init_resources() {
 	// loading sprites
 	Sprite player_sprite = {
 		.path = "./assets/samurai.png",
-		.x_cnt = 14,
-		.y_cnt = 8
+		.x_cnt = 14, // No of horizontal sprites
+		.y_cnt = 8 // No of vertical sprites
 	};
 
 	m_gs.sprt_mgr->add_sprite(player_sprite, PLAYER);
@@ -396,6 +406,14 @@ void Game::init_resources() {
 	m_gs.sprt_mgr->create_frame(PLAYER, 0, 13, PLAYER_DIE);
 	m_gs.anim_mgr->add_animation(PLAYER_IDLE, 100 * 8, true);
 	m_gs.anim_mgr->add_animation(PLAYER_DIE, 100 * 14, false);
+	MapEntry map_config= {
+		.map_file = "assets/maps/test_map/map.json",
+		.map_tileset = "assets/maps/test_map/spritesheet.png",
+		.renderer = m_gs.renderer,
+		.render_scale = 1.50f
+	};
+
+	m_gs.map = new Map(map_config);
 }
 
 

@@ -1,151 +1,98 @@
 // TODO: better error handling by saying which file is not loading
-	//
 #include "map_system.h"
-#include "maps.h"
 
-glm::vec4 map_get_texcoords(f32 id, f32  width, f32 height){
-	bool done = false;
-	f32 count = -1.0f;
+// ! was too high when I wrote this, now I dont understand how this shit works, it works tho!
+glm::vec4  Map::get_texcoords(f32 index, f32 width, f32 height) {
+	glm::vec4 res = glm::vec4(0.0f, 0.0f,
+			0.0f, 0.0f);
 
-	while (!done) {
-		count += 1.0f;
-		if (id < width) {
-			done = true;
-			break;
-		}
-		id -= width;
-	}
+	res.x = ((i32) index % (i32)width)/width;
 
-	return glm::vec4(id/width, count/height, 1/width , 1/height);
+	f32 adder = (height - 1)/height;
+
+	i32 cofficient = (int) (index/width);
+	f32 subtractor = cofficient/ height;
+
+	res.y = adder - subtractor;
+
+	res.z =  1/width;
+	res.w = 1/height;
+
+	return res;
 }
 
-Result <Map, const char*> map_load(const char* json, const char* tilesheet) {
+Map::Map(MapEntry map_config) {
 
-	Map map;
+	this->renderer = map_config.renderer;
+	this->map_tileset = map_config.map_tileset;
+	this->map_file = map_config.map_file;
+	this->render_scale = map_config.render_scale;
 
+	// loading map file
 	Json::CharReaderBuilder builder;
 	std::ifstream ifs;
 	JSONCPP_STRING errs;
 
-	// Trying to open map file
-	ifs.open(json);
+	ifs.open(this->map_file);
 	builder["collectComments"] = false;
 
-	// Trying to parse it to json
-	if(!parseFromStream(builder, ifs, &map.root, &errs)){
-		return "Unable to parse map file";
-	}
+	if(!parseFromStream(builder, ifs, &this->root, &errs))
+		panic("Unable to open map a file");
 
-	// Trying to open map tileset
-	// auto result = texture_create_from_file(tilesheet);
+	this->tile_size = this->root["tileSize"].asFloat();
+	this->map_width = this->root["mapWidth"].asFloat();
+	this->map_height = this->root["mapHeight"].asFloat();
 
-	map.tilesheet = new Texture(
-		std::string(tilesheet), {
-			.min_filter = GL_NEAREST,
-			.mag_filter = GL_NEAREST,
-			.wrap_s = GL_CLAMP_TO_EDGE,
-			.wrap_t = GL_CLAMP_TO_EDGE,
-			.flip = false,
-		}
-	);
+	this->map_texture = new Texture(this->map_tileset, this->sprite_filter);
 
-	return map;
 }
 
-void map_render(RenderPipeline* quad_rp, Map* map, f32 size){
-	auto layers = map->root["layers"];
-	f32 tile_size = map->root["tileSize"].asFloat();
+void Map::render() {
+	auto layers = this->root["layers"];
 
-	map->tilesheet->bind();
+	this->map_texture->bind();
 
-	// Rendering layers
-	for (Json::Value::ArrayIndex layer  = (layers.size() -1); layer != -1; layer--)
-	{
+	for (Json::Value::ArrayIndex layer = (layers.size() -1); layer != -1; layer--) {
 		auto tiles = layers[layer]["tiles"];
 
-		// Rendering tiles
-		for(Json::Value::ArrayIndex i = 0; i != tiles.size(); i++)
+		for (Json::Value::ArrayIndex i = 0; i != tiles.size(); i++)
 		{
 
+			// Calculating map tile size from render_scale
 			glm::vec2 render_size = glm::vec2(
-					tile_size * size,
-					tile_size * size
-					);
+					this->tile_size * this->render_scale,
+					this->tile_size * this->render_scale
+			);
 
 			glm::vec3 position = glm::vec3(
 					tiles[i]["x"].asFloat() * render_size.x,
-				(11.0f - tiles[i]["y"].asFloat()) * render_size.y ,
-					1.0f
-					);
+					(this->renderer->m_res.y - (tiles[i]["y"].asFloat() * render_size.y)),
+					0.0f
+			);
 
+			f32 sprite_sheet_width_count = (f32) this->map_texture->get_width()/this->tile_size;
+			f32 sprite_sheet_height_count = (f32) this->map_texture->get_height()/this->tile_size;
 
-			// converting id to texture coords
-			glm::vec4 texcoords = map_get_texcoords(
+			// Scary stuff pls find a better solution
+			f32 tile_id = std::stof(tiles[i]["id"].asString());
 
-					// scary shit here
-					std::stof(tiles[i]["id"].asString()),
-					map->tilesheet->get_width() / tile_size,
-					map->tilesheet->get_height() / tile_size
-					);
+			glm::vec4  tex_coords = this->get_texcoords(
+				tile_id,
+				sprite_sheet_width_count,
+				sprite_sheet_height_count
+			);
 
-			rp_push_quad(quad_rp, position, render_size, glm::vec4(1, 1, 1, 1), map->tilesheet->get_id(), texcoords);
+			// NOTE just in case for debugging
+			//std::cout << "P: " <<  position.x << "," << position.y << " TC: " << tex_coords.x << "," << tex_coords.y << "," << tex_coords.z << "," << tex_coords.w << std::endl;
 
+			this->renderer->push_quad(
+					position, render_size, // position and size of quad
+					glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), {0,0,1}), // rotation stuff
+					(Texture&)*this->map_texture, tex_coords, // texture stuff
+					glm::vec4(1.0f, 1.0f, 1.0f, 1.0f) // color stuff
+				);
 		}
 	}
-
 }
 
-MapManager* mm_create() {
-	MapManager* mm = new MapManager;
-	mm->current_map = -1;
-	return mm;
-}
-
-void mm_destroy(MapManager* mm) {
-	for (auto& [id, map] : mm->maps) {
-		delete map;
-	}
-	delete mm;
-}
-
-Result<i32 , const char*> mm_add_map(
-		MapManager* mm, i32 id,
-		const char* json,
-		const char* tilesheet
-)
-{
-	Map* nm = new Map;
-	Map _tmp_map = xx(map_load(json, tilesheet));
-
-	nm->root = _tmp_map.root;
-	nm->tilesheet = _tmp_map.tilesheet;
-
-	mm->maps.insert_or_assign(id, nm);
-
-	if (mm->current_map == -1)
-		mm->current_map = id;
-
-	return id;
-}
-
-void mm_switch_map(MapManager* mm, i32 id) {
-	panic(mm->maps.find(id) != mm->maps.end(), "Map with ID: %d is not found", id);
-	if (id == mm->current_map) return;
-	mm->current_map= id;
-}
-
-void mm_remove_map(MapManager* mm, i32 id) {
-	panic(mm->maps.find(id) != mm->maps.end(), "Map with ID: %d is not found", id);
-
-	panic(mm->current_map == id, "Map with ID: %d is current map, unable to delete", id);
-
-	Map* map = mm->maps[id];
-	delete map;
-	mm->maps.erase(id);
-}
-
-void mm_render_current(RenderPipeline* quad_rp, MapManager* mm, f32 size) {
-	Map* map = mm->maps[mm->current_map];
-	map_render(quad_rp, map, size);
-}
 
