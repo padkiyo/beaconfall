@@ -1,5 +1,17 @@
 #pragma once
 
+// Windows check
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+    #include<windows.h>
+
+    //! Scary
+    #undef near
+    #undef far
+    
+    #define sleep Sleep
+    #define SDL_MAIN_HANDLED
+#endif
+
 #include <glad/gl.h>
 #include <GL/glu.h>
 #include <SDL2/SDL.h>
