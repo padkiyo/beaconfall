@@ -12,21 +12,21 @@ Game::Game() {
 	init_resources();
 
 	l1 = {
-		.pos = {0, 0},
-		.radius = 1.0f,
-		.intensity = 1.0f,
-		.dir = - 3.14 / 4,
-		.fov = 3.14 / 4,
+		.pos = {130, 197},
+		.radius = 0.5f,
+		.intensity = 0.45f,
+		.dir = glm::radians(81.0f) ,
+		.fov = glm::radians(41.0f),
 		.color = {0.8,0.5,0,1}
 	};
 
 	l2 = {
-		.pos = {150, 50},
-		.radius = 1.0f,
-		.intensity = 1.0f,
-		.dir = - 3.14 / 4,
-		.fov = 3.14 / 4,
-		.color = {0.8,0.0,0.8,1}
+		.pos = {347, 225},
+		.radius = 0.5f,
+		.intensity = 0.610f,
+		.dir = glm::radians(180.0f),
+		.fov = glm::radians(360.0f),
+		.color = {1.0f,0.522,0.04,1}
 	};
 
 	a = Rect({400, 350, 50, 50});
@@ -406,9 +406,10 @@ void Game::init_resources() {
 	m_gs.sprt_mgr->create_frame(PLAYER, 0, 13, PLAYER_DIE);
 	m_gs.anim_mgr->add_animation(PLAYER_IDLE, 100 * 8, true);
 	m_gs.anim_mgr->add_animation(PLAYER_DIE, 100 * 14, false);
+
 	MapEntry map_config= {
-		.map_file = "assets/maps/test_map/map.json",
-		.map_tileset = "assets/maps/test_map/spritesheet.png",
+		.map_file = "assets/maps/EXAMPLE/map.json",
+		.map_tileset = "assets/maps/EXAMPLE/spritesheet.png",
 		.renderer = m_gs.renderer,
 		.render_scale = 1.50f
 	};
