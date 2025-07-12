@@ -64,13 +64,11 @@ Texture::~Texture() {
 }
 
 void Texture::bind() {
-	GLC(glActiveTexture(GL_TEXTURE0 + (i32) m_id));
-	GLC(glBindTexture(GL_TEXTURE_2D, m_id));
+	GLC(glBindTextureUnit(m_id, m_id));
 }
 
 void Texture::unbind() {
-	GLC(glActiveTexture(GL_TEXTURE0 + (i32) m_id));
-	GLC(glBindTexture(GL_TEXTURE_2D, 0));
+	GLC(glBindTextureUnit(m_id, 0));
 }
 
 void Texture::update(i32 lod, i32 x_offset, i32 y_offset, u32 width, u32 height, void* data) {

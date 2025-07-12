@@ -22,8 +22,6 @@ glm::vec4  Map::get_texcoords(f32 index, f32 width, f32 height) {
 }
 
 Map::Map(MapEntry map_config) {
-
-	this->renderer = map_config.renderer;
 	this->map_tileset = map_config.map_tileset;
 	this->map_file = map_config.map_file;
 	this->render_scale = map_config.render_scale;
@@ -47,7 +45,13 @@ Map::Map(MapEntry map_config) {
 
 }
 
-void Map::render() {
+Map::~Map() {
+}
+
+void Map::render(const glm::vec2& res) {
+	// Clearing the quads before rendering
+	this->quads.clear();
+
 	auto layers = this->root["layers"];
 
 	this->map_texture->bind();
@@ -66,7 +70,7 @@ void Map::render() {
 
 			glm::vec3 position = glm::vec3(
 					tiles[i]["x"].asFloat() * render_size.x,
-					(this->renderer->m_res.y - (tiles[i]["y"].asFloat() * render_size.y)),
+					(res.y - (tiles[i]["y"].asFloat() * render_size.y)),
 					0.0f
 			);
 
@@ -85,12 +89,14 @@ void Map::render() {
 			// NOTE just in case for debugging
 			//std::cout << "P: " <<  position.x << "," << position.y << " TC: " << tex_coords.x << "," << tex_coords.y << "," << tex_coords.z << "," << tex_coords.w << std::endl;
 
-			this->renderer->push_quad(
-					position, render_size, // position and size of quad
-					glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), {0,0,1}), // rotation stuff
-					(Texture&)*this->map_texture, tex_coords, // texture stuff
-					glm::vec4(1.0f, 1.0f, 1.0f, 1.0f) // color stuff
-				);
+			this->quads.push_back(Quad {
+				.pos = position,
+				.size = render_size,
+				.rot = glm::mat4(1),
+				.texture = this->map_texture,
+				.uv = tex_coords,
+				.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)
+			});
 		}
 	}
 }

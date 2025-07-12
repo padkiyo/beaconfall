@@ -9,6 +9,7 @@
 #include "shader/shader.h"
 #include "texture/texture.h"
 #include "renderer/renderer.h"
+#include "renderer/scene_renderer.h"
 #include "camera/camera.h"
 #include "font/font.h"
 #include "buffers/frame_buffer.h"

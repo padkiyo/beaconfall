@@ -17,6 +17,7 @@ struct GameState {
 	// Core
 	Window* window;
 	Renderer* renderer;
+	SceneRenderer* scene_renderer;
 	AudioManager* audio_mgr;
 	Camera* camera;
 	SceneManager* scene_mgr;
@@ -28,7 +29,6 @@ struct GameState {
 
 	SpriteManager* sprt_mgr;
 	Animator* anim_mgr;
-	Map* map;
 };
 
 
@@ -59,13 +59,4 @@ private:
 private:
 	GameState m_gs;
 	b32 m_running;
-
-	Light l1, l2;
-	glm::vec3 ambient_color = { 0.5, 0.5, 0.5 };
-	f32 pixel_size = 2;
-
-	Rect a;
-	std::vector<Rect> boxes;
-	glm::vec2 move = glm::vec2(0);
-	f32 move_speed = 420.0f;
 };
