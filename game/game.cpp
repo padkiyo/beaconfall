@@ -21,15 +21,16 @@ Game::Game() {
 
 Game::~Game() {
 	// Freeing resources
-	font_destroy(m_gs.font_regular);
+	delete m_gs.font_regular;
 
 	// Core deinitializatioin
 	delete m_gs.camera;
 	delete m_gs.fc;
 	delete m_gs.scene_mgr;
 	delete m_gs.audio_mgr;
-	delete m_gs.renderer;
+	delete m_gs.ui;
 	delete m_gs.scene_renderer;
+	delete m_gs.renderer;
 	delete m_gs.window;
 }
 
@@ -48,7 +49,6 @@ void Game::run() {
 
 		event();
 		render();
-		overlay();
 		imgui_render();
 
 		m_gs.window->swap();
@@ -85,16 +85,27 @@ void Game::event() {
  */
 
 void Game::render() {
+	// Updating the current scene
 	m_gs.scene_mgr->update_current_scene(m_gs.fc->dt());
-	const Scene& scene = m_gs.scene_mgr->get_current_scene();
 
 	// Activating all the sprites
 	m_gs.sprt_mgr->activate_spritesheet(PLAYER);
 
 	m_gs.renderer->clear({0,0,0,1});
 
+	// Rendering
 	m_gs.renderer->start();
-	m_gs.scene_renderer->render_scene(scene, *m_gs.camera, { WIN_WIDTH, WIN_HEIGHT });
+	{
+		// Rendering the scene
+		const Scene& scene = m_gs.scene_mgr->get_current_scene();
+		m_gs.scene_renderer->render_scene(scene, *m_gs.camera, { WIN_WIDTH, WIN_HEIGHT });
+
+		// UI rendering
+		m_gs.ui->begin();
+			m_gs.scene_mgr->render_current_scene_ui(*m_gs.ui);
+			overlay();
+		m_gs.ui->end();
+	}
 	m_gs.renderer->commit({ WIN_WIDTH, WIN_HEIGHT });
 }
 
@@ -106,6 +117,11 @@ void Game::render() {
  */
 
 void Game::overlay() {
+	std::string fps = std::to_string(m_gs.fc->fps());
+	m_gs.ui->text(fps, { 0, 0 }, Style {
+		.fg_color = { 0, 1, 0, 1 },
+		.font = m_gs.font_regular,
+	});
 }
 
 
@@ -169,6 +185,7 @@ void Game::init_core() {
 		.near = 0,
 		.far = 1000,
 	});
+	m_gs.ui = new UI(m_gs.renderer, { WIN_WIDTH, WIN_HEIGHT });
 }
 
 
@@ -201,7 +218,7 @@ void Game::init_systems() {
  */
 
 void Game::init_resources() {
-	m_gs.font_regular = font_create("./assets/Ac437_ToshibaSat_9x8.ttf", 25).unwrap();
+	m_gs.font_regular = new Font("./assets/Ac437_ToshibaSat_9x8.ttf", 25);
 
 	// loading sprites
 	Sprite player_sprite = {
@@ -223,5 +240,5 @@ void Game::init_resources() {
  */
 
 void Game::use_resources() {
-	font_bind(m_gs.font_regular);
+	m_gs.font_regular->bind();
 }

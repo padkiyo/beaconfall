@@ -97,6 +97,7 @@ void build_core() {
 			"./core/renderer/scene_renderer.cpp",
 			"./core/camera/camera.cpp",
 			"./core/font/font.cpp",
+			"./core/ui/ui.cpp",
 			"./core/scene/scene.cpp",
 			"./core/frame_controller/frame_controller.cpp",
 			"./core/rect/rect.cpp",
@@ -236,14 +237,8 @@ void build_game() {
 		.src({
 			"./game/systems/sprite_system/sprite_system.cpp",
 			"./game/systems/animation_system/animation_system.cpp",
-//		"./game/systems/dialog_system/dialog_system.cpp",
-//		"./game/systems/notebook_system/notebook_system.cpp",
 			"./game/systems/map_system/map_system.cpp",
 			"./game/scenes/test/test.cpp",
-//		"./game/scenes/map/map.cpp",
-//		"./game/scenes/slowmo/slowmo.cpp",
-//		"./game/scenes/notebook/notebook.cpp",
-//		"./game/scenes/dialog/dialog.cpp",
 			"./game/game.cpp",
 			"./game/main.cpp",
 		})

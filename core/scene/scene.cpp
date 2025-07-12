@@ -90,6 +90,13 @@ void SceneManager::update_current_scene(f64 dt) {
 	scene->on_update(dt);
 }
 
+void SceneManager::render_current_scene_ui(UI& ui) {
+	panic(m_curr_scene >= 0, "No current scene is found.");
+
+	Scene* scene = m_scenes[m_curr_scene];
+	scene->on_ui_render(ui);
+}
+
 void SceneManager::update_imgui_render() {
 	panic(m_curr_scene >= 0, "No current scene is found.");
 

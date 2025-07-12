@@ -109,6 +109,13 @@ void TestScene::on_update(f64 dt) {
 	move = glm::vec2(0);
 }
 
+void TestScene::on_ui_render(UI& ui) {
+	ui.text("Hello world", { 400, 300 }, Style {
+		.fg_color = { 1, 1, 1, 1 },
+		.font = gs.font_regular,
+	});
+}
+
 void TestScene::on_imgui_render() {
 	if (ImGui::CollapsingHeader("Setting")) {
 		ImGui::DragFloat("Speed", &move_speed, 10.0f, 1.0f, 1000.0f);
