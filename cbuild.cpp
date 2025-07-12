@@ -2,6 +2,17 @@
 #include "cbuild.h"
 #include <chrono>
 
+// Checking for platform
+#if defined(__linux__)
+	#define LIBF "libcore.so"
+	#define LIBS linux_libs
+	#define LIBV "libvendors.so"
+#else
+	#define LIBF "libcore.dll"
+	#define LIBS windows_libs
+	#define LIBV "libvendors.dll"
+#endif
+
 namespace fs = std::filesystem;
 
 // The list of libraries to be copied from vendors to the executable directory
@@ -11,16 +22,28 @@ std::unordered_map<std::string, std::string> linux_libs = {
 	{ "./vendors/SDL2/lib/libSDL2_ttf-2.0.so.0", "./bin/libSDL2_ttf-2.0.so.0" },
 };
 
+std::unordered_map<std::string, std::string> windows_libs = {
+	{"./vendors/SDL2/lib/SDL2.dll", "./bin/SDL2.dll"},
+	{"./vendors/SDL2/lib/SDL2_mixer.dll", "./bin/SDL2_mixer.dll"},
+	{"./vendors/SDL2/lib/SDL2_ttf.dll", "./bin/SDL2_ttf.dll"}
+};
+
+
 // :core
 void build_core() {
 	CBuild build("g++");
 	build
-		.out("bin", "libcore.so")
+	
+		.out("bin", LIBF)
 		.flags({
 			"-fPIC",
 			"-shared",
 			"-std=c++20",
 			"-Wl,-rpath,'$ORIGIN'",
+		#if defined(__linux__)
+		#else
+			"-DAPIENTRY",
+		#endif
 		})
 		.inc_paths({
 			".",
@@ -29,12 +52,15 @@ void build_core() {
 			"./vendors/json",
 			"./vendors/stb",
 			"./vendors/glm",
+			"./vendors/SDL2",
 			"./core",
+			
 		})
 		.lib_paths({
 			"./bin/",
 			"./vendors/SDL2/lib/",
 		})
+	#if defined(__linux__)
 		.libs({
 			"vendors",
 			"GL",
@@ -44,6 +70,18 @@ void build_core() {
 			"SDL2_mixer",
 			"SDL2_ttf",
 		})
+	#else
+		.libs({
+			"vendors",
+			"mingw32",
+			"SDL2",
+			"opengl32",
+			"SDL2_mixer",
+			"SDL2_ttf",
+			"gdi32",
+			"glu32",
+		})
+	#endif
 		.src({
 			"./core/base/utils.cpp",
 			"./core/base/error.cpp",
@@ -78,6 +116,7 @@ void build_vendors() {
 		.inc_paths({
 			"vendors/glad/include",
 			"vendors/stb",
+			"./vendors/SDL2",
 		})
 		.src({
 			"vendors/glad/src/gl.c",
@@ -87,7 +126,7 @@ void build_vendors() {
 
 	CBuild build_cpp("g++");
 	build_cpp
-		.out("bin", "libvendors.so")
+		.out("bin", LIBV)
 		.flags({
 			"-fPIC",
 			"-shared",
@@ -99,13 +138,17 @@ void build_vendors() {
 			"./vendors/json",
 			"./vendors/stb",
 			"./vendors/glm",
+			"./vendors/SDL2",
 			"./core",
 		})
 		.lib_paths({
 			"./bin/",
 			"./vendors/SDL2/lib/",
 		})
+		
+	#if defined(__linux__)
 		.libs({
+			"vendors",
 			"GL",
 			"GLU",
 			"m",
@@ -113,6 +156,15 @@ void build_vendors() {
 			"SDL2_mixer",
 			"SDL2_ttf",
 		})
+	#else
+		.libs({
+			"mingw32",
+			"SDL2",
+			"opengl32",
+			"SDL2_mixer",
+			"SDL2_ttf",
+		})
+	#endif
 		.objs({
 			"./objs/gl.o",
 			"./objs/stb_image.o",
@@ -152,13 +204,15 @@ void build_game() {
 			"./vendors/glm",
 			"./core",
 			"./game/",
+			"./vendors/SDL2"
 		})
 		.lib_paths({
 			"./bin/",
 			"./vendors/SDL2/lib/",
 		})
+		
+	#if defined(__linux__)
 		.libs({
-			"core",
 			"vendors",
 			"GL",
 			"GLU",
@@ -166,7 +220,20 @@ void build_game() {
 			"SDL2",
 			"SDL2_mixer",
 			"SDL2_ttf",
+			"core",
+			"SDL2main",
 		})
+	#else
+		.libs({
+			"mingw32",
+			"SDL2",
+			"opengl32",
+			"SDL2_mixer",
+			"SDL2_ttf",
+			"vendors",
+			"core",
+		})
+	#endif
 		.src({
 			"./game/systems/sprite_system/sprite_system.cpp",
 			"./game/systems/animation_system/animation_system.cpp",
@@ -180,18 +247,12 @@ void build_game() {
 }
 
 void move_libraries() {
-#if defined(__linux__)
-
 	printf("\n");
 	LOG("Copying over the library files.");
-	for (const auto& [from, to] : linux_libs) {
+	for (const auto& [from, to] : LIBS) {
 		LOG("Copying: %s -> %s", from.c_str(), to.c_str());
 		fs::copy_file(from, to, fs::copy_options::overwrite_existing);
 	}
-
-#elif defined(_WIN32)
-	// TODO: Implement copying for windows
-#endif
 }
 
 void print_usage() {
