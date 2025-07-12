@@ -1,5 +1,36 @@
 #include "scene.h"
 
+/*
+ * Scene Implementations
+ */
+
+void Scene::clear() {
+	m_quads.clear();
+	m_lights.clear();
+}
+
+void Scene::add_quad(const Quad& quad) {
+	m_quads.push_back(quad);
+}
+
+void Scene::add_light(const Light& light) {
+	panic(m_lights.size() + 1 < MAX_LIGHTS, "To much light in one scene");
+	m_lights.push_back(light);
+}
+
+void Scene::set_light_pixel_size(const glm::vec2& size) {
+	m_light_pixel_size = size;
+}
+
+void Scene::set_ambient_color(const glm::vec3& color) {
+	m_ambient_color = color;
+}
+
+
+/*
+ * Scene Manager Implementations
+ */
+
 SceneManager::SceneManager() {}
 
 SceneManager::~SceneManager() {
@@ -55,6 +86,7 @@ void SceneManager::update_current_scene(f64 dt) {
 	panic(m_curr_scene >= 0, "No current scene is found.");
 
 	Scene* scene = m_scenes[m_curr_scene];
+	scene->clear();
 	scene->on_update(dt);
 }
 

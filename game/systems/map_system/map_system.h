@@ -7,7 +7,6 @@
 struct MapEntry {
 	const char* map_file;
 	const char* map_tileset;
-	Renderer* renderer;
 	f32 render_scale;
 };
 
@@ -18,7 +17,6 @@ class Map {
 		f32 map_height;
 		f32 render_scale;
 
-		Renderer* renderer;
 		const char* map_tileset;
 		const char* map_file;
 		Json::Value root;
@@ -35,9 +33,12 @@ class Map {
 
 		glm::vec4 get_texcoords(f32 index, f32 width, f32 height);
 
+		std::vector<Quad> quads;
+
 	public:
 		Map(MapEntry map_config);
 		~Map();
 
-		void render();
+		void render(const glm::vec2& res);
+		inline const std::vector<Quad>& get_quads() const { return quads; }
 };
