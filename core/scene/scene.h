@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "renderer/geometry.h"
 
 /*
  * This is a Pure Virtual Class for creating Scenes
@@ -14,6 +15,25 @@ public:
 	virtual void on_update(f64 dt) = 0;                         // Called every frame
 	virtual void on_event(const SDL_Event& event, f64 dt) = 0;  // Called when an event is triggered
 	virtual void on_imgui_render() = 0;                         // Called inside the imgui rendering block
+
+	// Commands in scene
+	void clear();
+	void add_quad(const Quad& quad);
+	void add_light(const Light& light);
+	void set_light_pixel_size(const glm::vec2& size);
+	void set_ambient_color(const glm::vec3& color);
+
+	// Getters
+	inline const std::vector<Quad>& get_quads() const { return m_quads; }
+	inline const std::vector<Light>& get_lights() const { return m_lights; }
+	inline const glm::vec2& get_light_pixel_size() const { return m_light_pixel_size; }
+	inline const glm::vec3& get_ambient_color() const { return m_ambient_color; }
+
+protected:
+	std::vector<Quad> m_quads;
+	std::vector<Light> m_lights;
+	glm::vec2 m_light_pixel_size = { 2, 2 };
+	glm::vec3 m_ambient_color = { 0.2, 0.2, 0.2 };
 };
 
 
@@ -30,7 +50,10 @@ public:
 	const std::unordered_map<i32, Scene*>& get_scenes() const {
 		return m_scenes;
 	}
-	i32 get_current_scene() const { return m_curr_scene; }
+	inline i32 get_current_scene_id() const { return m_curr_scene; }
+	inline const Scene& get_current_scene() {
+		return *m_scenes[m_curr_scene];
+	}
 
 	template<typename T, typename... Args>
 	void add_scene(i32 id, Args&&... args) {

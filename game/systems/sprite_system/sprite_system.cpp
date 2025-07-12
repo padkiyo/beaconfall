@@ -8,7 +8,6 @@ SpriteManager::~SpriteManager() {
 }
 
 void SpriteManager::add_sprite(Sprite sprite, SpriteId sprite_id) {
-
 	// Inserting the given sprite into hashmap
 	this->sprites.insert({sprite_id, sprite});
 	this->sprite_textures.insert({sprite_id, new Texture(sprite.path, this->sprite_filter)});
@@ -47,9 +46,11 @@ std::vector<glm::vec4> SpriteManager::get_frame(FrameId frame_id){
 }
 
 void SpriteManager::activate_spritesheet(SpriteId sprite_id) {
-	if(this->sprite_textures.find(sprite_id) != this->sprite_textures.end()){
-		this->sprite_textures[sprite_id]->bind();
-	}
+	panic(
+		this->sprite_textures.find(sprite_id) != this->sprite_textures.end(),
+		"Invalid Sprite ID: %d", sprite_id
+	);
+	this->sprite_textures[sprite_id]->bind();
 }
 
 const Texture& SpriteManager::get_spritesheet_texture(SpriteId sprite_id) {
