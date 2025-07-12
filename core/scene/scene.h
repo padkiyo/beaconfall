@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "renderer/geometry.h"
+#include "ui/ui.h"
 
 /*
  * This is a Pure Virtual Class for creating Scenes
@@ -12,8 +13,9 @@ class Scene {
 public:
 	virtual void on_enter() = 0;                                // Called when the scene is entered
 	virtual void on_exit() = 0;                                 // Called when the scene is exited
-	virtual void on_update(f64 dt) = 0;                         // Called every frame
 	virtual void on_event(const SDL_Event& event, f64 dt) = 0;  // Called when an event is triggered
+	virtual void on_update(f64 dt) = 0;                         // Called every frame
+	virtual void on_ui_render(UI& ui) = 0;                      // Called to render a UI
 	virtual void on_imgui_render() = 0;                         // Called inside the imgui rendering block
 
 	// Commands in scene
@@ -69,6 +71,7 @@ public:
 	void remove_scene(i32 id);
 	void switch_scene(i32 id);
 	void update_current_scene(f64 dt);
+	void render_current_scene_ui(UI& ui);
 	void update_imgui_render();
 	void handle_event(const SDL_Event& event, f64 dt);
 

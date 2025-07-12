@@ -22,6 +22,7 @@ struct GameState {
 	Camera* camera;
 	SceneManager* scene_mgr;
 	FrameController* fc;
+	UI* ui;
 
 	// Resources
 	Font* font_regular;
