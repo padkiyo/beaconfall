@@ -60,4 +60,5 @@ private:
 private:
 	GameState m_gs;
 	b32 m_running;
+
 };
