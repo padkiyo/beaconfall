@@ -1,43 +1,84 @@
 #pragma once
 
 #include "common.h"
+#include "renderer/geometry.h"
+#include "ui/ui.h"
 
 /*
- * To create a scene, copy paste the following function in your some_scene.h file
- * Make sure to rename the `name` prefix to your scene name.
- *
-   void name_entry(void* data);
-   void name_exit(void* data);
-   void name_update(void* data, f64 dt);
-   void name_event(void* data, SDL_Event event, f64 dt);
+ * This is a Pure Virtual Class for creating Scenes
+ * To create a new scene just inheriet this class and define all these functions
  */
 
-struct Scene {
-	void* data;
+class Scene {
+public:
+	virtual void on_enter() = 0;                                // Called when the scene is entered
+	virtual void on_exit() = 0;                                 // Called when the scene is exited
+	virtual void on_event(const SDL_Event& event, f64 dt) = 0;  // Called when an event is triggered
+	virtual void on_update(f64 dt) = 0;                         // Called every frame
+	virtual void on_ui_render(UI& ui) = 0;                      // Called to render a UI
+	virtual void on_imgui_render() = 0;                         // Called inside the imgui rendering block
 
-	// Scene function pointers
-	void (*enter)(void* data);                            // Called once when we enter the scene
-	void (*exit)(void* data);                             // Called once when we exit the scene
-	void (*update)(void* data, f64 dt);                   // Called every frame
-	void (*event)(void* data, SDL_Event event, f64 dt);   // Called when event is occured in the scene
+	// Commands in scene
+	void clear();
+	void add_quad(const Quad& quad);
+	void add_light(const Light& light);
+	void set_light_pixel_size(const glm::vec2& size);
+	void set_ambient_color(const glm::vec3& color);
+
+	// Getters
+	inline const std::vector<Quad>& get_quads() const { return m_quads; }
+	inline const std::vector<Light>& get_lights() const { return m_lights; }
+	inline const glm::vec2& get_light_pixel_size() const { return m_light_pixel_size; }
+	inline const glm::vec3& get_ambient_color() const { return m_ambient_color; }
+
+protected:
+	std::vector<Quad> m_quads;
+	std::vector<Light> m_lights;
+	glm::vec2 m_light_pixel_size = { 2, 2 };
+	glm::vec3 m_ambient_color = { 0.2, 0.2, 0.2 };
 };
 
-struct SceneManager {
-	i32 current_scene;  // NOTE: Make sure the other scenes id are not -1
-	std::unordered_map<i32, Scene*> scenes;
-};
 
-SceneManager* sm_create();
-void sm_destroy(SceneManager* sm);
-void sm_add_scene(
-	SceneManager* sm, i32 id,
-	void (*enter)(void*),
-	void (*exit)(void*),
-	void (*update)(void*, f64),
-	void (*event)(void*, SDL_Event, f64),
-	void* data
-);
-void sm_remove_scene(SceneManager* sm, i32 id);
-void sm_switch_scene(SceneManager* sm, i32 id);
-void sm_update_scene(SceneManager* sm, f64 dt);
-void sm_handle_event(SceneManager* sm, SDL_Event event, f64 dt);
+/*
+ * Scene Manager handles the owning and switching of the scenes in game
+ * This holds the actual scenes and is responsible for calling the respective scene functions
+ */
+
+class SceneManager {
+public:
+	SceneManager();
+	~SceneManager();
+
+	const std::unordered_map<i32, Scene*>& get_scenes() const {
+		return m_scenes;
+	}
+	inline i32 get_current_scene_id() const { return m_curr_scene; }
+	inline const Scene& get_current_scene() {
+		return *m_scenes[m_curr_scene];
+	}
+
+	template<typename T, typename... Args>
+	void add_scene(i32 id, Args&&... args) {
+		panic(id >= 0, "Scene ID cannot be -ve");
+
+		// Constructing the scene with the arguments
+		T* scene = new T(std::forward<Args>(args)...);
+
+		// Storing the scene
+		m_scenes.insert_or_assign(id, scene);
+	}
+
+	void remove_scene(i32 id);
+	void switch_scene(i32 id);
+	void update_current_scene(f64 dt);
+	void render_current_scene_ui(UI& ui);
+	void update_imgui_render();
+	void handle_event(const SDL_Event& event, f64 dt);
+
+private:
+	i32 m_curr_scene = -1;
+
+	// The scene manager owns the Scenes
+	// (ie responsible for allocation and deallocating the scenes)
+	std::unordered_map<i32, Scene*> m_scenes;
+};

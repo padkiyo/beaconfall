@@ -26,8 +26,8 @@
 
 
 enum class ResultStatus {
-	OK,
-	ERROR,
+	__OK,
+	__ERROR,
 };
 
 
@@ -36,14 +36,14 @@ enum class ResultStatus {
 template<typename V, typename E>
 class Result {
 public:
-	Result(V value): m_value(value), m_status(ResultStatus::OK)
+	Result(V value): m_value(value), m_status(ResultStatus::__OK)
 		{}
-	Result(E error): m_error(error), m_status(ResultStatus::ERROR)
+	Result(E error): m_error(error), m_status(ResultStatus::__ERROR)
 		{}
 
 	// Tries to get the value else crashes if error is found
 	V unwrap(const std::source_location& loc = std::source_location::current()) {
-		if (m_status == ResultStatus::ERROR) {
+		if (m_status == ResultStatus::__ERROR) {
 			std::cerr
 				<< "\033[31m[UNWRAP PANIC]: "
 				<< loc.file_name() << ":" << loc.line() << ": "
@@ -61,7 +61,7 @@ public:
 
 	// Tries to get the error else crashes if value is found
 	E unwrap_err(const std::source_location& loc = std::source_location::current()) {
-		if (m_status == ResultStatus::OK) {
+		if (m_status == ResultStatus::__OK) {
 			std::cerr
 				<< "\033[31m[UNWRAP PANIC]: "
 				<< loc.file_name() << ":" << loc.line() << ": "
@@ -73,11 +73,11 @@ public:
 	}
 
 	bool is_ok() {
-		return m_status == ResultStatus::OK;
+		return m_status == ResultStatus::__OK;
 	}
 
 	bool is_err() {
-		return m_status == ResultStatus::ERROR;
+		return m_status == ResultStatus::__ERROR;
 	}
 
 private:

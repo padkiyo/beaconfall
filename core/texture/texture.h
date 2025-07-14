@@ -2,43 +2,41 @@
 
 #include "common.h"
 
-struct Texture {
-	u32 id;
-	i32 width, height;
-	GLenum internal_format, format;
-};
-
 struct TextureFilter {
-	GLenum min_filter;
-	GLenum mag_filter;
-	GLenum wrap_s;
-	GLenum wrap_t;
+	u32 min_filter;
+	u32 mag_filter;
+	u32 wrap_s;
+	u32 wrap_t;
+	u32 flip;
 };
 
-static TextureFilter DefaultFilter = {
-	.min_filter = GL_NEAREST,
-	.mag_filter = GL_NEAREST,
-	.wrap_s = GL_CLAMP_TO_EDGE,
-	.wrap_t = GL_CLAMP_TO_EDGE
+struct TextureFormat {
+	u32 internal_format;
+	u32 format;
 };
 
-Result<Texture, std::string> texture_create_from_file(const char* filepath, b32 flip = true, TextureFilter filter = DefaultFilter);
+class Texture {
+public:
+	Texture(const std::string& filepath, const TextureFilter& filter);
+	Texture(u32 width, u32 height, void* data, const TextureFormat& format, const TextureFilter& filter);
+	~Texture();
 
-/*
- * NOTE: The 'data' parameter is always of type GL_UNSIGNED_BYTE thats why its a (u32*)
- * If texture of different data type is ever needed maybe we need to convert this function to a template
- */
-Texture texture_create_from_data(i32 width, i32 height, u32* data, GLenum internal_format = GL_RGBA8, GLenum format = GL_RGBA, TextureFilter filter = DefaultFilter);
+	void bind();
+	void unbind();
 
-void texture_destroy(Texture texture);
+	// Note(slok): It is assumed that the format of the data is same as the format of the texture
+	void update(i32 lod, i32 x_offset, i32 y_offset, u32 width, u32 height, void* data);
+	void clear();
 
-// Memsets the texture data to 0 in GPU
-void texture_clear(Texture texture);
+	//---------
+	// Getters
+	//---------
 
-void texture_update(Texture texture, i32 lod, i32 x_offset, i32 y_offset, u32 width, u32 height, GLenum format, void* data);
+	inline u32 get_id() const { return m_id; }
+	inline u32 get_width() const { return m_width; }
+	inline u32 get_height() const { return m_height; }
 
-/*
- * NOTE: Bindings are done using glActiveTexture with glBindTexture
- */
-void texture_bind(Texture texture);
-void texture_unbind(Texture texture);
+private:
+	u32 m_id, m_width, m_height;
+	TextureFormat m_format;
+};

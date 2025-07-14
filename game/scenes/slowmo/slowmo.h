@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core.h"
+#include "game.h"
 
 struct Enemy {
 	glm::vec3 pos;
@@ -10,16 +11,23 @@ struct Enemy {
 	b32 reacted;
 };
 
-struct Slowmo {
-	std::vector<Enemy> enemies;
-	b32 start_deadeye;
-	f32 tick;
-	u32 deadeye_start_time;
+class SlowmoScene : public Scene {
+public:
+	SlowmoScene(const GameState& gs);
+	~SlowmoScene();
+
+public:
+	void on_enter();
+	void on_exit();
+	void on_update(f64 dt);
+	void on_event(SDL_Event event, f64 dt);
+	void on_imgui_render();
+
+private:
+	std::vector<Enemy> m_enemies;
+	b32 m_start_deadeye;
+	f32 m_tick;
+	u32 m_deadeye_start_time;
+
+	const GameState& m_gs;
 };
-
-Slowmo* slowmo_create();
-
-void slowmo_entry(void* data);
-void slowmo_exit(void* data);
-void slowmo_update(void* data, f64 dt);
-void slowmo_event(void* data, SDL_Event event, f64 dt);

@@ -9,8 +9,11 @@
 #define WIN_HEIGHT 600
 #define FPS 60
 
+// Controls
+#define CAM_SPEED 3.0f
+
 // Texture
-#define MAX_TEXTURE_SAMPLES 32
+// #define MAX_TEXTURE_SAMPLES 32
 
 // Dialog
 #define BUBBLE_PADDING 15
@@ -27,6 +30,7 @@
 #define NOTEBOOK_PAD_X 10
 #define NOTEBOOK_PAD_Y 10
 
+/*
 static RenderPipelineSpecs QuadRendererSpecs = {
 	.format = {
 		{ .type = GL_FLOAT, .count = 3 }, // Position
@@ -47,8 +51,7 @@ static void init_texture_samples(RenderPipeline* rp) {
 		samplers[i] = i;
 
 	// Providing samplers to the shader
-	glc(glUseProgram(rp->shader));
-	i32 loc = glc(glGetUniformLocation(rp->shader, "textures"));
-	panic(loc != -1, "Cannot find uniform: textures\n");
-	glc(glUniform1iv(loc, MAX_TEXTURE_SAMPLES, samplers));
+	rp->shader->bind();
+	rp->shader->set_arrayi("textures", samplers, MAX_TEXTURE_SAMPLES);
 }
+*/

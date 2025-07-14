@@ -1,106 +1,83 @@
 #include "texture.h"
 
-Result<Texture, std::string> texture_create_from_file(const char* filepath, b32 flip, TextureFilter filter) {
-	stbi_set_flip_vertically_on_load(flip);
+Texture::Texture(const std::string& filepath, const TextureFilter& filter) {
+	stbi_set_flip_vertically_on_load(filter.flip);
 
 	i32 w, h, c;
-	u8* data = stbi_load(filepath, &w, &h, &c, 0);
-	if (data == NULL) {
-		std::stringstream ss;
-		ss << "Failed to load file: " << filepath;
-		return ss.str();
-	}
+	u8* data = stbi_load(filepath.c_str(), &w, &h, &c, 0);
+	panic(data, "Failed to load Texture file: %s", filepath.c_str());
+
+	m_width = static_cast<u32>(w);
+	m_height = static_cast<u32>(h);
 
 	// Binding the texture
-	u32 id;
-	glc(glGenTextures(1, &id));
-	glc(glBindTexture(GL_TEXTURE_2D, id));
+	GLC(glGenTextures(1, &m_id));
+	GLC(glBindTexture(GL_TEXTURE_2D, m_id));
 
 	// Setting up some basic modes to display texture
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter.min_filter));
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter.mag_filter));
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, filter.wrap_s));
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, filter.wrap_t));
+	GLC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter.min_filter));
+	GLC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter.mag_filter));
+	GLC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, filter.wrap_s));
+	GLC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, filter.wrap_t));
 
-	// Sending the pixel data to opengl
-	GLenum internal_format, format;
+	// Setting up the format
 	if (c == 1) {
-		internal_format = GL_RED;
-		format = GL_RED;
+		m_format.internal_format = GL_RED;
+		m_format.format = GL_RED;
 	} else if (c == 3) {
-		internal_format = GL_RGB;
-		format = GL_RGB;
+		m_format.internal_format = GL_RGB;
+		m_format.format = GL_RGB;
 	} else if (c == 4) {
-		internal_format = GL_RGBA;
-		format = GL_RGBA;
+		m_format.internal_format = GL_RGBA;
+		m_format.format = GL_RGBA;
 	}
 
-	glc(glTexImage2D(GL_TEXTURE_2D, 0, internal_format, w, h, 0, format, GL_UNSIGNED_BYTE, data));
-	glc(glBindTexture(GL_TEXTURE_2D, 0));
+	// Sending the pixel data to opengl
+	GLC(glTexImage2D(GL_TEXTURE_2D, 0, m_format.internal_format, m_width, m_height, 0, m_format.format, GL_UNSIGNED_BYTE, data));
+	GLC(glBindTexture(GL_TEXTURE_2D, 0));
 
 	if (data) {
 		stbi_image_free(data);
 	}
-
-	return (Texture) {
-		.id = id,
-		.width = w,
-		.height = h,
-		.internal_format = internal_format,
-		.format = format
-	};
 }
 
-Texture texture_create_from_data(i32 width, i32 height, u32* data, GLenum internal_format, GLenum format, TextureFilter filter) {
-	u32 id;
-	glc(glGenTextures(1, &id));
-	glc(glBindTexture(GL_TEXTURE_2D, id));
+Texture::Texture(u32 width, u32 height, void* data, const TextureFormat& format, const TextureFilter& filter)
+	: m_width(width), m_height(height), m_format(format) {
+	GLC(glGenTextures(1, &m_id));
+	GLC(glBindTexture(GL_TEXTURE_2D, m_id));
 
 	// Setting up some basic modes to display texture
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter.min_filter));
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter.mag_filter));
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, filter.wrap_s));
-	glc(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, filter.wrap_t));
+	GLC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter.min_filter));
+	GLC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter.mag_filter));
+	GLC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, filter.wrap_s));
+	GLC(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, filter.wrap_t));
+
+	// TODO(slok): Handle the flip filter
 
 	// Sending the pixel data to opengl
-	glc(glTexImage2D(GL_TEXTURE_2D, 0, internal_format, width, height, 0, format, GL_UNSIGNED_BYTE, data));
-	glc(glBindTexture(GL_TEXTURE_2D, 0));
-
-	return (Texture) {
-		.id = id,
-		.width = width,
-		.height = height,
-		.internal_format = internal_format,
-		.format = format
-	};
+	GLC(glTexImage2D(GL_TEXTURE_2D, 0, m_format.internal_format, m_width, m_height, 0, m_format.format, GL_UNSIGNED_BYTE, data));
+	GLC(glBindTexture(GL_TEXTURE_2D, 0));
 }
 
-void texture_destroy(Texture texture) {
-	glc(glDeleteTextures(1, &texture.id));
+Texture::~Texture() {
+	GLC(glDeleteTextures(1, &m_id));
 }
 
-void texture_clear(Texture texture) {
+void Texture::bind() {
+	GLC(glBindTextureUnit(m_id, m_id));
+}
+
+void Texture::unbind() {
+	GLC(glBindTextureUnit(m_id, 0));
+}
+
+void Texture::update(i32 lod, i32 x_offset, i32 y_offset, u32 width, u32 height, void* data) {
+	bind();
+	GLC(glTextureSubImage2D(m_id, lod, x_offset, y_offset, width, height, m_format.format, GL_UNSIGNED_BYTE, data));
+}
+
+void Texture::clear() {
+	bind();
 	u32 t = 0;
-	glc(glClearTexImage(texture.id, 0, texture.format, GL_UNSIGNED_BYTE, &t));
-}
-
-void texture_update(Texture texture, i32 lod, i32 x_offset, i32 y_offset, u32 width, u32 height, GLenum format, void* data) {
-	texture_bind(texture);
-	glc(glTextureSubImage2D(
-		texture.id, lod, x_offset, y_offset,
-		width, height, format,
-		GL_UNSIGNED_BYTE, data
-	));
-}
-
-void texture_bind(Texture texture) {
-	// glc(glBindTextureUnit(texture.id, texture.id));
-	glc(glActiveTexture(GL_TEXTURE0 + (i32) texture.id));
-	glc(glBindTexture(GL_TEXTURE_2D, texture.id));
-}
-
-void texture_unbind(Texture texture) {
-	// glc(glBindTextureUnit(texture.id, 0));
-	glc(glActiveTexture(GL_TEXTURE0 + (i32) texture.id));
-	glc(glBindTexture(GL_TEXTURE_2D, 0));
+	GLC(glClearTexImage(m_id, 0, m_format.format, GL_UNSIGNED_BYTE, &t));
 }

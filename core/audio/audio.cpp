@@ -1,84 +1,86 @@
 #include "audio.h"
 
-Result<Audio*, const char*> audio_create() {
-	if(Mix_OpenAudio(AUDIO_FREQUENCY, MIX_DEFAULT_FORMAT, AUDIO_CHANNEL, AUDIO_CHUNK_SIZE) == -1)
-		return "SDL2_mixer could not be initialized!\n";
-	return new Audio;
+AudioManager::AudioManager(i32 frequency, i32 channel, i32 chunk_size)
+	: m_freq(frequency), m_channel(channel), m_chunk_size(chunk_size) {
+	panic(
+		Mix_OpenAudio(m_freq, MIX_DEFAULT_FORMAT, m_channel, m_chunk_size) == 0,
+		"Failed to initialize SDL2 Mixer"
+	);
 }
 
-void audio_destroy(Audio* audio) {
-	for (const auto& [id, chunk] : audio->chunks) {
+AudioManager::~AudioManager() {
+	for (const auto& [id, chunk] : m_chunks) {
 		Mix_FreeChunk(chunk);
 	}
 
-	for (const auto& [id, music] : audio->musics) {
+	for (const auto& [id, music] : m_musics) {
 		Mix_FreeMusic(music);
 	}
-
-	delete audio;
 }
 
-b32 audio_register_chunk(Audio* audio, i32 id, const std::string& file_path) {
+void AudioManager::register_chunk(i32 id, const std::string& file_path) {
 	Mix_Chunk* chunk = Mix_LoadWAV(file_path.c_str());
-	if (chunk == NULL)
-		return false;
-
-	audio->chunks.insert({id, chunk});
-	return true;
+	panic(chunk, "Failed to load WAV file: %s", file_path.c_str());
+	m_chunks.insert({id, chunk});
 }
 
-b32 audio_play_chunk(Audio* audio, i32 id, i32 loop) {
-	if (audio->chunks.find(id) == audio->chunks.end()) {
-		printf("Cannot find id: %d in chunks", id);
-		return false;
-	}
+void AudioManager::play_chunk(i32 id, i32 loop) {
+	panic(
+		m_chunks.find(id) != m_chunks.end(),
+		"Cannot find Chunk ID: %d", id
+	);
 
-	return Mix_PlayChannel(-1, audio->chunks[id], loop) >= 0;
+	panic(
+		Mix_PlayChannel(-1, m_chunks[id], loop) != -1,
+		"Failed to play Chunk with ID: %d", id
+	);
 }
 
-b32 audio_set_chunk_volume(Audio* audio, i32 id, i32 volume) {
-	if (audio->chunks.find(id) == audio->chunks.end()) {
-		printf("Cannot find id: %d in chunks", id);
-		return false;
-	}
+void AudioManager::set_chunk_volume(i32 id, i32 volume) {
+	panic(
+		m_chunks.find(id) != m_chunks.end(),
+		"Cannot find Chunk ID: %d", id
+	);
 
-	return Mix_VolumeChunk(audio->chunks[id], volume) != -1;
+	panic(
+		Mix_VolumeChunk(m_chunks[id], volume) != -1,
+		"Failed to change volume of Chunk with ID: %d", id
+	);
 }
 
-b32 audio_register_music(Audio* audio, i32 id, const std::string& file_path) {
+void AudioManager::register_music(i32 id, const std::string& file_path) {
 	Mix_Music* music = Mix_LoadMUS(file_path.c_str());
-	if (music == NULL)
-		return false;
-
-	audio->musics.insert({id, music});
-	return true;
+	panic(music, "Failed to load Music: %s", file_path.c_str());
+	m_musics.insert({id, music});
 }
 
-b32 audio_play_music(Audio* audio, i32 id, i32 loop) {
-	if (audio->musics.find(id) == audio->musics.end()) {
-		printf("Cannot find id: %d in musics", id);
-		return false;
-	}
+void AudioManager::play_music(i32 id, i32 loop) {
+	panic(
+		m_musics.find(id) != m_musics.end(),
+		"Cannot find Music with ID: %d", id
+	);
 
-	return Mix_PlayMusic(audio->musics[id], loop) >= 0;
+	panic(
+		Mix_PlayMusic(m_musics[id], loop) != -1,
+		"Failed to play Music with ID: %d", id
+	);
 }
 
-b32 audio_set_music_volume(i32 volume) {
-	return Mix_VolumeMusic(volume) != -1;
+void AudioManager::set_music_volume(i32 volume) {
+	panic(
+		Mix_VolumeMusic(volume) != -1,
+		"Failed to change volume of Music"
+	);
 }
 
-void audio_pause_music() {
+void AudioManager::pause_music() {
 	Mix_PauseMusic();
 }
 
-b32 audio_paused_music() {
-	return Mix_PausedMusic() == 1;
-}
-
-void audio_resume_music() {
+void AudioManager::resume_music() {
 	Mix_ResumeMusic();
 }
 
-b32 audio_is_music_playing() {
+b32 AudioManager::is_music_playing() {
 	return Mix_PlayingMusic() == 1;
 }

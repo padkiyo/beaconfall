@@ -1,209 +1,225 @@
 #include "renderer.h"
 
-Result<RenderPipeline*, std::string> rp_create(RenderPipelineSpecs* specs) {
-	RenderPipeline* rp = new RenderPipeline;
-	rp->max_vertices = specs->max_vertices;
+Renderer::Renderer() {
+	// Constructing Vertex Array
+	m_vao = new VertexArray();
 
-	u32 vertex_stride = 0; // Size of a single vector
-	rp->vertex_size = 0; // No of items in a vertex
-	u32 vb_size = 0; // Total Size of The Vertex Buffer
-	i32 offset = 0; // Vertex Attrib Offset Value
+	// Setting up the vertex layout
+	m_vao->push_layout<f32>(3); // Position
+	m_vao->push_layout<f32>(4); // Color
+	m_vao->push_layout<f32>(2); // UV
+	m_vao->push_layout<f32>(1); // Texture ID
 
-	// Calculating Vertex Size
-	for (auto& i : specs->format) {
-		vertex_stride += sizeof_gl_type(i.type) * i.count;
-	}
+	// Constructing Vertex Buffer
+	ssize_t vbo_size = MAX_VERTEX_COUNT * m_vao->get_stride();
+	m_vbo = new VertexBuffer(vbo_size, nullptr, GL_DYNAMIC_DRAW);
 
-	// Calculating max vertex buffer size
-	vb_size = vertex_stride * specs->max_vertices;
+	// NOTE(slok): Make sure to always build VAO only after binding VBO
+	m_vao->build();
 
-	// Creating vertex array objects
-	glc(glGenVertexArrays(1, &rp->vao));
-	glc(glBindVertexArray(rp->vao));
+	// Allocate CPU buffer
+	m_buffer.reserve(MAX_VERTEX_COUNT * m_vao->get_count());
 
-	// Creating Vertex buffer objects
-	glc(glGenBuffers(1, &rp->vbo));
-	glc(glBindBuffer(GL_ARRAY_BUFFER, rp->vbo));
-	glc(glBufferData(GL_ARRAY_BUFFER, vb_size, nullptr, GL_DYNAMIC_DRAW));
+	// Constructing Shader
+	m_shader = new Shader("./shaders/plain.vert", "./shaders/color.frag", ShaderLoadType::FromFile);
 
-	// Creating Adding Vertex Attrib Layout
-	u32 id = 0;
-	for (auto& i : specs->format) {
-		glc(glEnableVertexAttribArray(id));
-		glc(glVertexAttribPointer(id, i.count, i.type, GL_FALSE, vertex_stride, reinterpret_cast<const void*>(static_cast<uintptr_t>(offset))));
-		offset += i.count * sizeof_gl_type(i.type);
-		rp->vertex_size += i.count;
-		id++;
-	}
-
-	// Allocating the buffer in memory
-	rp->buffer = (f32*) calloc(specs->max_vertices, vertex_stride);
-	rp->buffer_index = 0;
-
-	// Will crash the whole system! TODO do error handling here
-	std::string vs = specs->shaders.vertex_shader;
-	std::string fs = specs->shaders.fragment_shader;
-	rp->shader = xx(shader_create(vs, fs));
-
-	// Generating white texture
+	// Constructing a white texture
 	u32 data = 0xffffffff;
-	rp->white_texture = texture_create_from_data(1, 1, &data);
-	texture_bind(rp->white_texture);
-
-	// Enabling depth testing
-	glc(glEnable(GL_DEPTH_TEST));
-
-	// Enabling alpha blending
-	//glc(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
-	glc(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-	glc(glEnable(GL_BLEND));
-
-	return rp;
-}
-
-void rp_destroy(RenderPipeline* rp) {
-	glc(glDeleteVertexArrays(1, &rp->vao));
-	glc(glDeleteBuffers(1, &rp->vbo));
-	texture_destroy(rp->white_texture);
-	shader_destroy(rp->shader);
-	free(rp->buffer);
-}
-
-void rp_begin(RenderPipeline* rp) {
-	texture_bind(rp->white_texture);
-	glc(glBindVertexArray(rp->vao));
-	glc(glBindBuffer(GL_ARRAY_BUFFER, rp->vbo));
-	glc(glUseProgram(rp->shader));
-
-	// Reseting the buffer pointer
-	rp->buffer_index = 0;
-}
-
-void rp_end(RenderPipeline* rp) {
-	glc(glBufferSubData(GL_ARRAY_BUFFER, 0, rp->buffer_index * sizeof(f32), rp->buffer));
-	glc(glDrawArrays(GL_TRIANGLES, 0, rp->buffer_index / rp->vertex_size));
-}
-
-void rp_push_vertices(RenderPipeline* rp, const Vertices& vertices) {
-	// Manually copying data to the buffer
-	for (f32 i : vertices) {
-
-		// Handling buffer overflow
-		if (rp->buffer_index / rp->vertex_size >= rp->max_vertices) {
-			rp_end(rp);
-			rp_begin(rp);
+	m_white_texture = new Texture(
+		1, 1, &data,
+		{
+			.internal_format = GL_RGBA8,
+			.format = GL_RGBA,
+		},
+		{
+			.min_filter = GL_NEAREST,
+			.mag_filter = GL_NEAREST,
+			.wrap_s = GL_CLAMP_TO_EDGE,
+			.wrap_t = GL_CLAMP_TO_EDGE,
+			.flip = false,
 		}
+	);
 
-		rp->buffer[rp->buffer_index++] = i;
+	// Provide texture samplers
+	i32 samplers[MAX_TEXTURE_SAMPLES];
+	for (i32 i = 0; i < MAX_TEXTURE_SAMPLES; i++)
+		samplers[i] = i;
+
+	// Providing samplers to the shaders
+	m_shader->bind();
+	m_shader->set_arrayi("textures", samplers, MAX_TEXTURE_SAMPLES);
+
+	// Enabling the Opengl Settings
+	GLC(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+	GLC(glEnable(GL_BLEND));
+	GLC(glEnable(GL_DEPTH_TEST));
+}
+
+Renderer::~Renderer() {
+	delete m_vbo;
+	delete m_vao;
+	delete m_white_texture;
+	delete m_shader;
+
+	for (auto pass : m_passes) {
+		delete pass;
 	}
 }
 
-Vertices rp_create_quad(glm::vec3 pos, glm::vec2 size, glm::vec4 color) {
-	glm::vec3 p1, p2, p3, p4, p5, p6;
-
-	p1 = { pos.x, pos.y, pos.z };
-	p2 = { pos.x + size.x, pos.y, pos.z };
-	p3 = { pos.x + size.x, pos.y + size.y, pos.z };
-	p4 = { pos.x + size.x, pos.y + size.y, pos.z };
-	p5 = { pos.x, pos.y + size.y, pos.z };
-	p6 = { pos.x, pos.y, pos.z };
-
-	Vertices vertices = {
-		p1.x, p1.y, p1.z, color.r, color.g, color.b, color.a, 0.0f, 0.0f, 0.0f,
-		p2.x, p2.y, p2.z, color.r, color.g, color.b, color.a,0.0f, 0.0f, 0.0f,
-		p3.x, p3.y, p3.z, color.r, color.g, color.b, color.a,0.0f, 0.0f, 0.0f,
-		p4.x, p4.y, p4.z, color.r, color.g, color.b, color.a,0.0f, 0.0f, 0.0f,
-		p5.x, p5.y, p5.z, color.r, color.g, color.b, color.a,0.0f, 0.0f, 0.0f,
-		p6.x, p6.y, p6.z, color.r, color.g, color.b, color.a,0.0f, 0.0f, 0.0f,
-	};
-
-	return vertices;
-}
-
-Vertices rp_create_quad(glm::vec3 pos, glm::vec2 size, glm::vec4 color, u32 tex_id, glm::vec4 tex_coord, glm::mat4 rot) {
-	// Creating positions
-	glm::vec4 _p1, _p2, _p3, _p4, _p5, _p6;
-	glm::vec3 p1, p2, p3, p4, p5, p6;
-
-	// Rotating over origin
-	_p1 = rot * glm::vec4(-size.x / 2, -size.y / 2, 0.0f, 1.0f);
-	_p2 = rot * glm::vec4( size.x / 2, -size.y / 2, 0.0f, 1.0f);
-	_p3 = rot * glm::vec4( size.x / 2,  size.y / 2, 0.0f, 1.0f);
-	_p4 = rot * glm::vec4( size.x / 2,  size.y / 2, 0.0f, 1.0f);
-	_p5 = rot * glm::vec4(-size.x / 2,  size.y / 2, 0.0f, 1.0f);
-	_p6 = rot * glm::vec4(-size.x / 2, -size.y / 2, 0.0f, 1.0f);
-
-	p1 = glm::vec3(_p1) / _p1.w;
-	p2 = glm::vec3(_p2) / _p2.w;
-	p3 = glm::vec3(_p3) / _p3.w;
-	p4 = glm::vec3(_p4) / _p4.w;
-	p5 = glm::vec3(_p5) / _p5.w;
-	p6 = glm::vec3(_p6) / _p6.w;
-
-	// Shifting to the desired position
-	p1 += glm::vec3(pos.x + size.x / 2, pos.y + size.y / 2, pos.z);
-	p2 += glm::vec3(pos.x + size.x / 2, pos.y + size.y / 2, pos.z);
-	p3 += glm::vec3(pos.x + size.x / 2, pos.y + size.y / 2, pos.z);
-	p4 += glm::vec3(pos.x + size.x / 2, pos.y + size.y / 2, pos.z);
-	p5 += glm::vec3(pos.x + size.x / 2, pos.y + size.y / 2, pos.z);
-	p6 += glm::vec3(pos.x + size.x / 2, pos.y + size.y / 2, pos.z);
-
-	// p1 = { pos.x, pos.y, pos.z };
-	// p2 = { pos.x + size.x, pos.y, pos.z };
-	// p3 = { pos.x + size.x, pos.y + size.y, pos.z };
-	// p4 = { pos.x + size.x, pos.y + size.y, pos.z };
-	// p5 = { pos.x, pos.y + size.y, pos.z };
-	// p6 = { pos.x, pos.y, pos.z };
-
-	// Creating tex coords
-	glm::vec2 t1, t2, t3, t4, t5, t6;
-
-	t1 = { tex_coord.x, tex_coord.y };
-	t2 = { tex_coord.x + tex_coord.z, tex_coord.y };
-	t3 = { tex_coord.x + tex_coord.z, tex_coord.y + tex_coord.w };
-	t4 = { tex_coord.x + tex_coord.z, tex_coord.y + tex_coord.w };
-	t5 = { tex_coord.x, tex_coord.y + tex_coord.w };
-	t6 = { tex_coord.x, tex_coord.y };
-
-	f32 id = tex_id;
-	Vertices vertices = {
-		p1.x, p1.y, p1.z, color.r, color.g, color.b, color.a, t1.x, t1.y, id,
-		p2.x, p2.y, p2.z, color.r, color.g, color.b, color.a, t2.x, t2.y, id,
-		p3.x, p3.y, p3.z, color.r, color.g, color.b, color.a, t3.x, t3.y, id,
-		p4.x, p4.y, p4.z, color.r, color.g, color.b, color.a, t4.x, t4.y, id,
-		p5.x, p5.y, p5.z, color.r, color.g, color.b, color.a, t5.x, t5.y, id,
-		p6.x, p6.y, p6.z, color.r, color.g, color.b, color.a, t6.x, t6.y, id,
-	};
-
-	return vertices;
-}
-
-Vertices rp_create_text(Font* font, const std::string& text, glm::vec3 pos, glm::vec4 color) {
-	Vertices buffer;
-
-	glm::vec3 quad_p = pos;
-	for (char c : text) {
-		if (c == '\n') {
-			glm::vec2 size = font_calc_size(font, " ");
-
-			// Reset the x and increase the y
-			quad_p.x = pos.x;
-			quad_p.y += size.y;
-			continue;
-		}
-
-		panic(font->glyphs.find(c) != font->glyphs.end(), "Cannot find the character in glyph table: %c", c);
-
-		auto [uv, size] = font->glyphs[c];
-
-		// Generating quad for each character
-		Vertices v = rp_create_quad(quad_p, size, color, font->atlas.id, uv);
-		quad_p.x += size.x;
-
-		// Copying the vertices to buffer
-		buffer.insert(buffer.end(), v.begin(), v.end());
+void Renderer::start() {
+	// NOTE(slok): Deleting framebuffers every frame and recreating one might be slow
+	for (auto pass : m_passes) {
+		delete pass;
 	}
 
-	return buffer;
+	m_white_texture->bind();
+	m_passes.clear();
 }
 
+void Renderer::commit(const glm::vec2& res) {
+	GLC(glViewport(0, 0, res.x, res.y));
+
+	// Clearing the buffer
+	m_buffer.clear();
+
+	// Binding the resources
+	m_shader->bind();
+
+	// Binding the last pass's texture
+	FrameBuffer* last_pass = m_passes.back();
+	last_pass->bind_color_channel();
+
+	// Rendering the last pass's texture
+	push_quad(Quad {
+		{-1,-1,0},
+		{2, 2},
+		glm::mat4(1),
+		&last_pass->get_color_texture(),
+		{0,0,1,1},
+		{1,1,1,1}
+	});
+	execute_draw_call();
+}
+
+void Renderer::begin_pass(const glm::vec2& pos, const glm::vec2& res) {
+	m_res = res;
+	m_buffer.clear();
+
+	// Creating a new pass
+	FrameBuffer* new_pass = new FrameBuffer(m_res.x, m_res.y);
+	m_passes.push_back(new_pass);
+
+	new_pass->bind();
+	GLC(glViewport(0, 0, m_res.x, m_res.y));
+
+	// Pushing the last pass's texture in the new pass
+	if (m_passes.size() >= 2) {
+		FrameBuffer* prev_pass = m_passes[m_passes.size() - 2];
+		push_quad(Quad {
+			{pos.x, pos.y, 0},
+			m_res,
+			glm::mat4(1),
+			&prev_pass->get_color_texture(),
+			{0,0,1,1},
+			{1,1,1,1}
+		});
+	}
+}
+
+void Renderer::end_pass() {
+	// Binding the prev pass frame buffer
+	if (m_passes.size() >= 2) {
+		FrameBuffer* prev_pass = m_passes[m_passes.size() - 2];
+		prev_pass->bind_color_channel();
+	}
+
+	// Rendering
+	execute_draw_call();
+
+	// Unbinding the current pass
+	FrameBuffer* curr_pass = m_passes.back();
+	curr_pass->unbind();
+}
+
+void Renderer::execute_draw_call() {
+	m_vbo->push_data(0, m_buffer.size() * sizeof(f32), (void*)m_buffer.data());
+	m_vao->bind();
+	GLC(glDrawArrays(GL_TRIANGLES, 0, m_buffer.size() / m_vao->get_count()));
+}
+
+void Renderer::clear(const glm::vec4& color) {
+	GLC(glClearColor(color.r, color.g, color.b, color.a));
+	GLC(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+}
+
+void Renderer::push_quad(const Quad& quad) {
+	glm::vec3 pos = quad.pos;
+	glm::vec2 size = quad.size;
+	glm::mat4 rot = quad.rot;
+	const Texture* texture = quad.texture;
+	glm::vec4 uv = quad.uv;
+	glm::vec4 color = quad.color;
+
+	// Calculating the transforms
+	glm::mat4 transform = glm::translate(glm::mat4(1.0f), pos)
+		* rot
+		* glm::scale(glm::mat4(1.0f), {size.x, size.y, 1.0f});
+
+	glm::vec4 quad_pos[4] = {
+		{ 0.0f, 0.0f, 0.0f, 1.0f },
+		{ 1.0f, 0.0f, 0.0f, 1.0f },
+		{ 1.0f, 1.0f, 0.0f, 1.0f },
+		{ 0.0f, 1.0f, 0.0f, 1.0f }
+	};
+
+	Vertex v1, v2, v3, v4, v5, v6;
+
+	// Applying transforms to the vertices
+	v1.pos = transform * quad_pos[0];
+	v2.pos = transform * quad_pos[1];
+	v3.pos = transform * quad_pos[2];
+	v4.pos = v3.pos;
+	v5.pos = transform * quad_pos[3];
+	v6.pos = v1.pos;
+
+	// Setting the color
+	v1.color = v2.color = v3.color = v4.color = v5.color = v6.color = color;
+
+	// Setting the uvs
+	v1.uv = { uv.x, uv.y };
+	v2.uv = { uv.x + uv.z, uv.y };
+	v3.uv = { uv.x + uv.z, uv.y + uv.w };
+	v4.uv = { uv.x + uv.z, uv.y + uv.w };
+	v5.uv = { uv.x, uv.y + uv.w };
+	v6.uv = { uv.x, uv.y };
+
+	// Setting the texture
+	v1.tex_id = v2.tex_id = v3.tex_id = v4.tex_id = v5.tex_id = v6.tex_id = texture->get_id();
+
+	// Pushing the vertex to the buffer
+	push_vertex(v1);
+	push_vertex(v2);
+	push_vertex(v3);
+	push_vertex(v4);
+	push_vertex(v5);
+	push_vertex(v6);
+}
+
+void Renderer::push_vertex(const Vertex& v) {
+	// TODO(slok): Add Support for dyanmic batch rendering
+	panic(
+		m_buffer.size() / m_vao->get_count() < MAX_VERTEX_COUNT,
+		"Max vertex count exceeded for this batch."
+	);
+
+	m_buffer.push_back(v.pos.x);
+	m_buffer.push_back(v.pos.y);
+	m_buffer.push_back(v.pos.z);
+	m_buffer.push_back(v.color.r);
+	m_buffer.push_back(v.color.g);
+	m_buffer.push_back(v.color.b);
+	m_buffer.push_back(v.color.a);
+	m_buffer.push_back(v.uv.x);
+	m_buffer.push_back(v.uv.y);
+	m_buffer.push_back(v.tex_id);
+}
