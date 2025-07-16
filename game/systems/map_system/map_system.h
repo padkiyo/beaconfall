@@ -8,6 +8,9 @@ struct MapEntry {
 	const char* map_file;
 	const char* map_tileset;
 	f32 render_scale;
+
+	glm::vec2 res;
+	std::vector<Rect>* boxes;
 };
 
 class Map {
@@ -35,10 +38,17 @@ class Map {
 
 		std::vector<Quad> quads;
 
+	private:
+		glm::vec2 res;
+		std::vector<Rect>* boxes;
+
 	public:
 		Map(MapEntry map_config);
 		~Map();
 
-		void render(const glm::vec2& res);
+		void render();
 		inline const std::vector<Quad>& get_quads() const { return quads; }
+
+	private:
+		void pre_calc_collisions();
 };

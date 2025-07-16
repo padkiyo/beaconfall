@@ -31,4 +31,5 @@ private:
 	std::vector<Rect> boxes;
 	glm::vec2 move = glm::vec2(0);
 	f32 move_speed = 420.0f;
+	bool show_collision = false;
 };

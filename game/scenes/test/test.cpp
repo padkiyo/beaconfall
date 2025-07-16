@@ -5,8 +5,11 @@ TestScene::TestScene(const GameState& gs)
 	MapEntry map_config= {
 		.map_file = "assets/maps/EXAMPLE/map.json",
 		.map_tileset = "assets/maps/EXAMPLE/spritesheet.png",
-		.render_scale = 1.50f
+		.render_scale = 1.50f,
+		.res = glm::vec2(WIN_WIDTH, WIN_HEIGHT),
+		.boxes = &boxes
 	};
+
 	map = new Map(map_config);
 }
 
@@ -36,11 +39,11 @@ void TestScene::on_enter() {
 	};
 
 	a = Rect({400, 350, 50, 50});
-	boxes = {
-		Rect({10, 10, 200, 20}),
-		Rect({10, 20, 20, 200}),
-		Rect({200, 10, 200, 20})
-	};
+//	boxes = {
+//		Rect({10, 10, 200, 20}),
+//		Rect({10, 20, 20, 200}),
+//		Rect({200, 10, 200, 20})
+//	};
 }
 
 void TestScene::on_exit() {
@@ -73,7 +76,7 @@ void TestScene::on_update(f64 dt) {
 	set_light_pixel_size({pixel_size, pixel_size});
 
 	// Rendering the map
-	map->render({ WIN_WIDTH, WIN_HEIGHT });
+	map->render();
 
 	// Getting the quads from map and adding to the scene
 	const std::vector<Quad>& quads = map->get_quads();
@@ -93,15 +96,27 @@ void TestScene::on_update(f64 dt) {
 		{1,1,1,1}
 	});
 
-	for (auto box : boxes) {
+	if(show_collision){
 		add_quad(Quad {
-			{box.x, box.y, 0},
-			{box.w, box.h},
-			glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), {0,0,1}),
-			&gs.renderer->white_texture(),
-			{0,0,1,1},
-			{1,0,1,1}
-		});
+				{a.x, a.y, 0},
+				{a.w, a.h},
+				glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), {0,0,1}),
+				&gs.renderer->white_texture(),
+				gs.anim_mgr->get_frame(*gs.sprt_mgr),
+				{1,1,1,0.5}
+				});
+	}
+	if(show_collision){
+		for (auto box : boxes) {
+			add_quad(Quad {
+					{box.x, box.y, 0},
+					{box.w, box.h},
+					glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), {0,0,1}),
+					&gs.renderer->white_texture(),
+					{0,0,1,1},
+					{1,0,1,1}
+					});
+		}
 	}
 
 	a.resolve(boxes, move, gs.fc->dt());
@@ -140,5 +155,9 @@ void TestScene::on_imgui_render() {
 		ImGui::SliderAngle("Direction2", &l2.dir, 0.0f, 360.0f);
 		ImGui::SliderAngle("FOV2", &l2.fov, 0.0f, 360.0f);
 		ImGui::ColorEdit4("Color2", (float*)&l2.color);
+	}
+
+	if(ImGui::CollapsingHeader("Map")){
+		ImGui::Checkbox("show hit box", &show_collision);
 	}
 }
