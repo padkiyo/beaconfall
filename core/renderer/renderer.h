@@ -9,11 +9,17 @@
 #include "buffers/vertex_buffer.h"
 #include "buffers/vertex_array.h"
 #include "buffers/frame_buffer.h"
+#include "buffers/index_buffer.h"
 #include "geometry.h"
 
-// TODO(slok): Add support for auto flushing for vertex overflow
 
 class Renderer {
+public:
+	struct Stat {
+		i32 draw_calls;
+		i32 vertex_counts;
+	};
+
 public:
 	Renderer();
 	~Renderer();
@@ -31,6 +37,7 @@ public:
 
 public:
 	const Texture& white_texture() const { return *m_white_texture; }
+	const Stat& get_stat() const { return m_stat; }
 
 private:
 	void execute_draw_call();
@@ -38,9 +45,11 @@ private:
 private:
 	glm::mat4 m_view_proj;
 	glm::vec2 m_res;
+	Stat m_stat;
 
 	// Buffers
 	VertexBuffer* m_vbo;
+	IndexBuffer* m_ibo;
 	VertexArray* m_vao;
 
 	// CPU Buffers

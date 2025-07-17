@@ -30,6 +30,7 @@ UI::~UI() {
 
 void UI::begin() {
 	m_renderer->begin_pass({0,0}, m_res);
+	m_renderer->clear({0,0,0,1});
 
 	m_camera->recalculate_view_proj();
 	glm::mat4 view_proj = m_camera->get_view_proj();

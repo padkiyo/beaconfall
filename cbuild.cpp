@@ -33,13 +33,13 @@ std::unordered_map<std::string, std::string> windows_libs = {
 void build_core() {
 	CBuild build("g++");
 	build
-	
 		.out("bin", LIBF)
 		.flags({
 			"-fPIC",
 			"-shared",
 			"-std=c++20",
 			"-Wl,-rpath,'$ORIGIN'",
+			"-ggdb",
 		#if defined(__linux__)
 		#else
 			"-DAPIENTRY",
@@ -54,7 +54,7 @@ void build_core() {
 			"./vendors/glm",
 			"./vendors/SDL2",
 			"./core",
-			
+
 		})
 		.lib_paths({
 			"./bin/",
@@ -91,6 +91,7 @@ void build_core() {
 			"./core/shader/shader.cpp",
 			"./core/texture/texture.cpp",
 			"./core/buffers/vertex_buffer.cpp",
+			"./core/buffers/index_buffer.cpp",
 			"./core/buffers/vertex_array.cpp",
 			"./core/buffers/frame_buffer.cpp",
 			"./core/renderer/renderer.cpp",
@@ -112,6 +113,7 @@ void build_vendors() {
 	build_c
 		.flags({
 			"-fPIC",
+			"-ggdb",
 		})
 		.inc_paths({
 			"vendors/glad/include",
@@ -130,6 +132,7 @@ void build_vendors() {
 		.flags({
 			"-fPIC",
 			"-shared",
+			"-ggdb",
 		})
 		.inc_paths({
 			".",
@@ -145,7 +148,7 @@ void build_vendors() {
 			"./bin/",
 			"./vendors/SDL2/lib/",
 		})
-		
+
 	#if defined(__linux__)
 		.libs({
 			"vendors",
@@ -194,6 +197,7 @@ void build_game() {
 		.flags({
 			"-std=c++20",
 			"-Wl,-rpath,'$ORIGIN'",
+			"-ggdb",
 		})
 		.inc_paths({
 			".",
@@ -210,7 +214,7 @@ void build_game() {
 			"./bin/",
 			"./vendors/SDL2/lib/",
 		})
-		
+
 	#if defined(__linux__)
 		.libs({
 			"vendors",
