@@ -137,9 +137,15 @@ void Game::imgui_render() {
 	// Updating imgui render of the scenes
 	m_gs.scene_mgr->update_imgui_render();
 
-	if(ImGui::CollapsingHeader("Scenes")) {
+	if (ImGui::CollapsingHeader("Stats")) {
+		Renderer::Stat stat = m_gs.renderer->get_stat();
+		ImGui::Text("Draw Calls: %d", stat.draw_calls);
+		ImGui::Text("Vertex Counts: %d", stat.vertex_counts);
+	}
+
+	if (ImGui::CollapsingHeader("Scenes")) {
 		ImGui::SeparatorText("Scene Manager");
-		for(auto& [key, value] : m_gs.scene_mgr->get_scenes()) {
+		for (auto& [key, value] : m_gs.scene_mgr->get_scenes()) {
 			std::string button_name =
 				m_gs.scene_mgr->get_current_scene_id() != key
 				? "[ ] " + scene_name(key)
@@ -150,13 +156,13 @@ void Game::imgui_render() {
 		}
 	}
 
-	if(ImGui::CollapsingHeader("Animator")) {
+	if (ImGui::CollapsingHeader("Animator")) {
 		ImGui::SeparatorText("Player");
 		if (ImGui::Button("Idle")) {
 			m_gs.anim_mgr->switch_frame(PLAYER_IDLE);
 		}
 
-		if(ImGui::Button("Die")) {
+		if (ImGui::Button("Die")) {
 			m_gs.anim_mgr->switch_frame(PLAYER_DIE);
 		}
 	}
