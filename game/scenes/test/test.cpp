@@ -129,6 +129,10 @@ void TestScene::on_ui_render(UI& ui) {
 		.fg_color = { 1, 1, 1, 1 },
 		.font = gs.font_regular,
 	});
+
+	if (ui.button("Click Me", Rect({ 100, 100, 200, 50 }), Style {.font = gs.font_regular})) {
+		std::cout << "Clicked" << std::endl;
+	}
 }
 
 void TestScene::on_imgui_render() {

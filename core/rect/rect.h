@@ -13,9 +13,9 @@ public:
 		{}
 	~Rect() {};
 
-	b32 intersect(const Rect& r);            // Does comparision with <
-	b32 intersect_inclusive(const Rect& r);  // Does comparision with <=
-	b32 intersect_point(const glm::vec2& p);
+	b32 intersect(const Rect& r) const;            // Does comparision with <
+	b32 intersect_inclusive(const Rect& r) const;  // Does comparision with <=
+	b32 intersect_point(const glm::vec2& p) const;
 	void resolve(const std::vector<Rect>& rects, const glm::vec2& movement, f64 dt);
 
 	b32 intersect_at_left()  const { return m_left;  }

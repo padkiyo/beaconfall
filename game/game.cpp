@@ -69,6 +69,9 @@ void Game::event() {
 		// Events for imgui
 		ImGui_ImplSDL2_ProcessEvent(&event);
 
+		// Event for the ui
+		m_gs.ui->handle_event(event);
+
 		// Event for the scene
 		m_gs.scene_mgr->handle_event(event, m_gs.fc->dt());
 
