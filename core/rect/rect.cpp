@@ -1,6 +1,6 @@
 #include "rect.h"
 
-b32 Rect::intersect(const Rect& r) {
+b32 Rect::intersect(const Rect& r) const {
 	return (
 		x < r.x + r.w &&
 		x + w > r.x &&
@@ -9,7 +9,7 @@ b32 Rect::intersect(const Rect& r) {
 	);
 }
 
-b32 Rect::intersect_inclusive(const Rect& r) {
+b32 Rect::intersect_inclusive(const Rect& r) const {
 	return (
 		x <= r.x + r.w &&
 		x + w >= r.x &&
@@ -18,7 +18,7 @@ b32 Rect::intersect_inclusive(const Rect& r) {
 	);
 }
 
-b32 Rect::intersect_point(const glm::vec2& p) {
+b32 Rect::intersect_point(const glm::vec2& p) const {
 	return (
 		(x < p.x && p.x < x + w) &&
 		(y < p.y && p.y < y + h)
