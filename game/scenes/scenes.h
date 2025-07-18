@@ -2,27 +2,18 @@
 
 #include "core.h"
 
-#include "dialog/dialog.h"
-#include "map/map.h"
-#include "notebook/notebook.h"
-#include "slowmo/slowmo.h"
 #include "test/test.h"
+#include "game_scene/game_scene.h"
 
 enum Scenes {
-	SCENE_DIALOG,
-	SCENE_MAP,
-	SCENE_NOTEBOOK,
-	SCENE_SLOWMO,
 	SCENE_TEST,
+	SCENE_GAME,
 };
 
 static std::string scene_name(i32 s) {
 	switch (s) {
-		case SCENE_DIALOG: return "Dialog Scene";
-		case SCENE_MAP: return "Map Scene";
-		case SCENE_NOTEBOOK: return "Notebook Scene";
-		case SCENE_SLOWMO: return "Slowmo Scene";
 		case SCENE_TEST: return "Test Scene";
+		case SCENE_GAME: return "Game Scene";
 		default:
 			panic(false, "Unhandled scene id: %d", s);
 	}

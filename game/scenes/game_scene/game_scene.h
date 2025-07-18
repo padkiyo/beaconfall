@@ -2,13 +2,13 @@
 
 #include "core.h"
 #include "game.h"
-#include "systems/map_system/map_system.h"
 #include "config.h"
 
-class TestScene : public Scene {
+
+class GameScene : public Scene {
 public:
-	TestScene(const GameState& gs);
-	~TestScene();
+	GameScene(const GameState& gs);
+	~GameScene();
 
 public:
 	void on_enter();
@@ -19,17 +19,12 @@ public:
 	void on_imgui_render();
 
 private:
-	const GameState& gs;
+	const GameState& m_gs;
 
-	Map* map;
-
-	// Buffers
-	std::vector<Rect> boxes;
-	std::vector<Light> lights;
+	std::vector<Rect> m_boxes;
 
 	// Light
 	glm::vec3 ambient_color = { 0.5, 0.5, 0.5 };
 	f32 pixel_size = 2;
-
-	bool show_collision = false;
 };
+

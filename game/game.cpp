@@ -8,18 +8,18 @@ Game::Game() {
 	init_systems();
 	init_resources();
 
+	// Init game
 	m_running = true;
 
-	TextureFilter sprite_filter = {
-		.min_filter = GL_LINEAR,
-		.mag_filter = GL_LINEAR,
-		.wrap_s = GL_CLAMP_TO_EDGE,
-		.wrap_t = GL_CLAMP_TO_EDGE,
-		.flip = true
-	};
+	m_gs.player = new Player();
+
+	// Switching to the scene
+	m_gs.scene_mgr->switch_scene(SCENE_GAME);
 }
 
 Game::~Game() {
+	delete m_gs.player;
+
 	// Freeing resources
 	delete m_gs.font_regular;
 
@@ -204,7 +204,7 @@ void Game::init_core() {
 
 void Game::init_scenes() {
 	m_gs.scene_mgr->add_scene<TestScene>(SCENE_TEST, m_gs);
-	m_gs.scene_mgr->switch_scene(SCENE_TEST);
+	m_gs.scene_mgr->add_scene<GameScene>(SCENE_GAME, m_gs);
 }
 
 
