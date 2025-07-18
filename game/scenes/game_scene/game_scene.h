@@ -3,7 +3,8 @@
 #include "core.h"
 #include "game.h"
 #include "config.h"
-
+#include "entity/player.h"
+#include "entity/rock.h"
 
 class GameScene : public Scene {
 public:
@@ -22,6 +23,12 @@ private:
 	const GameState& m_gs;
 
 	std::vector<Rect> m_boxes;
+
+	// Player
+	Player* m_player;
+
+	// Entities
+	std::vector<Entity*> m_entities;
 
 	// Light
 	glm::vec3 ambient_color = { 0.5, 0.5, 0.5 };

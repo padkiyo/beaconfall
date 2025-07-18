@@ -11,15 +11,11 @@ Game::Game() {
 	// Init game
 	m_running = true;
 
-	m_gs.player = new Player();
-
 	// Switching to the scene
 	m_gs.scene_mgr->switch_scene(SCENE_GAME);
 }
 
 Game::~Game() {
-	delete m_gs.player;
-
 	// Freeing resources
 	delete m_gs.font_regular;
 
@@ -93,6 +89,7 @@ void Game::render() {
 
 	// Activating all the sprites
 	m_gs.sprt_mgr->activate_spritesheet(PLAYER);
+	m_gs.sprt_mgr->activate_spritesheet(ROCK);
 
 	m_gs.renderer->clear({0,0,0,1});
 
@@ -230,17 +227,24 @@ void Game::init_resources() {
 	m_gs.font_regular = new Font("./assets/Ac437_ToshibaSat_9x8.ttf", 25);
 
 	// loading sprites
-	Sprite player_sprite = {
-		.path = "./assets/samurai.png",
-		.x_cnt = 14, // No of horizontal sprites
-		.y_cnt = 8 // No of vertical sprites
-	};
 
+	// Player
+	Sprite player_sprite = {
+		.id = PLAYER,
+		.path = "./assets/player.png",
+		.x_cnt = 1,
+		.y_cnt = 1,
+	};
 	m_gs.sprt_mgr->add_sprite(player_sprite, PLAYER);
-	m_gs.sprt_mgr->create_frame(PLAYER, 7,7, PLAYER_IDLE);
-	m_gs.sprt_mgr->create_frame(PLAYER, 0, 13, PLAYER_DIE);
-	m_gs.anim_mgr->add_animation(PLAYER_IDLE, 100 * 8, true);
-	m_gs.anim_mgr->add_animation(PLAYER_DIE, 100 * 14, false);
+
+	// Rock
+	Sprite rock_sprite = {
+		.id = ROCK,
+		.path = "./assets/rock.png",
+		.x_cnt = 1,
+		.y_cnt = 1,
+	};
+	m_gs.sprt_mgr->add_sprite(rock_sprite, ROCK);
 }
 
 

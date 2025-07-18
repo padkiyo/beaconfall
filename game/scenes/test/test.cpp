@@ -22,7 +22,6 @@ TestScene::~TestScene() {
 
 void TestScene::on_enter() {
 	log_info("Test scene is entered\n");
-	gs.player->set_pos({400, 300});
 }
 
 void TestScene::on_exit() {
@@ -30,7 +29,6 @@ void TestScene::on_exit() {
 }
 
 void TestScene::on_event(const SDL_Event& event, f64 dt) {
-	gs.player->handle_event(event);
 }
 
 void TestScene::on_update(f64 dt) {
@@ -41,10 +39,6 @@ void TestScene::on_update(f64 dt) {
 
 	// Rendering the map
 	map->render();
-
-	gs.player->update(boxes, gs.fc->dt());
-	Quad quad = gs.player->render();
-	add_quad(quad);
 
 	if(show_collision){
 		for (auto box : boxes) {

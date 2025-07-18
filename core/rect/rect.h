@@ -16,7 +16,8 @@ public:
 	b32 intersect(const Rect& r) const;            // Does comparision with <
 	b32 intersect_inclusive(const Rect& r) const;  // Does comparision with <=
 	b32 intersect_point(const glm::vec2& p) const;
-	void resolve(const std::vector<Rect>& rects, const glm::vec2& movement, f64 dt);
+	void resolve_x(const Rect& rect, const glm::vec2& movement);
+	void resolve_y(const Rect& rect, const glm::vec2& movement);
 
 	b32 intersect_at_left()  const { return m_left;  }
 	b32 intersect_at_right() const { return m_right; }

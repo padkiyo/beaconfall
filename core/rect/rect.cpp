@@ -25,36 +25,30 @@ b32 Rect::intersect_point(const glm::vec2& p) const {
 	);
 }
 
-void Rect::resolve(const std::vector<Rect>& rects, const glm::vec2& movement, f64 dt) {
-	m_left = m_right = m_up = m_down = false;
+void Rect::resolve_x(const Rect& rect, const glm::vec2& movement) {
+	m_left = m_right = false;
 
-	// X axis resolution
-	x += movement.x * dt;
-
-	for (auto r : rects) {
-		if (intersect(r)) {
-			if (movement.x > 0) {
-				x = r.x - w;
-				m_right = true;
-			} else if (movement.x < 0) {
-				x = r.x + r.w;
-				m_left = true;
-			}
+	if (intersect(rect)) {
+		if (movement.x > 0) {
+			x = rect.x - w;
+			m_right = true;
+		} else if (movement.x < 0) {
+			x = rect.x + rect.w;
+			m_left = true;
 		}
 	}
+}
 
-	// Y axis resolution
-	y += movement.y * dt;
+void Rect::resolve_y(const Rect& rect, const glm::vec2& movement) {
+	m_up = m_down = false;
 
-	for (auto r : rects) {
-		if (intersect(r)) {
-			if (movement.y > 0) {
-				y = r.y - h;
-				m_up = true;
-			} else if (movement.y < 0) {
-				y = r.y + r.h;
-				m_down = true;
-			}
+	if (intersect(rect)) {
+		if (movement.y > 0) {
+			y = rect.y - h;
+			m_up = true;
+		} else if (movement.y < 0) {
+			y = rect.y + rect.h;
+			m_down = true;
 		}
 	}
 }
