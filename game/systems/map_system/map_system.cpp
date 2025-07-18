@@ -133,8 +133,6 @@ void Map::pre_calc_collisions() {
 
 				Light tmp_light;
 				std::string light_id = std::format("{},{}",tiles[i]["x"].asString(), tiles[i]["y"].asString());
-				std::cout << light_id << std::endl;
-
 
 				if(this->light_map.find(light_id) != this->light_map.end()){
 					tmp_light = this->light_map[light_id];
