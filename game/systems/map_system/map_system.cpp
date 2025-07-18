@@ -26,8 +26,9 @@ void Map::pre_calc_collisions() {
 
 	for (Json::Value::ArrayIndex layer = (layers.size() -1); layer != -1; layer--)
 	{
-		if(layers[layer]["name"].asString() == "COLLISION")
-		{
+		auto layer_type = layers[layer]["name"].asString();
+
+		if (layer_type == "COLLISION"){
 			auto tiles = layers[layer]["tiles"];
 
 			for (Json::Value::ArrayIndex i = 0; i != tiles.size(); i++)
@@ -35,13 +36,13 @@ void Map::pre_calc_collisions() {
 				glm::vec2 render_size = glm::vec2(
 						this->tile_size * this->render_scale,
 						this->tile_size * this->render_scale
-				);
+						);
 
 				glm::vec3 position = glm::vec3(
 						tiles[i]["x"].asFloat() * render_size.x,
 						(this->res.y - (tiles[i]["y"].asFloat() * render_size.y)),
 						0.0f
-				);
+						);
 
 				this->boxes->push_back(
 						Rect({
@@ -49,12 +50,41 @@ void Map::pre_calc_collisions() {
 							position.y,
 							render_size.x,
 							render_size.y
-						})
-				);
+							})
+						);
 			}
+		}
+		if(layer_type == "LIGHT"){
+			auto tiles = layers[layer]["tiles"];
+
+			for (Json::Value::ArrayIndex i = 0; i != tiles.size(); i++)
+			{
+				glm::vec2 render_size = glm::vec2(
+						this->tile_size * this->render_scale,
+						this->tile_size * this->render_scale
+						);
+
+				glm::vec3 position = glm::vec3(
+						tiles[i]["x"].asFloat() * render_size.x,
+						(this->res.y - (tiles[i]["y"].asFloat() * render_size.y)),
+						0.0f
+						);
+
+				glm::vec2 mid_point = glm::vec2(
+						position.x + (render_size.x/2),
+						position.y + (render_size.y/2)
+						);
+
+				Light tmp_light = this->default_light;
+				tmp_light.pos = mid_point;
+
+				this->lights->push_back(tmp_light);
+
 		}
 	}
 }
+}
+
 
 Map::Map(MapEntry map_config) {
 	this->map_tileset = map_config.map_tileset;
@@ -62,6 +92,8 @@ Map::Map(MapEntry map_config) {
 	this->render_scale = map_config.render_scale;
 	this->res = map_config.res;
 	this->boxes = map_config.boxes;
+	this->lights = map_config.lights;
+	this->quads = map_config.quads;
 
 	// loading map file
 	Json::CharReaderBuilder builder;
@@ -90,15 +122,13 @@ Map::~Map() {
 
 void Map::render() {
 	// Clearing the quads before rendering
-	this->quads.clear();
-
 	auto layers = this->root["layers"];
 
 	this->map_texture->bind();
 
 	for (Json::Value::ArrayIndex layer = (layers.size() -1); layer != -1; layer--) {
 		auto tiles = layers[layer]["tiles"];
-		if(layers[layer]["name"].asString() != "COLLISION")
+		if(layers[layer]["name"].asString() != "COLLISION" && layers[layer]["name"].asString() != "LIGHT")
 		{
 			for (Json::Value::ArrayIndex i = 0; i != tiles.size(); i++)
 			{
@@ -130,7 +160,7 @@ void Map::render() {
 				// NOTE just in case for debugging
 				//std::cout << "P: " <<  position.x << "," << position.y << " TC: " << tex_coords.x << "," << tex_coords.y << "," << tex_coords.z << "," << tex_coords.w << std::endl;
 
-				this->quads.push_back(Quad {
+				this->quads->push_back(Quad {
 						.pos = position,
 						.size = render_size,
 						.rot = glm::mat4(1),
@@ -142,5 +172,4 @@ void Map::render() {
 		}
 	}
 }
-
 

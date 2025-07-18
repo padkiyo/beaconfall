@@ -11,6 +11,8 @@ struct MapEntry {
 
 	glm::vec2 res;
 	std::vector<Rect>* boxes;
+	std::vector<Light>* lights;
+	std::vector<Quad>* quads;
 };
 
 class Map {
@@ -34,20 +36,28 @@ class Map {
 			.flip = true
 		};
 
-		glm::vec4 get_texcoords(f32 index, f32 width, f32 height);
+		Light default_light = {
+			.pos = {0, 0},
+			.radius = 0.5f,
+			.intensity = 0.45f,
+			.dir = glm::radians(81.0f) ,
+			.fov = glm::radians(41.0f),
+			.color = {0.8,0.5,0,1}
+		};
 
-		std::vector<Quad> quads;
+		glm::vec4 get_texcoords(f32 index, f32 width, f32 height);
 
 	private:
 		glm::vec2 res;
 		std::vector<Rect>* boxes;
+		std::vector<Light>* lights;
+		std::vector<Quad>* quads;
 
 	public:
 		Map(MapEntry map_config);
 		~Map();
 
 		void render();
-		inline const std::vector<Quad>& get_quads() const { return quads; }
 
 	private:
 		void pre_calc_collisions();

@@ -29,6 +29,8 @@ private:
 
 	Rect a;
 	std::vector<Rect> boxes;
+	std::vector<Light> lights;
+
 	glm::vec2 move = glm::vec2(0);
 	f32 move_speed = 420.0f;
 	bool show_collision = false;
