@@ -5,6 +5,7 @@ TestScene::TestScene(const GameState& gs)
 	MapEntry map_config= {
 		.map_file = "assets/maps/EXAMPLE/map.json",
 		.map_tileset = "assets/maps/EXAMPLE/spritesheet.png",
+		.light_file = "assets/maps/EXAMPLE/light.json",
 		.render_scale = 1.50f,
 		.res = glm::vec2(WIN_WIDTH, WIN_HEIGHT),
 		.boxes = &boxes,
@@ -147,6 +148,9 @@ void TestScene::on_imgui_render() {
 			ImGui::SliderAngle(fov.c_str(), &light.fov, 0.0f, 360.0f);
 			ImGui::ColorEdit4(color.c_str(), (float*)&light.color);
 			count += 1;
+		}
+		if(ImGui::Button("Bake lights")){
+			map->write_light_file();
 		}
 	}
 

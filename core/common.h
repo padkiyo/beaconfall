@@ -7,7 +7,7 @@
     //! Scary
     #undef near
     #undef far
-    
+
     #define sleep Sleep
     #define SDL_MAIN_HANDLED
 #endif
@@ -36,6 +36,7 @@
 #include <iostream>
 #include <format>
 #include <variant>
+#include <tuple>
 
 #include "base/types.h"
 #include "base/result.h"

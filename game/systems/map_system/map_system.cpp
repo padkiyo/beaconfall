@@ -21,8 +21,59 @@ glm::vec4  Map::get_texcoords(f32 index, f32 width, f32 height) {
 	return res;
 }
 
+void Map::write_light_file() {
+	Json::StreamWriterBuilder builder;
+
+	Json::Value root;
+//	Json::Value lights;
+//
+	Json::Value light_list;
+	Json::Value light_item;
+	for (auto light: *this->lights) {
+		light_item["x"] =(i32) light.map_pos.x;
+		light_item["y"] = (i32) light.map_pos.y;
+		light_item["radius"] = light.radius;
+		light_item["intensity"] = light.intensity;
+		light_item["direction"] = light.dir;
+		light_item["fov"] = light.fov;
+		light_item["r"] = light.color.x;
+		light_item["g"] = light.color.y;
+		light_item["b"] = light.color.z;
+		light_item["a"] = light.color.w;
+
+		light_list.append(light_item);
+	}
+
+	root["lights"] = light_list;
+
+	// printing stuff
+	std::string light_file_data = Json::writeString(builder, root);
+
+	std::ofstream light_file(this->light_file);
+	light_file << light_file_data;
+	light_file.close();
+
+	std::cout << light_file_data << std::endl;
+}
 void Map::pre_calc_collisions() {
 	auto layers = this->root["layers"];
+
+	if(this->has_light_file){
+		auto lights = this->light_root["lights"];
+
+		for(auto light: lights) {
+			Light tmp_light= {
+				.pos = {0, 0},
+				.radius = light["radius"].asFloat(),
+				.intensity =  light["intensity"].asFloat(),
+				.dir =  light["direction"].asFloat(),
+				.fov =  light["fov"].asFloat(),
+				.color = { light["r"].asFloat(), light["g"].asFloat(), light["b"].asFloat(), light["a"].asFloat()}
+			};
+			std::string id = std::format("{},{}",light["x"].asString(), light["y"].asString());
+			this->light_map[id] = tmp_light;
+		}
+	}
 
 	for (Json::Value::ArrayIndex layer = (layers.size() -1); layer != -1; layer--)
 	{
@@ -70,19 +121,35 @@ void Map::pre_calc_collisions() {
 						0.0f
 						);
 
+				glm::vec2 map_pos = glm::vec2(
+					tiles[i]["x"].asInt(),
+					tiles[i]["y"].asInt()
+				);
+
 				glm::vec2 mid_point = glm::vec2(
 						position.x + (render_size.x/2),
 						position.y + (render_size.y/2)
 						);
 
-				Light tmp_light = this->default_light;
-				tmp_light.pos = mid_point;
+				Light tmp_light;
+				std::string light_id = std::format("{},{}",tiles[i]["x"].asString(), tiles[i]["y"].asString());
+				std::cout << light_id << std::endl;
 
+
+				if(this->light_map.find(light_id) != this->light_map.end()){
+					tmp_light = this->light_map[light_id];
+				}
+				else{
+					tmp_light = this->default_light;
+				}
+
+				tmp_light.pos = mid_point;
+				tmp_light.map_pos = map_pos;
 				this->lights->push_back(tmp_light);
 
+			}
 		}
 	}
-}
 }
 
 
@@ -94,6 +161,7 @@ Map::Map(MapEntry map_config) {
 	this->boxes = map_config.boxes;
 	this->lights = map_config.lights;
 	this->quads = map_config.quads;
+	this->light_file= map_config.light_file;
 
 	// loading map file
 	Json::CharReaderBuilder builder;
@@ -109,6 +177,15 @@ Map::Map(MapEntry map_config) {
 	this->tile_size = this->root["tileSize"].asFloat();
 	this->map_width = this->root["mapWidth"].asFloat();
 	this->map_height = this->root["mapHeight"].asFloat();
+
+	Json::CharReaderBuilder builder_light;
+	std::ifstream ifs_light;
+
+	ifs_light.open(this->light_file);
+	if(!parseFromStream(builder_light, ifs_light, &this->light_root, &errs)){
+		std::cout << "UNABLE TO OPEN LIGHT FILE resorting to default lights" << std::endl;
+		this->has_light_file = false;
+	}
 
 	this->map_texture = new Texture(this->map_tileset, this->sprite_filter);
 	this->pre_calc_collisions();

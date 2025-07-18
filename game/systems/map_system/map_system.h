@@ -7,6 +7,7 @@
 struct MapEntry {
 	const char* map_file;
 	const char* map_tileset;
+	const char* light_file;
 	f32 render_scale;
 
 	glm::vec2 res;
@@ -24,7 +25,12 @@ class Map {
 
 		const char* map_tileset;
 		const char* map_file;
+		const char* light_file;
 		Json::Value root;
+		Json::Value light_root;
+		bool has_light_file = true;
+
+		std::unordered_map<std::string, Light> light_map;
 
 		Texture* map_texture;
 
@@ -56,6 +62,7 @@ class Map {
 	public:
 		Map(MapEntry map_config);
 		~Map();
+		void write_light_file();
 
 		void render();
 
