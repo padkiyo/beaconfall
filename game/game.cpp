@@ -90,6 +90,7 @@ void Game::render() {
 	// Activating all the sprites
 	m_gs.sprt_mgr->activate_spritesheet(PLAYER);
 	m_gs.sprt_mgr->activate_spritesheet(ROCK);
+	m_gs.sprt_mgr->activate_spritesheet(GEM);
 
 	m_gs.renderer->clear({0,0,0,1});
 
@@ -245,6 +246,15 @@ void Game::init_resources() {
 		.y_cnt = 1,
 	};
 	m_gs.sprt_mgr->add_sprite(rock_sprite, ROCK);
+
+	// Gem
+	Sprite gem_sprite = {
+		.id = GEM,
+		.path = "./assets/gem.png",
+		.x_cnt = 1,
+		.y_cnt = 1,
+	};
+	m_gs.sprt_mgr->add_sprite(gem_sprite, GEM);
 }
 
 

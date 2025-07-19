@@ -17,6 +17,18 @@ void Entity::set_size(const glm::vec2& size) {
 	m_rect.h = size.y;
 }
 
+void Entity::take_damage(f32 dmg) {
+	m_health -= dmg;
+	m_stun = m_stun_timeout; // Give a stun
+	on_damage();
+}
+
+b32 Entity::is_stunned() {
+	m_stun -= m_stun_decay;
+	if (m_stun <= 0.0f) m_stun = 0.0f;
+	return m_stun > 0.0f;
+}
+
 void Entity::on_damage() {
 }
 

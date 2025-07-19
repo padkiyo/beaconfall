@@ -6,6 +6,7 @@
 enum EntityType {
 	ENT_PLAYER,
 	ENT_ROCK,
+	ENT_GEM,
 };
 
 class Entity {
@@ -24,7 +25,8 @@ public:
 	void set_pos(const glm::vec2& pos);
 	void set_size(const glm::vec2& size);
 
-	void take_damage(f32 dmg) { m_health -= dmg; on_damage(); }
+	void take_damage(f32 dmg);
+	b32 is_stunned();
 
 	// Virtual functions
 	virtual void render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads);
@@ -33,4 +35,9 @@ public:
 protected:
 	Rect m_rect;
 	f32 m_health;
+
+	// Handling stun
+	f32 m_stun = 0.0f;
+	f32 m_stun_timeout = 10.0f;
+	f32 m_stun_decay = 0.8f;
 };

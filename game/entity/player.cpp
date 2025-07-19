@@ -9,12 +9,16 @@ Player::Player(std::vector<Entity*>& entities)
 
 	m_health = 100.0f;
 
+	// Pickup
+	m_picked_item = nullptr;
+
 	// Movement
 	m_move = { 0, 0 };
 	m_speed = 200.0f;
 	m_left = m_right = m_up = m_down = false;
 
 	// Attack
+	m_can_atk = true;
 	m_attack = false;
 	m_atk_dmg = 50.0f;
 	m_atk_hitbox.w = 64;
@@ -22,11 +26,6 @@ Player::Player(std::vector<Entity*>& entities)
 }
 
 Player::~Player() {
-}
-
-void Player::set_pos(const glm::vec2& pos) {
-	m_rect.x = pos.x;
-	m_rect.y = pos.y;
 }
 
 void Player::set_speed(f32 speed) {
@@ -48,6 +47,11 @@ void Player::handle_event(const SDL_Event& event) {
 			case SDLK_d:
 				m_right = true;
 				break;
+
+			// Item pickup
+			case SDLK_f:
+				handle_item_pickup();
+				break;
 		}
 	}
 	else if (event.type == SDL_KEYUP) {
@@ -68,7 +72,11 @@ void Player::handle_event(const SDL_Event& event) {
 	}
 	else if (event.type == SDL_MOUSEBUTTONDOWN) {
 		if (event.button.button == SDL_BUTTON_LEFT) {
-			m_attack = true;
+			if (m_can_atk) {
+				m_attack = true;
+				m_can_atk = false;
+				m_atk_cooldown = 10.0f;
+			}
 		}
 	}
 	else if (event.type == SDL_MOUSEBUTTONUP) {
@@ -78,18 +86,7 @@ void Player::handle_event(const SDL_Event& event) {
 	}
 }
 
-void Player::update(f64 dt) {
-	// Movement
-	if (m_left)
-		m_move.x -= m_speed;
-	if (m_right)
-		m_move.x += m_speed;
-	if (m_up)
-		m_move.y += m_speed;
-	if (m_down)
-		m_move.y -= m_speed;
-
-	// Attack
+void Player::handle_attack() {
 	if (m_attack) {
 		i32 x, y;
 		SDL_GetMouseState(&x, &y);
@@ -104,7 +101,16 @@ void Player::update(f64 dt) {
 		}
 	}
 
-	// Collision resolution
+	// Attack cooldown
+	if (m_atk_cooldown > 0.0f) {
+		m_atk_cooldown -= 0.8f;
+	} else {
+		m_atk_cooldown = 0.0f;
+		m_can_atk = true;
+	}
+}
+
+void Player::handle_collision(f64 dt) {
 	m_rect.x += m_move.x * dt;
 	for (auto ent: m_entities) {
 		m_rect.resolve_x(ent->rect(), m_move);
@@ -113,6 +119,69 @@ void Player::update(f64 dt) {
 	m_rect.y += m_move.y * dt;
 	for (auto ent: m_entities) {
 		m_rect.resolve_y(ent->rect(), m_move);
+	}
+}
+
+void Player::handle_item_pickup() {
+	b32 picked_new_item = false;
+
+	for (auto ent: m_entities) {
+		Rect e_rect = ent->rect();
+		if (m_rect.intersect(e_rect) && ent != m_picked_item) {
+			switch (ent->type) {
+
+				// Gem holding
+				case ENT_GEM: {
+					// If we already have a item then we swap
+					if (m_picked_item) {
+						m_picked_item->set_pos({e_rect.x, e_rect.y});
+					}
+
+					m_picked_item = ent;
+					picked_new_item = true;
+				} break;
+
+			}
+		}
+
+		if (picked_new_item) break;
+	}
+
+	// If we press pick again and there is not any items nearby
+	// we drop the current item
+	if (!picked_new_item && m_picked_item) {
+		Rect r = m_picked_item->rect();
+		m_picked_item->set_pos({
+			m_rect.x + m_rect.w / 2 - r.w / 2,
+			m_rect.y + m_rect.h / 2 - r.h / 2
+		});
+
+		// Remove the picked item
+		m_picked_item = nullptr;
+	}
+}
+
+void Player::update(f64 dt) {
+	// Movement
+	if (m_left)
+		m_move.x -= m_speed;
+	if (m_right)
+		m_move.x += m_speed;
+	if (m_up)
+		m_move.y += m_speed;
+	if (m_down)
+		m_move.y -= m_speed;
+
+	handle_attack();
+	handle_collision(dt);
+
+	// If we have picked the item, carry it in head
+	if (m_picked_item) {
+		Rect r = m_picked_item->rect();
+		m_picked_item->set_pos({
+			m_rect.x + m_rect.w / 2 - r.w / 2,
+			m_rect.y + m_rect.h
+		});
 	}
 
 	// Reset the movement
@@ -129,8 +198,12 @@ void Player::render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads) {
 			{ 0, 0, 1, 1 },
 			{ 0, 1, 0, 0.8 }
 		});
+
+		// Reset the attack
+		m_attack = false;
 	}
 
+	// Rendering the player
 	quads.push_back(Quad {
 		.pos = {m_rect.x, m_rect.y, 0},
 		.size = {m_rect.w, m_rect.h},

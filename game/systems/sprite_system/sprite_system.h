@@ -5,6 +5,7 @@
 enum SpriteId {
 	PLAYER,
 	ROCK,
+	GEM,
 };
 
 enum FrameId {

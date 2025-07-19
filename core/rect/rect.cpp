@@ -28,6 +28,8 @@ b32 Rect::intersect_point(const glm::vec2& p) const {
 void Rect::resolve_x(const Rect& rect, const glm::vec2& movement) {
 	m_left = m_right = false;
 
+	if (!rect.is_collidable()) return;
+
 	if (intersect(rect)) {
 		if (movement.x > 0) {
 			x = rect.x - w;
@@ -41,6 +43,8 @@ void Rect::resolve_x(const Rect& rect, const glm::vec2& movement) {
 
 void Rect::resolve_y(const Rect& rect, const glm::vec2& movement) {
 	m_up = m_down = false;
+
+	if (!rect.is_collidable()) return;
 
 	if (intersect(rect)) {
 		if (movement.y > 0) {

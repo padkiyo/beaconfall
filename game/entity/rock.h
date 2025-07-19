@@ -9,12 +9,10 @@ public:
 	Rock(std::vector<Entity*>& entities);
 	~Rock();
 
-	// Setters
-	void set_pos(const glm::vec2& pos);
-
 	void on_damage();
 	void render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads);
 
 private:
 	std::vector<Entity*>& m_entities;
+	glm::vec4 m_overlay = {1, 1, 1, 0};
 };
