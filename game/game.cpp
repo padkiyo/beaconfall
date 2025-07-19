@@ -205,12 +205,7 @@ void Game::init_core() {
 void Game::init_scenes() {
 	m_gs.scene_mgr->add_scene<TestScene>(SCENE_TEST, m_gs);
 	m_gs.scene_mgr->add_scene<GameScene>(SCENE_GAME, m_gs);
-}
-
-
-/*
- * Here we initialize our systems that are in the game
- */
+	m_gs.scene_mgr->add_scene<BeaconScene>(SCENE_BEACON, m_gs); } /* Here we initialize our systems that are in the game */
 
 void Game::init_systems() {
 	m_gs.sprt_mgr = new SpriteManager();
