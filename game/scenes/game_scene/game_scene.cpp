@@ -2,13 +2,13 @@
 
 GameScene::GameScene(const GameState& gs)
 	: m_gs(gs) {
-	m_player = new Player;
+	m_player = new Player(m_entities);
 
-	Rock* rock = new Rock;
+	Rock* rock = new Rock(m_entities);
 	rock->set_pos({100, 100});
 	m_entities.push_back(rock);
 
-	Rock* rock2 = new Rock;
+	Rock* rock2 = new Rock(m_entities);
 	rock2->set_pos({132, 100});
 	m_entities.push_back(rock2);
 }
@@ -35,12 +35,12 @@ void GameScene::on_update(f64 dt) {
 	set_light_pixel_size({pixel_size, pixel_size});
 
 	// Rendering player
-	m_player->update(m_entities, m_gs.fc->dt());
-	add_quad(m_player->render(*m_gs.sprt_mgr));
+	m_player->update(m_gs.fc->dt());
+	m_player->render(*m_gs.sprt_mgr, m_quads);
 
-	// Rendering rock
+	// Rendering all entities
 	for (auto ent: m_entities) {
-		add_quad(ent->render(*m_gs.sprt_mgr));
+		ent->render(*m_gs.sprt_mgr, m_quads);
 	}
 }
 

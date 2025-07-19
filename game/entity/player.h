@@ -3,10 +3,11 @@
 #include "core.h"
 #include "systems/sprite_system/sprite_system.h"
 #include "entity.h"
+#include "config.h"
 
 class Player : public Entity {
 public:
-	Player();
+	Player(std::vector<Entity*>& entities);
 	~Player();
 
 	// Setters
@@ -14,8 +15,11 @@ public:
 	void set_speed(f32 speed);
 
 	void handle_event(const SDL_Event& event);
-	void update(const std::vector<Entity*>& entities, f64 dt);
-	Quad render(const SpriteManager& sprt_mgr);
+	void update(f64 dt);
+	void render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads);
+
+private:
+	void calc_atk_hitbox(i32 x, i32 y);
 
 private:
 	Rect m_rect;
@@ -27,5 +31,8 @@ private:
 
 	// Attack
 	b32 m_attack;
+	f32 m_atk_dmg;
 	Rect m_atk_hitbox;
+
+	std::vector<Entity*>& m_entities;
 };

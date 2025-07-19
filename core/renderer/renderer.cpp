@@ -180,6 +180,7 @@ void Renderer::push_quad(const Quad& quad) {
 	glm::vec2 size = quad.size;
 	glm::mat4 rot = quad.rot;
 	const Texture* texture = quad.texture;
+	if (texture == nullptr) texture = m_white_texture;
 	glm::vec4 uv = quad.uv;
 	glm::vec4 color = quad.color;
 

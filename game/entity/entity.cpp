@@ -1,7 +1,7 @@
 #include "entity.h"
 
 
-Entity::Entity(EntityID id): id(id)
+Entity::Entity(EntityType type): type(type)
 {}
 
 Entity::~Entity()
@@ -17,7 +17,9 @@ void Entity::set_size(const glm::vec2& size) {
 	m_rect.h = size.y;
 }
 
-Quad Entity::render(const SpriteManager& sprt_mgr) {
+void Entity::on_damage() {
+}
+
+void Entity::render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads) {
 	panic(false, "Donot call this function directly");
-	return Quad {};
 }
