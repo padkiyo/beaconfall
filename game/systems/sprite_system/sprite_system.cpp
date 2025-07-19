@@ -42,12 +42,12 @@ void SpriteManager::create_frame(SpriteId sprite_id, u32 row, u32 col, FrameId f
 	}
 }
 
-std::vector<glm::vec4> SpriteManager::get_frame(FrameId frame_id){
+const std::vector<glm::vec4>& SpriteManager::get_frame(FrameId frame_id) const {
 	panic(
 		this->frames.find(frame_id) != this->frames.end(),
 		"Invalid Frame ID: %d", frame_id
 	);
-	return this->frames[frame_id];
+	return this->frames.at(frame_id);
 }
 
 void SpriteManager::activate_spritesheet(SpriteId sprite_id) {

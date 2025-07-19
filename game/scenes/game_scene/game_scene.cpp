@@ -3,7 +3,7 @@
 GameScene::GameScene(const GameState& gs)
 	: m_gs(gs) {
 	m_player = new Player(m_entities);
-	m_player->set_pos({400, 300});
+	m_player->set_pos({200, 300});
 
 	Rock* rock = new Rock(m_entities);
 	rock->set_pos({100, 100});
@@ -12,14 +12,20 @@ GameScene::GameScene(const GameState& gs)
 	Rock* rock2 = new Rock(m_entities);
 	rock2->set_pos({200, 100});
 	m_entities.push_back(rock2);
+
+	Beacon* beacon = new Beacon();
+	beacon->set_pos({400, 300});
+	m_entities.push_back(beacon);
 }
 
 GameScene::~GameScene() {
+	for (auto ent: m_entities) {
+		delete ent;
+	}
 }
 
 void GameScene::on_enter() {
 	log_info("Game scene is entered\n");
-	m_player->set_pos({400, 300});
 }
 
 void GameScene::on_exit() {

@@ -6,11 +6,13 @@ enum SpriteId {
 	PLAYER,
 	ROCK,
 	GEM,
+	BEACON
 };
 
 enum FrameId {
 	PLAYER_IDLE,
 	PLAYER_DIE,
+	BEACON_DEFAULT
 };
 
 struct Sprite {
@@ -33,7 +35,7 @@ class SpriteManager {
 		void add_sprite(Sprite sprite, SpriteId sprite_id);
 		void create_frame(SpriteId sprite_id, u32 row, u32 col, FrameId frame_id);
 		void activate_spritesheet(SpriteId sprite_id);
-		std::vector<glm::vec4> get_frame(FrameId frame_id);
+		const std::vector<glm::vec4>& get_frame(FrameId frame_id) const;
 		const Texture& get_spritesheet_texture(SpriteId sprite_id) const;
 
 	private:

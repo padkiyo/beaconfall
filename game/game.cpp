@@ -91,6 +91,7 @@ void Game::render() {
 	m_gs.sprt_mgr->activate_spritesheet(PLAYER);
 	m_gs.sprt_mgr->activate_spritesheet(ROCK);
 	m_gs.sprt_mgr->activate_spritesheet(GEM);
+	m_gs.sprt_mgr->activate_spritesheet(BEACON);
 
 	m_gs.renderer->clear({0,0,0,1});
 
@@ -203,12 +204,7 @@ void Game::init_core() {
 void Game::init_scenes() {
 	m_gs.scene_mgr->add_scene<TestScene>(SCENE_TEST, m_gs);
 	m_gs.scene_mgr->add_scene<GameScene>(SCENE_GAME, m_gs);
-}
-
-
-/*
- * Here we initialize our systems that are in the game
- */
+	m_gs.scene_mgr->add_scene<BeaconScene>(SCENE_BEACON, m_gs); } /* Here we initialize our systems that are in the game */
 
 void Game::init_systems() {
 	m_gs.sprt_mgr = new SpriteManager();
@@ -255,6 +251,16 @@ void Game::init_resources() {
 		.y_cnt = 1,
 	};
 	m_gs.sprt_mgr->add_sprite(gem_sprite, GEM);
+
+	// Beacon
+	Sprite beacon_sprite = {
+		.path="./assets/beacons.png",
+		.x_cnt=3,
+		.y_cnt=1
+	};
+
+	m_gs.sprt_mgr->add_sprite(beacon_sprite, BEACON);
+	m_gs.sprt_mgr->create_frame(BEACON, 0, 2, BEACON_DEFAULT);
 }
 
 

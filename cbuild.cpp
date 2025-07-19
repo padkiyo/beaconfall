@@ -246,8 +246,10 @@ void build_game() {
 			"./game/entity/player.cpp",
 			"./game/entity/rock.cpp",
 			"./game/item/gem.cpp",
+			"./game/structure/beacon.cpp",
 			"./game/scenes/test/test.cpp",
 			"./game/scenes/game_scene/game_scene.cpp",
+			"./game/scenes/beacon_scene/beacon_scene.cpp",
 			"./game/game.cpp",
 			"./game/main.cpp",
 		})

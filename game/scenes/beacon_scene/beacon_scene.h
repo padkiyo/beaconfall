@@ -3,14 +3,13 @@
 #include "core.h"
 #include "game.h"
 #include "config.h"
-#include "entity/player.h"
-#include "entity/rock.h"
 #include "structure/beacon.h"
 
-class GameScene : public Scene {
+
+class BeaconScene: public Scene {
 public:
-	GameScene(const GameState& gs);
-	~GameScene();
+	BeaconScene(const GameState& gs);
+	~BeaconScene();
 
 public:
 	void on_enter();
@@ -25,11 +24,7 @@ private:
 
 	std::vector<Rect> m_boxes;
 
-	// Player
-	Player* m_player;
-
-	// Entities
-	std::vector<Entity*> m_entities;
+	Beacon* beacon;
 
 	// Light
 	glm::vec3 ambient_color = { 0.5, 0.5, 0.5 };
