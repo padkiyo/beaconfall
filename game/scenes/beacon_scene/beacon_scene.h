@@ -24,7 +24,7 @@ private:
 
 	std::vector<Rect> m_boxes;
 
-	Beacon beacon = Beacon();
+	Beacon* beacon;
 
 	// Light
 	glm::vec3 ambient_color = { 0.5, 0.5, 0.5 };

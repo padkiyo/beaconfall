@@ -6,8 +6,6 @@
 #include "systems/animation_system/animation_system.h"
 #include "systems/map_system/map_system.h"
 
-#include "mob/player.h"
-
 
 /*
  * This is the global state of the game.
@@ -32,9 +30,6 @@ struct GameState {
 
 	SpriteManager* sprt_mgr;
 	Animator* anim_mgr;
-
-	// Player
-	Player* player;
 };
 
 
