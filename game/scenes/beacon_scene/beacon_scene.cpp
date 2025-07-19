@@ -38,11 +38,23 @@ void BeaconScene::on_update(f64 dt) {
 	set_ambient_color(ambient_color);
 	set_light_pixel_size({pixel_size, pixel_size});
 
+	map_texture.bind();
+	add_quad(
+			Quad {
+				{300, 400, 0},
+				{480, 416},
+				glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), {0,0,1}),
+				&map_texture,
+				glm::vec4(0.0f, 0.0f, 1.0f, 1.0f),
+				{1, 1, 1, 1}
+			}
+	);
 	add_quad(beacon.render(*m_gs.sprt_mgr));
 	m_gs.player->update(m_boxes, m_gs.fc->dt());
 
 	Quad quad = m_gs.player->render();
 	add_quad(quad);
+
 }
 
 void BeaconScene::on_ui_render(UI& ui) {

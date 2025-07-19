@@ -26,8 +26,18 @@ private:
 
 	Beacon beacon = Beacon();
 
+	TextureFilter sprite_filter = {
+		.min_filter = GL_NEAREST,
+		.mag_filter = GL_NEAREST,
+		.wrap_s = GL_CLAMP_TO_EDGE,
+		.wrap_t = GL_CLAMP_TO_EDGE,
+		.flip = true
+	};
+
+	Texture map_texture = Texture("./assets/BASE_MAP.png", sprite_filter);
+
 	// Light
-	glm::vec3 ambient_color = { 0.5, 0.5, 0.5 };
+	glm::vec3 ambient_color = { 1, 1, 1};
 	f32 pixel_size = 2;
 };
 
