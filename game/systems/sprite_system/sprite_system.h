@@ -5,12 +5,14 @@
 #define MAX_SPRITE 40
 
 enum SpriteId {
-	PLAYER
+	PLAYER,
+	BEACON
 };
 
 enum FrameId {
 	PLAYER_IDLE,
-	PLAYER_DIE
+	PLAYER_DIE,
+	BEACON_DEFAULT
 };
 
 struct Sprite {

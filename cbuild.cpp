@@ -243,8 +243,10 @@ void build_game() {
 			"./game/systems/animation_system/animation_system.cpp",
 			"./game/systems/map_system/map_system.cpp",
 			"./game/mob/player.cpp",
+			"./game/structure/beacon.cpp",
 			"./game/scenes/test/test.cpp",
 			"./game/scenes/game_scene/game_scene.cpp",
+			"./game/scenes/beacon_scene/beacon_scene.cpp",
 			"./game/game.cpp",
 			"./game/main.cpp",
 		})
