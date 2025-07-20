@@ -32,6 +32,8 @@ struct GameState {
 	SpriteManager* sprt_mgr;
 	Animator* anim_mgr;
 	SnowSystem* snow_sys;
+
+	b32 running;
 };
 
 
@@ -61,6 +63,4 @@ private:
 
 private:
 	GameState m_gs;
-	b32 m_running;
-
 };

@@ -1,8 +1,8 @@
 #include "rock.h"
 #include "item/gem.h"
 
-Rock::Rock(std::vector<Entity*>& entities)
-	: Entity(ENT_ROCK), m_entities(entities) {
+Rock::Rock(std::vector<Entity*>& entities, const GameState& gs)
+	: Entity(ENT_ROCK), m_entities(entities), m_gs(gs) {
 	m_rect.x = 0;
 	m_rect.y = 0;
 	m_rect.w = 64;
@@ -34,7 +34,7 @@ void Rock::on_damage() {
 }
 
 void Rock::render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads, std::vector<Light>& lights) {
-	if (is_stunned()) {
+	if (is_stunned(m_gs.fc->dt())) {
 		m_overlay.a = 1.0f;
 	} else {
 		m_overlay.a = 0.0f;

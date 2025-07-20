@@ -61,9 +61,9 @@ void SnowSystem::update(Renderer* renderer, f64 dt) {
 	// Calculate spawn timeout
 	if (m_spawn_timeout > 0.0f) {
 		if (m_storm)
-			m_spawn_timeout -= STORM_SPAWN_DECAY;
+			m_spawn_timeout -= STORM_SPAWN_DECAY * dt;
 		else
-			m_spawn_timeout -= SPAWN_DECAY;
+			m_spawn_timeout -= SPAWN_DECAY * dt;
 		if (m_spawn_timeout <= 0.0f) m_spawn_timeout = 0.0f;
 	}
 
@@ -73,17 +73,17 @@ void SnowSystem::update(Renderer* renderer, f64 dt) {
 
 		if (snow.dir_change == 0.0f) {
 			snow.dir = rand_range(-1, 1);
-			snow.dir_change = SNOW_DIR_TIMEOUT;
+			snow.dir_change = SNOW_DIR_TIMEOUT * dt;
 		} else {
 			snow.dir = 0.0f;
-			snow.dir_change -= SNOW_DIR_DECAY;
+			snow.dir_change -= SNOW_DIR_DECAY * dt;
 			if (snow.dir_change <= 0.0f)
 				snow.dir_change = 0.0f;
 		}
 
 		snow.pos.x += snow.speed * snow.dir * dt;
 
-		snow.lifetime -= SNOW_DECAY;
+		snow.lifetime -= SNOW_DECAY * dt;
 	}
 
 	renderer->begin_pass({0, 0}, m_res);

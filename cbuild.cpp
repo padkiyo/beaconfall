@@ -250,7 +250,7 @@ void build_game() {
 			"./game/structure/beacon.cpp",
 			"./game/scenes/test/test.cpp",
 			"./game/scenes/game_scene/game_scene.cpp",
-			"./game/scenes/beacon_scene/beacon_scene.cpp",
+			"./game/scenes/main_menu/main_menu.cpp",
 			"./game/game.cpp",
 			"./game/main.cpp",
 		})

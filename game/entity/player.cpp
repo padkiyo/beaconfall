@@ -253,7 +253,7 @@ void Player::update(Beacon* beacon, f64 dt) {
 		glm::distance(c1, c2) < beacon->get_radius() &&   // Inside range
 		beacon->get_power() > 0.0f                        // Beacon got power
 	) {
-		m_health += 1.0f;
+		m_health += beacon->get_healing();
 		if (m_health >= 100.0f)
 			m_health = 100.0f;
 	} else {
@@ -266,30 +266,21 @@ void Player::update(Beacon* beacon, f64 dt) {
 
 void Player::render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads, std::vector<Light>& lights) {
 	if (m_attack) {
-		quads.push_back(Quad {
-			{ m_atk_hitbox.x, m_atk_hitbox.y, 0 },
-			{ m_atk_hitbox.w, m_atk_hitbox.h },
-			glm::mat4(1),
-			nullptr,
-			{ 0, 0, 1, 1 },
-			{ 0, 1, 0, 0.8 }
-		});
+		// quads.push_back(Quad {
+		// 	{ m_atk_hitbox.x, m_atk_hitbox.y, 0 },
+		// 	{ m_atk_hitbox.w, m_atk_hitbox.h },
+		// 	glm::mat4(1),
+		// 	nullptr,
+		// 	{ 0, 0, 1, 1 },
+		// 	{ 0, 1, 0, 0.8 }
+		// });
 
 		// Reset the attack
 		m_attack = false;
 	}
 
-	quads.push_back(Quad {
-		.pos = {m_reach_area.x, m_reach_area.y, 0},
-		.size = {m_reach_area.w, m_reach_area.h},
-		.rot = glm::mat4(1),
-		.texture = nullptr,
-		.uv = {0, 0, 1, 1},
-		.color = {1,1,0,0.5},
-	});
-
 	// Handling damage effect
-	if (is_stunned() && m_health < 50.0f && m_stun > m_stun_timeout / 2) {
+	if (is_stunned(m_gs.fc->dt()) && m_health < 50.0f && m_stun > m_stun_timeout / 2) {
 		m_overlay.a = 1.0f;
 	} else {
 		m_overlay.a = 0.0f;
