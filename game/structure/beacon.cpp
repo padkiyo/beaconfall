@@ -12,6 +12,9 @@ Beacon::Beacon()
 	this->power = START_POWER;
 }
 
+Beacon::~Beacon() {
+}
+
 f32 Beacon::get_power() {
 	return this->power;
 }

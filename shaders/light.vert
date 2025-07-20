@@ -10,11 +10,12 @@ out float o_tex_id;
 out mat4 o_mvp;
 
 uniform mat4 mvp;
+uniform mat4 light_mvp;
 
 void main() {
 	o_color = color;
 	o_uv = uv;
 	o_tex_id = tex_id;
-	o_mvp = mvp;
-	gl_Position = o_mvp * vec4(position, 1.0f);
+	o_mvp = light_mvp;
+	gl_Position = mvp * vec4(position, 1.0f);
 }

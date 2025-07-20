@@ -1,13 +1,18 @@
 #include "player.h"
 
-Player::Player(std::vector<Entity*>& entities)
-	: Entity(ENT_PLAYER), m_entities(entities) {
+Player::Player(std::vector<Entity*>& entities, const Camera& camera)
+	: Entity(ENT_PLAYER), m_entities(entities), m_camera(camera) {
 	m_rect.x = 0;
 	m_rect.y = 0;
 	m_rect.w = 32;
 	m_rect.h = 32;
 
 	m_health = 100.0f;
+
+	// Interactions
+	m_reach_area.w = 120;
+	m_reach_area.h = 120;
+	m_feed_beacon = false;
 
 	// Pickup
 	m_picked_item = nullptr;
@@ -52,6 +57,11 @@ void Player::handle_event(const SDL_Event& event) {
 			case SDLK_f:
 				handle_item_pickup();
 				break;
+
+			// Feed beacon
+			case SDLK_e:
+				m_feed_beacon = true;
+				break;
 		}
 	}
 	else if (event.type == SDL_KEYUP) {
@@ -67,6 +77,11 @@ void Player::handle_event(const SDL_Event& event) {
 				break;
 			case SDLK_d:
 				m_right = false;
+				break;
+
+			// Feed beacon
+			case SDLK_e:
+				m_feed_beacon = false;
 				break;
 		}
 	}
@@ -91,6 +106,11 @@ void Player::handle_attack() {
 		i32 x, y;
 		SDL_GetMouseState(&x, &y);
 		y = WIN_HEIGHT - y;
+
+		// Fixing the mouse position relative to camera
+		glm::vec2 cam_pos = m_camera.get_pos();
+		x += cam_pos.x;
+		y += cam_pos.y;
 
 		calc_atk_hitbox(x,y);
 
@@ -127,7 +147,7 @@ void Player::handle_item_pickup() {
 
 	for (auto ent: m_entities) {
 		Rect e_rect = ent->rect();
-		if (m_rect.intersect(e_rect) && ent != m_picked_item) {
+		if (m_reach_area.intersect(e_rect) && ent != m_picked_item) {
 			switch (ent->type) {
 
 				// Gem holding
@@ -161,6 +181,37 @@ void Player::handle_item_pickup() {
 	}
 }
 
+void Player::handle_interaction() {
+	for (auto ent: m_entities) {
+		Rect e_rect = ent->rect();
+		if (m_reach_area.intersect(e_rect)) {
+			switch (ent->type) {
+
+				case ENT_BEACON: {
+					if (!m_picked_item) break;
+					if (!m_feed_beacon) break;
+					Beacon* beacon = dynamic_cast<Beacon*>(ent);
+
+					switch (m_picked_item->type) {
+						case ENT_GEM: {
+							beacon->add_power(10); // TODO: Add power according to gem type
+							m_entities.erase(
+								std::remove(m_entities.begin(), m_entities.end(), m_picked_item),
+								m_entities.end()
+							);
+
+							delete m_picked_item;
+							m_picked_item = nullptr;
+						} break;
+					}
+
+				} break;
+
+			}
+		}
+	}
+}
+
 void Player::update(f64 dt) {
 	// Movement
 	if (m_left)
@@ -172,8 +223,13 @@ void Player::update(f64 dt) {
 	if (m_down)
 		m_move.y -= m_speed;
 
+	// Calculate reach area per frame
+	m_reach_area.x = m_rect.x + m_rect.w / 2 - m_reach_area.w / 2;
+	m_reach_area.y = m_rect.y + m_rect.h / 2 - m_reach_area.h / 2;
+
 	handle_attack();
 	handle_collision(dt);
+	handle_interaction();
 
 	// If we have picked the item, carry it in head
 	if (m_picked_item) {
@@ -202,6 +258,15 @@ void Player::render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads) {
 		// Reset the attack
 		m_attack = false;
 	}
+
+	quads.push_back(Quad {
+		.pos = {m_reach_area.x, m_reach_area.y, 0},
+		.size = {m_reach_area.w, m_reach_area.h},
+		.rot = glm::mat4(1),
+		.texture = nullptr,
+		.uv = {0, 0, 1, 1},
+		.color = {1,1,0,0.5},
+	});
 
 	// Rendering the player
 	quads.push_back(Quad {

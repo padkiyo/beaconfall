@@ -4,10 +4,11 @@
 #include "systems/sprite_system/sprite_system.h"
 #include "entity.h"
 #include "config.h"
+#include "structure/beacon.h"
 
 class Player : public Entity {
 public:
-	Player(std::vector<Entity*>& entities);
+	Player(std::vector<Entity*>& entities, const Camera& camera);
 	~Player();
 
 	// Setters
@@ -21,9 +22,14 @@ private:
 	void handle_attack();
 	void handle_collision(f64 dt);
 	void handle_item_pickup();
+	void handle_interaction();
 	void calc_atk_hitbox(i32 x, i32 y);
 
 private:
+	// Interactions
+	Rect m_reach_area;
+	b32 m_feed_beacon;
+
 	// Pickup
 	Entity* m_picked_item;
 
@@ -40,4 +46,5 @@ private:
 	f32 m_atk_cooldown;
 
 	std::vector<Entity*>& m_entities;
+	const Camera& m_camera;
 };

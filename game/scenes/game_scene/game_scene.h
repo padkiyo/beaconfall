@@ -28,6 +28,10 @@ private:
 	// Player
 	Player* m_player;
 
+	// Beacon
+	Beacon* m_beacon;
+	Light m_beacon_light;
+
 	// Entities
 	std::vector<Entity*> m_entities;
 

@@ -27,6 +27,7 @@ struct Light {
 	f32 intensity;
 	f32 dir;
 	f32 fov;
+	f32 fall_off;
 	glm::vec4 color;
 	glm::vec2 map_pos;
 };
