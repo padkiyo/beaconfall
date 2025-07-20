@@ -8,6 +8,12 @@
 #include "structure/beacon.h"
 #include "entity/zombie.h"
 
+
+#define INIT_SPAWN_RATE_ZOMBIE 20.0f
+#define INIT_SPAWN_RATE_RESOURCES 2.0f
+
+#define SPAWN_RATE_INC_ZOMBIE 0.5f
+
 class GameScene : public Scene {
 public:
 	GameScene(const GameState& gs);
@@ -22,12 +28,23 @@ public:
 	void on_imgui_render();
 
 private:
+	void gen_resources(f32& btime, f32 etime);
+	void gen_zombies(f32& btime, f32 etime);
+
+private:
+	i32 m_prev_night = 0;
+	f32 zombie_spawn_rate = INIT_SPAWN_RATE_ZOMBIE;
+	f32 resources_spawn_rate = INIT_SPAWN_RATE_RESOURCES;
+
 	const GameState& m_gs;
 
 	std::vector<Rect> m_boxes;
 
 	// Player
 	Player* m_player;
+
+	// Beacon
+	Beacon* m_beacon;
 
 	// Entities
 	std::vector<Entity*> m_entities;
@@ -44,16 +61,19 @@ private:
 		.flip = true
 	};
 
-	Beacon* beacon;
-
 	Zombie* zombie;
 
 	Texture map_texture = Texture("./assets/MAP.png", sprite_filter);
 
 	f32 begin_time = SDL_GetTicks();
 
-	private:
-		void gen_resources(f32& btime, f32 etime);
 
+	// Day Night cycle
+	f32 m_start_time;
+	f32 m_cycle_time = 10.0f; // In seconds
+	b32 m_cycle_complete = false;
+	b32 m_is_day = true;
+	f32 m_day_color = 0.8f;
+	i32 m_night_count = 0;
 };
 

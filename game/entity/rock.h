@@ -10,7 +10,7 @@ public:
 	~Rock();
 
 	void on_damage();
-	void render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads);
+	void render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads, std::vector<Light>& lights);
 
 private:
 	std::vector<Entity*>& m_entities;

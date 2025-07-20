@@ -143,6 +143,7 @@ void Map::pre_calc_collisions() {
 
 				tmp_light.pos = mid_point;
 				tmp_light.map_pos = map_pos;
+				tmp_light.fall_off = 2.0f;
 				this->lights->push_back(tmp_light);
 
 			}

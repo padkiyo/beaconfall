@@ -8,8 +8,6 @@ void Zombie::update_ai(Beacon*  beacon) {
 		f32 grady = beacon->rect().y - m_rect.y;
 
 
-		std::cout << "UPDATE_AI POS: " <<  m_rect.x << "," << m_rect.y << std::endl;
-		std::cout << "BEACON_POS: " << beacon->rect().x << "," << beacon->rect().y << std::endl;
 		glm::vec2 move_dir = glm::normalize(glm::vec2(gradx, grady));
 
 
@@ -115,7 +113,7 @@ void Zombie::on_damage() {
 				m_entities.end()
 		);
 
-		Gem* gem = new Gem(m_entities);
+		Gem* gem = new Gem(m_entities, GEM_EXP);
 		gem->set_pos({m_rect.x, m_rect.y});
 		m_entities.push_back(gem);
 
@@ -125,21 +123,13 @@ void Zombie::on_damage() {
 	}
 }
 
-void Zombie::render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads) {
+void Zombie::render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads, std::vector<Light>& lights) {
 	this->update(this->fc->dt());
 	if(is_stunned()) {
 		m_overlay.a = 1.0f;
 	} else{
 		m_overlay.a = 0.0f;
 	}
-	quads.push_back(Quad {
-			.pos = {this->zombie_vision->x, this->zombie_vision->y, 0},
-			.size = {this->zombie_vision->w, this->zombie_vision->h},
-			.rot = glm::mat4(1),
-			.texture = nullptr,
-			.color = {1, 0, 0, 1},
-			.overlay = m_overlay,
-			});
 
 	quads.push_back( Quad {
 			.pos = {m_rect.x, m_rect.y, 0},

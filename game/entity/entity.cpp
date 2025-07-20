@@ -19,7 +19,14 @@ void Entity::set_size(const glm::vec2& size) {
 
 void Entity::take_damage(f32 dmg) {
 	m_health -= dmg;
-	m_stun = m_stun_timeout; // Give a stun
+
+	if (m_health <= 0.0f)
+		m_health = 0.0f;
+
+	// Give a stun
+	if (m_stun == 0.0f)
+		m_stun = m_stun_timeout;
+	
 	on_damage();
 }
 
@@ -32,6 +39,6 @@ b32 Entity::is_stunned() {
 void Entity::on_damage() {
 }
 
-void Entity::render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads) {
+void Entity::render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads, std::vector<Light>& lights) {
 	panic(false, "Donot call this function directly");
 }

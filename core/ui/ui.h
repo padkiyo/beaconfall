@@ -24,6 +24,7 @@ public:
 
 	void text(const std::string& label, const glm::vec2& pos, const Style& style);
 	b32 button(const std::string& label, const Rect& rect, const Style& style);
+	void progress_bar(const Rect& rect, f32 value, f32 max, const Style& style);
 
 private:
 	Renderer* m_renderer;

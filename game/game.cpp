@@ -13,11 +13,21 @@ Game::Game() {
 
 	// Switching to the scene
 	m_gs.scene_mgr->switch_scene(SCENE_GAME);
+
+	// Adding snow spawn points
+	for (i32 i = 0; i <= WIN_WIDTH; i += 50) {
+		m_gs.snow_sys->add_spawn_point({i, WIN_HEIGHT + 31});
+	}
 }
 
 Game::~Game() {
 	// Freeing resources
 	delete m_gs.font_regular;
+
+	// System deinitialization
+	delete m_gs.snow_sys;
+	delete m_gs.sprt_mgr;
+	delete m_gs.anim_mgr;
 
 	// Core deinitializatioin
 	delete m_gs.camera;
@@ -103,6 +113,10 @@ void Game::render() {
 		const Scene& scene = m_gs.scene_mgr->get_current_scene();
 		m_gs.scene_renderer->render_scene(scene, *m_gs.camera, { WIN_WIDTH, WIN_HEIGHT });
 
+		// Snow System
+		m_gs.snow_sys->spawn();
+		m_gs.snow_sys->update(m_gs.renderer, m_gs.fc->dt());
+
 		// UI rendering
 		m_gs.ui->begin();
 			m_gs.scene_mgr->render_current_scene_ui(*m_gs.ui);
@@ -185,8 +199,8 @@ void Game::init_core() {
 	m_gs.audio_mgr = new AudioManager;
 	m_gs.scene_mgr = new SceneManager;
 	m_gs.renderer = new Renderer;
-	m_gs.scene_renderer = new SceneRenderer(m_gs.renderer);
-	m_gs.camera = new Camera(glm::vec3(0,0,0), {
+	m_gs.scene_renderer = new SceneRenderer(m_gs.renderer, { WIN_WIDTH, WIN_HEIGHT });
+	m_gs.camera = new Camera(glm::vec3(0,100,0), {
 		.left = 0,
 		.right = WIN_WIDTH,
 		.top = WIN_HEIGHT,
@@ -195,6 +209,9 @@ void Game::init_core() {
 		.far = 1000,
 	});
 	m_gs.ui = new UI(m_gs.renderer, { WIN_WIDTH, WIN_HEIGHT });
+
+	// Init the random number
+	rand_init(time(NULL));
 }
 
 
@@ -205,7 +222,7 @@ void Game::init_core() {
 void Game::init_scenes() {
 	m_gs.scene_mgr->add_scene<TestScene>(SCENE_TEST, m_gs);
 	m_gs.scene_mgr->add_scene<GameScene>(SCENE_GAME, m_gs);
-	m_gs.scene_mgr->add_scene<BeaconScene>(SCENE_BEACON, m_gs); } /* Here we initialize our systems that are in the game */
+} /* Here we initialize our systems that are in the game */
 
 void Game::init_systems() {
 	m_gs.sprt_mgr = new SpriteManager();
@@ -214,6 +231,8 @@ void Game::init_systems() {
 	auto init_anim = PLAYER_IDLE;
 
 	m_gs.anim_mgr = new Animator(PLAYER, PLAYER_IDLE);
+
+	m_gs.snow_sys = new SnowSystem({WIN_WIDTH, WIN_HEIGHT});
 }
 
 
@@ -273,7 +292,6 @@ void Game::init_resources() {
 	m_gs.sprt_mgr->add_sprite(beacon_sprite, BEACON);
 	m_gs.sprt_mgr->create_frame(BEACON, 0, 2, BEACON_DEFAULT);
 }
-
 
 /*
  * This function binds the resources that the game gonna use

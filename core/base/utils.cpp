@@ -63,3 +63,32 @@ void pack_surface(SDL_Surface* surface) {
 	surface->pitch = len;
 }
 
+glm::vec2 pixel_to_gl_coords(glm::vec2 pos, u32 WIN_WIDTH, u32 WIN_HEIGHT) {
+	return (glm::vec2) {
+		(2 * pos.x) / WIN_WIDTH - 1,
+		1 - (2 * pos.y) / WIN_HEIGHT
+	};
+}
+
+glm::vec2 dp_to_dgl_coords(glm::vec2 dp, u32 WIN_WIDTH, u32 WIN_HEIGHT) {
+	return (glm::vec2) {
+		(2 * dp.x) / WIN_WIDTH,
+		- (2 * dp.y) / WIN_HEIGHT
+	};
+}
+
+glm::vec2 gl_to_pixel_coords(glm::vec2 pos, u32 WIN_WIDTH, u32 WIN_HEIGHT) {
+	return (glm::vec2) {
+		(pos.x + 1) * WIN_WIDTH / 2,
+		(1 - pos.y) * WIN_HEIGHT / 2
+	};
+}
+
+glm::vec2 dgl_to_dp_coords(glm::vec2 dp, u32 WIN_WIDTH, u32 WIN_HEIGHT) {
+	return (glm::vec2) {
+		(dp.x) * WIN_WIDTH / 2,
+		(-dp.y) * WIN_HEIGHT / 2
+	};
+}
+
+

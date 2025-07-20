@@ -25,7 +25,7 @@ public:
 	~Zombie();
 
 	void on_damage();
-	void render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads);
+	void render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads, std::vector<Light>& lights);
 	void update_ai(Beacon* beacon);
 	void update(f64 dt);
 

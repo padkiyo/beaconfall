@@ -197,7 +197,7 @@ void build_game() {
 		.flags({
 			"-std=c++20",
 			"-Wl,-rpath,'$ORIGIN'",
-			"-ggdb",
+			//"-ggdb",
 		})
 		.inc_paths({
 			".",
@@ -242,6 +242,7 @@ void build_game() {
 			"./game/systems/sprite_system/sprite_system.cpp",
 			"./game/systems/animation_system/animation_system.cpp",
 			"./game/systems/map_system/map_system.cpp",
+			"./game/systems/snow_system/snow_system.cpp",
 			"./game/entity/entity.cpp",
 			"./game/entity/player.cpp",
 			"./game/entity/rock.cpp",
@@ -250,7 +251,6 @@ void build_game() {
 			"./game/structure/beacon.cpp",
 			"./game/scenes/test/test.cpp",
 			"./game/scenes/game_scene/game_scene.cpp",
-			"./game/scenes/beacon_scene/beacon_scene.cpp",
 			"./game/game.cpp",
 			"./game/main.cpp",
 		})

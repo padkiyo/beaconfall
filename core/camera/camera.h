@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include "rect/rect.h"
 
 
 /*
@@ -53,6 +54,7 @@ public:
 	// dir = Unit Moving Direction (eg: left { -1, 0, 0 }, right { 1, 0, 0 })
 	void change_pos(glm::vec3 dir, f32 speed);
 	void recalculate_view_proj();
+	inline void set_pos(glm::vec3 pos) { m_pos = pos; }
 
 	//---------
 	// Getters
