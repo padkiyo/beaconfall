@@ -9,10 +9,15 @@ Renderer::Renderer() {
 	m_vao->push_layout<f32>(4); // Color
 	m_vao->push_layout<f32>(2); // UV
 	m_vao->push_layout<f32>(1); // Texture ID
+	m_vao->push_layout<f32>(4); // Overlay
 
 	// Constructing Vertex Buffer
 	ssize_t vbo_size = MAX_VERTEX_COUNT * m_vao->get_stride();
 	m_vbo = new VertexBuffer(vbo_size, nullptr, GL_DYNAMIC_DRAW);
+
+	// Constructing Index Buffer
+	m_ibo = new IndexBuffer(MAX_INDEX_COUNT);
+	m_ibo->generate_quad_indices();
 
 	// NOTE(slok): Make sure to always build VAO only after binding VBO
 	m_vao->build();
@@ -21,7 +26,7 @@ Renderer::Renderer() {
 	m_buffer.reserve(MAX_VERTEX_COUNT * m_vao->get_count());
 
 	// Constructing Shader
-	m_shader = new Shader("./shaders/plain.vert", "./shaders/color.frag", ShaderLoadType::FromFile);
+	m_shader = new Shader("./shaders/plain.vert", "./shaders/plain.frag", ShaderLoadType::FromFile);
 
 	// Constructing a white texture
 	u32 data = 0xffffffff;
@@ -57,6 +62,7 @@ Renderer::Renderer() {
 
 Renderer::~Renderer() {
 	delete m_vbo;
+	delete m_ibo;
 	delete m_vao;
 	delete m_white_texture;
 	delete m_shader;
@@ -74,6 +80,10 @@ void Renderer::start() {
 
 	m_white_texture->bind();
 	m_passes.clear();
+
+	// Clean the status
+	m_stat.draw_calls = 0;
+	m_stat.vertex_counts = 0;
 }
 
 void Renderer::commit(const glm::vec2& res) {
@@ -143,8 +153,17 @@ void Renderer::end_pass() {
 
 void Renderer::execute_draw_call() {
 	m_vbo->push_data(0, m_buffer.size() * sizeof(f32), (void*)m_buffer.data());
+	m_ibo->bind();
 	m_vao->bind();
-	GLC(glDrawArrays(GL_TRIANGLES, 0, m_buffer.size() / m_vao->get_count()));
+
+	// Calculating amount of indices to be rendered
+	u32 count = (m_buffer.size() / (m_vao->get_count() * 4)) * 6;
+
+	GLC(glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, NULL));
+
+	// Gathering stats
+	m_stat.draw_calls++;
+	m_stat.vertex_counts += m_buffer.size() / m_vao->get_count();
 }
 
 void Renderer::clear(const glm::vec4& color) {
@@ -153,12 +172,19 @@ void Renderer::clear(const glm::vec4& color) {
 }
 
 void Renderer::push_quad(const Quad& quad) {
+	if ((m_buffer.size() / m_vao->get_count()) + 1 >= MAX_QUAD_COUNT) {
+		execute_draw_call();
+		m_buffer.clear();
+	}
+
 	glm::vec3 pos = quad.pos;
 	glm::vec2 size = quad.size;
 	glm::mat4 rot = quad.rot;
 	const Texture* texture = quad.texture;
+	if (texture == nullptr) texture = m_white_texture;
 	glm::vec4 uv = quad.uv;
 	glm::vec4 color = quad.color;
+	glm::vec4 overlay = quad.overlay;
 
 	// Calculating the transforms
 	glm::mat4 transform = glm::translate(glm::mat4(1.0f), pos)
@@ -172,41 +198,37 @@ void Renderer::push_quad(const Quad& quad) {
 		{ 0.0f, 1.0f, 0.0f, 1.0f }
 	};
 
-	Vertex v1, v2, v3, v4, v5, v6;
+	Vertex v1, v2, v3, v4;
 
 	// Applying transforms to the vertices
 	v1.pos = transform * quad_pos[0];
 	v2.pos = transform * quad_pos[1];
 	v3.pos = transform * quad_pos[2];
-	v4.pos = v3.pos;
-	v5.pos = transform * quad_pos[3];
-	v6.pos = v1.pos;
+	v4.pos = transform * quad_pos[3];
 
 	// Setting the color
-	v1.color = v2.color = v3.color = v4.color = v5.color = v6.color = color;
+	v1.color = v2.color = v3.color = v4.color = color;
+
+	// Setting the overlay
+	v1.overlay = v2.overlay = v3.overlay = v4.overlay = overlay;
 
 	// Setting the uvs
-	v1.uv = { uv.x, uv.y };
-	v2.uv = { uv.x + uv.z, uv.y };
+	v1.uv = { uv.x,        uv.y        };
+	v2.uv = { uv.x + uv.z, uv.y        };
 	v3.uv = { uv.x + uv.z, uv.y + uv.w };
-	v4.uv = { uv.x + uv.z, uv.y + uv.w };
-	v5.uv = { uv.x, uv.y + uv.w };
-	v6.uv = { uv.x, uv.y };
+	v4.uv = { uv.x,        uv.y + uv.w };
 
 	// Setting the texture
-	v1.tex_id = v2.tex_id = v3.tex_id = v4.tex_id = v5.tex_id = v6.tex_id = texture->get_id();
+	v1.tex_id = v2.tex_id = v3.tex_id = v4.tex_id = texture->get_id();
 
 	// Pushing the vertex to the buffer
 	push_vertex(v1);
 	push_vertex(v2);
 	push_vertex(v3);
 	push_vertex(v4);
-	push_vertex(v5);
-	push_vertex(v6);
 }
 
 void Renderer::push_vertex(const Vertex& v) {
-	// TODO(slok): Add Support for dyanmic batch rendering
 	panic(
 		m_buffer.size() / m_vao->get_count() < MAX_VERTEX_COUNT,
 		"Max vertex count exceeded for this batch."
@@ -222,4 +244,8 @@ void Renderer::push_vertex(const Vertex& v) {
 	m_buffer.push_back(v.uv.x);
 	m_buffer.push_back(v.uv.y);
 	m_buffer.push_back(v.tex_id);
+	m_buffer.push_back(v.overlay.r);
+	m_buffer.push_back(v.overlay.g);
+	m_buffer.push_back(v.overlay.b);
+	m_buffer.push_back(v.overlay.a);
 }

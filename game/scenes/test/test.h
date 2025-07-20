@@ -23,12 +23,13 @@ private:
 
 	Map* map;
 
-	Light l1, l2;
+	// Buffers
+	std::vector<Rect> boxes;
+	std::vector<Light> lights;
+
+	// Light
 	glm::vec3 ambient_color = { 0.5, 0.5, 0.5 };
 	f32 pixel_size = 2;
 
-	Rect a;
-	std::vector<Rect> boxes;
-	glm::vec2 move = glm::vec2(0);
-	f32 move_speed = 420.0f;
+	bool show_collision = false;
 };

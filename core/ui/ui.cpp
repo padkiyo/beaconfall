@@ -30,6 +30,7 @@ UI::~UI() {
 
 void UI::begin() {
 	m_renderer->begin_pass({0,0}, m_res);
+	m_renderer->clear({0,0,0,1});
 
 	m_camera->recalculate_view_proj();
 	glm::mat4 view_proj = m_camera->get_view_proj();
@@ -42,12 +43,25 @@ void UI::end() {
 	m_renderer->end_pass();
 }
 
-void UI::text(const std::string& msg, const glm::vec2& pos, const Style& style) {
+void UI::handle_event(const SDL_Event& event) {
+	if (event.type == SDL_MOUSEBUTTONDOWN) {
+		if (event.button.button == SDL_BUTTON_LEFT) {
+			m_mouse_clicked = true;
+		}
+	}
+	else if (event.type == SDL_MOUSEBUTTONUP) {
+		if (event.button.button == SDL_BUTTON_LEFT) {
+			m_mouse_clicked = false;
+		}
+	}
+}
+
+void UI::text(const std::string& label, const glm::vec2& pos, const Style& style) {
 	panic(style.font, "Font is not provided in style for text");
 
 	glm::vec2 quad_p = pos;
 
-	for (char c : msg) {
+	for (char c : label) {
 
 		// Adjusting for new line character
 		if (c == '\n') {
@@ -74,4 +88,65 @@ void UI::text(const std::string& msg, const glm::vec2& pos, const Style& style) 
 
 		quad_p.x += glyph.size.x;
 	}
+}
+
+b32 UI::button(const std::string& label, const Rect& rect, const Style& style) {
+	panic(style.font, "Font is not provided in style for text");
+
+	// Getting mouse position
+	i32 x, y;
+	SDL_GetMouseState(&x, &y);
+	y = m_res.y - y;
+
+	b32 clicked = false;
+	glm::vec4 color = style.bg_color;
+
+	// Check for hover
+	if (rect.intersect_point({x, y})) {
+		color = style.hover_color;
+
+		// If clicked
+		if (m_mouse_clicked)
+			clicked = true;
+	}
+
+	// Rendering box
+	m_renderer->push_quad(Quad {
+		{ rect.x, rect.y, 0 },
+		{ rect.w, rect.h },
+		glm::mat4(1),
+		&m_renderer->white_texture(),
+		{ 0, 0, 1, 1 },
+		color
+	});
+
+	// Rendering the text above
+	glm::vec2 size = style.font->calculate_dim(label);
+	const glm::vec2 pos = {
+		rect.x + rect.w / 2 - size.x / 2,
+		rect.y + rect.h / 2 - size.y / 2
+	};
+	text(label, pos, style);
+
+	return clicked;
+}
+
+void UI::progress_bar(const Rect& rect, f32 value, f32 max, const Style& style) {
+	m_renderer->push_quad(Quad {
+		{ rect.x, rect.y, 0 },
+		{ rect.w, rect.h },
+		glm::mat4(1),
+		&m_renderer->white_texture(),
+		{ 0, 0, 1, 1 },
+		style.bg_color
+	});
+
+	m_renderer->push_quad(Quad {
+		{ rect.x + 5, rect.y + 5, 0 },
+		{ value / max * (rect.w - 10), rect.h - 10 },
+		glm::mat4(1),
+		&m_renderer->white_texture(),
+		{ 0, 0, 1, 1 },
+		style.fg_color
+	});
 }

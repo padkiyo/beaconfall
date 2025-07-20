@@ -8,20 +8,26 @@ Game::Game() {
 	init_systems();
 	init_resources();
 
-	m_running = true;
+	// Init game
+	m_gs.running = true;
 
-	TextureFilter sprite_filter = {
-		.min_filter = GL_LINEAR,
-		.mag_filter = GL_LINEAR,
-		.wrap_s = GL_CLAMP_TO_EDGE,
-		.wrap_t = GL_CLAMP_TO_EDGE,
-		.flip = true
-	};
+	// Switching to the scene
+	m_gs.scene_mgr->switch_scene(SCENE_MENU);
+
+	// Adding snow spawn points
+	for (i32 i = 0; i <= WIN_WIDTH; i += 50) {
+		m_gs.snow_sys->add_spawn_point({i, WIN_HEIGHT + 31});
+	}
 }
 
 Game::~Game() {
 	// Freeing resources
 	delete m_gs.font_regular;
+
+	// System deinitialization
+	delete m_gs.snow_sys;
+	delete m_gs.sprt_mgr;
+	delete m_gs.anim_mgr;
 
 	// Core deinitializatioin
 	delete m_gs.camera;
@@ -41,7 +47,7 @@ Game::~Game() {
  */
 
 void Game::run() {
-	while (m_running) {
+	while (m_gs.running) {
 		m_gs.fc->begin();
 
 		// Binds the game resources
@@ -69,11 +75,14 @@ void Game::event() {
 		// Events for imgui
 		ImGui_ImplSDL2_ProcessEvent(&event);
 
+		// Event for the ui
+		m_gs.ui->handle_event(event);
+
 		// Event for the scene
 		m_gs.scene_mgr->handle_event(event, m_gs.fc->dt());
 
 		if(event.type == SDL_QUIT) {
-			m_running = false;
+			m_gs.running = false;
 		}
 	}
 }
@@ -90,6 +99,10 @@ void Game::render() {
 
 	// Activating all the sprites
 	m_gs.sprt_mgr->activate_spritesheet(PLAYER);
+	m_gs.sprt_mgr->activate_spritesheet(ROCK);
+	m_gs.sprt_mgr->activate_spritesheet(GEM);
+	m_gs.sprt_mgr->activate_spritesheet(BEACON);
+	m_gs.sprt_mgr->activate_spritesheet(ZOMBIE);
 
 	m_gs.renderer->clear({0,0,0,1});
 
@@ -99,6 +112,12 @@ void Game::render() {
 		// Rendering the scene
 		const Scene& scene = m_gs.scene_mgr->get_current_scene();
 		m_gs.scene_renderer->render_scene(scene, *m_gs.camera, { WIN_WIDTH, WIN_HEIGHT });
+
+		// Snow System
+		if (m_gs.scene_mgr->get_current_scene_id() == SCENE_GAME) {
+			m_gs.snow_sys->spawn();
+			m_gs.snow_sys->update(m_gs.renderer, m_gs.fc->dt());
+		}
 
 		// UI rendering
 		m_gs.ui->begin();
@@ -132,14 +151,21 @@ void Game::overlay() {
  */
 
 void Game::imgui_render() {
+	/*
 	imgui_begin_frame();
 
 	// Updating imgui render of the scenes
 	m_gs.scene_mgr->update_imgui_render();
 
-	if(ImGui::CollapsingHeader("Scenes")) {
+	if (ImGui::CollapsingHeader("Stats")) {
+		Renderer::Stat stat = m_gs.renderer->get_stat();
+		ImGui::Text("Draw Calls: %d", stat.draw_calls);
+		ImGui::Text("Vertex Counts: %d", stat.vertex_counts);
+	}
+
+	if (ImGui::CollapsingHeader("Scenes")) {
 		ImGui::SeparatorText("Scene Manager");
-		for(auto& [key, value] : m_gs.scene_mgr->get_scenes()) {
+		for (auto& [key, value] : m_gs.scene_mgr->get_scenes()) {
 			std::string button_name =
 				m_gs.scene_mgr->get_current_scene_id() != key
 				? "[ ] " + scene_name(key)
@@ -150,17 +176,19 @@ void Game::imgui_render() {
 		}
 	}
 
-	if(ImGui::CollapsingHeader("Animator")) {
+	if (ImGui::CollapsingHeader("Animator")) {
 		ImGui::SeparatorText("Player");
 		if (ImGui::Button("Idle")) {
 			m_gs.anim_mgr->switch_frame(PLAYER_IDLE);
 		}
 
-		if(ImGui::Button("Die")) {
+		if (ImGui::Button("Die")) {
 			m_gs.anim_mgr->switch_frame(PLAYER_DIE);
 		}
 	}
+
 	imgui_end_frame();
+	*/
 }
 
 
@@ -176,8 +204,8 @@ void Game::init_core() {
 	m_gs.audio_mgr = new AudioManager;
 	m_gs.scene_mgr = new SceneManager;
 	m_gs.renderer = new Renderer;
-	m_gs.scene_renderer = new SceneRenderer(m_gs.renderer);
-	m_gs.camera = new Camera(glm::vec3(0,0,0), {
+	m_gs.scene_renderer = new SceneRenderer(m_gs.renderer, { WIN_WIDTH, WIN_HEIGHT });
+	m_gs.camera = new Camera(glm::vec3(0,100,0), {
 		.left = 0,
 		.right = WIN_WIDTH,
 		.top = WIN_HEIGHT,
@@ -186,6 +214,9 @@ void Game::init_core() {
 		.far = 1000,
 	});
 	m_gs.ui = new UI(m_gs.renderer, { WIN_WIDTH, WIN_HEIGHT });
+
+	// Init the random number
+	rand_init(time(NULL));
 }
 
 
@@ -195,14 +226,11 @@ void Game::init_core() {
 
 void Game::init_scenes() {
 	m_gs.scene_mgr->add_scene<TestScene>(SCENE_TEST, m_gs);
-	m_gs.scene_mgr->switch_scene(SCENE_TEST);
+	m_gs.scene_mgr->add_scene<GameScene>(SCENE_GAME, m_gs);
+	m_gs.scene_mgr->add_scene<MainMenu>(SCENE_MENU, m_gs);
 }
 
-
-/*
- * Here we initialize our systems that are in the game
- */
-
+/* Here we initialize our systems that are in the game */
 void Game::init_systems() {
 	m_gs.sprt_mgr = new SpriteManager();
 
@@ -210,6 +238,8 @@ void Game::init_systems() {
 	auto init_anim = PLAYER_IDLE;
 
 	m_gs.anim_mgr = new Animator(PLAYER, PLAYER_IDLE);
+
+	m_gs.snow_sys = new SnowSystem({WIN_WIDTH, WIN_HEIGHT});
 }
 
 
@@ -221,19 +251,54 @@ void Game::init_resources() {
 	m_gs.font_regular = new Font("./assets/Ac437_ToshibaSat_9x8.ttf", 25);
 
 	// loading sprites
+	// Zombie
+	Sprite zombie_sprite = {
+		.id = ZOMBIE,
+		.path = "./assets/zombie.png",
+		.x_cnt = 2,
+		.y_cnt = 2,
+	};
+	m_gs.sprt_mgr->add_sprite(zombie_sprite, ZOMBIE);
+	m_gs.sprt_mgr->create_frame(ZOMBIE, 0, 1, ZOMBIE_WALK);
+	m_gs.sprt_mgr->create_frame(ZOMBIE, 1, 1, ZOMBIE_ATTACK);
+
+	// Player
 	Sprite player_sprite = {
-		.path = "./assets/samurai.png",
-		.x_cnt = 14, // No of horizontal sprites
-		.y_cnt = 8 // No of vertical sprites
+		.id = PLAYER,
+		.path = "./assets/player.png",
+		.x_cnt = 1,
+		.y_cnt = 1,
+	};
+	m_gs.sprt_mgr->add_sprite(player_sprite, PLAYER);
+
+	// Rock
+	Sprite rock_sprite = {
+		.id = ROCK,
+		.path = "./assets/rock.png",
+		.x_cnt = 1,
+		.y_cnt = 1,
+	};
+	m_gs.sprt_mgr->add_sprite(rock_sprite, ROCK);
+
+	// Gem
+	Sprite gem_sprite = {
+		.id = GEM,
+		.path = "./assets/gem.png",
+		.x_cnt = 1,
+		.y_cnt = 1,
+	};
+	m_gs.sprt_mgr->add_sprite(gem_sprite, GEM);
+
+	// Beacon
+	Sprite beacon_sprite = {
+		.path="./assets/beacons.png",
+		.x_cnt=3,
+		.y_cnt=1
 	};
 
-	m_gs.sprt_mgr->add_sprite(player_sprite, PLAYER);
-	m_gs.sprt_mgr->create_frame(PLAYER, 7,7, PLAYER_IDLE);
-	m_gs.sprt_mgr->create_frame(PLAYER, 0, 13, PLAYER_DIE);
-	m_gs.anim_mgr->add_animation(PLAYER_IDLE, 100 * 8, true);
-	m_gs.anim_mgr->add_animation(PLAYER_DIE, 100 * 14, false);
+	m_gs.sprt_mgr->add_sprite(beacon_sprite, BEACON);
+	m_gs.sprt_mgr->create_frame(BEACON, 0, 2, BEACON_DEFAULT);
 }
-
 
 /*
  * This function binds the resources that the game gonna use

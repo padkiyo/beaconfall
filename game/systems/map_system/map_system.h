@@ -7,7 +7,13 @@
 struct MapEntry {
 	const char* map_file;
 	const char* map_tileset;
+	const char* light_file;
 	f32 render_scale;
+
+	glm::vec2 res;
+	std::vector<Rect>* boxes;
+	std::vector<Light>* lights;
+	std::vector<Quad>* quads;
 };
 
 class Map {
@@ -19,7 +25,12 @@ class Map {
 
 		const char* map_tileset;
 		const char* map_file;
+		const char* light_file;
 		Json::Value root;
+		Json::Value light_root;
+		bool has_light_file = true;
+
+		std::unordered_map<std::string, Light> light_map;
 
 		Texture* map_texture;
 
@@ -31,14 +42,30 @@ class Map {
 			.flip = true
 		};
 
+		Light default_light = {
+			.pos = {0, 0},
+			.radius = 0.5f,
+			.intensity = 0.45f,
+			.dir = glm::radians(81.0f) ,
+			.fov = glm::radians(41.0f),
+			.color = {0.8,0.5,0,1}
+		};
+
 		glm::vec4 get_texcoords(f32 index, f32 width, f32 height);
 
-		std::vector<Quad> quads;
+	private:
+		glm::vec2 res;
+		std::vector<Rect>* boxes;
+		std::vector<Light>* lights;
+		std::vector<Quad>* quads;
 
 	public:
 		Map(MapEntry map_config);
 		~Map();
+		void write_light_file();
 
-		void render(const glm::vec2& res);
-		inline const std::vector<Quad>& get_quads() const { return quads; }
+		void render();
+
+	private:
+		void pre_calc_collisions();
 };

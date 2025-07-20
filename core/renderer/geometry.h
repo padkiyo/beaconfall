@@ -8,6 +8,7 @@ struct Vertex {
 	glm::vec4 color;
 	glm::vec2 uv;
 	f32 tex_id;
+	glm::vec4 overlay;
 };
 
 struct Quad {
@@ -17,6 +18,7 @@ struct Quad {
 	const Texture* texture;
 	glm::vec4 uv;
 	glm::vec4 color;
+	glm::vec4 overlay = { 1, 1, 1, 0 };
 };
 
 struct Light {
@@ -25,6 +27,8 @@ struct Light {
 	f32 intensity;
 	f32 dir;
 	f32 fov;
+	f32 fall_off;
 	glm::vec4 color;
+	glm::vec2 map_pos;
 };
 

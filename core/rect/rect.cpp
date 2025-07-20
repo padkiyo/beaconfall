@@ -1,76 +1,58 @@
 #include "rect.h"
 
-b32 Rect::intersect(const Rect& r) {
+b32 Rect::intersect(const Rect& r) const {
 	return (
-		((x < r.x && r.x < x + w)        ||
-		 (r.x < x && x < r.x + r.w)      ||
-		 (x < r.x && r.x + r.w < x + w)  ||
-		 (r.x < x && x + w < r.x + r.w)) &&
-		((y < r.y && r.y < y + h)        ||
-		 (r.y < y && y < r.y + r.h)      ||
-		 (y < r.y && r.y + r.h < y + h)  ||
-		 (r.y < y && y + h < r.y + r.h))
+		x < r.x + r.w &&
+		x + w > r.x &&
+		y < r.y + r.h &&
+		y + h > r.y
 	);
 }
 
-b32 Rect::intersect_inclusive(const Rect& r) {
+b32 Rect::intersect_inclusive(const Rect& r) const {
 	return (
-		((x <= r.x && r.x <= x + w)        ||
-		 (r.x <= x && x <= r.x + r.w)      ||
-		 (x <= r.x && r.x + r.w <= x + w)  ||
-		 (r.x <= x && x + w <= r.x + r.w)) &&
-		((y <= r.y && r.y <= y + h)        ||
-		 (r.y <= y && y <= r.y + r.h)      ||
-		 (y <= r.y && r.y + r.h <= y + h)  ||
-		 (r.y <= y && y + h <= r.y + r.h))
+		x <= r.x + r.w &&
+		x + w >= r.x &&
+		y <= r.y + r.h &&
+		y + h >= r.y
 	);
 }
 
-b32 Rect::intersect_point(const glm::vec2& p) {
+b32 Rect::intersect_point(const glm::vec2& p) const {
 	return (
 		(x < p.x && p.x < x + w) &&
 		(y < p.y && p.y < y + h)
 	);
 }
 
-void Rect::resolve(const std::vector<Rect>& rects, const glm::vec2& movement, f64 dt) {
-	m_left = m_right = m_up = m_down = false;
+void Rect::resolve_x(const Rect& rect, const glm::vec2& movement) {
+	m_left = m_right = false;
 
-	// X axis resolution
-	x += movement.x * dt;
+	if (!rect.is_collidable()) return;
 
-	for (auto r : rects) {
-		if (intersect(r)) {
-			if (movement.x > 0) {
-				f32 dx = x + w - r.x;
-				x -= dx;
-
-				m_right = true;
-			} else if (movement.x < 0) {
-				f32 dx = r.x + r.w - x;
-				x += dx;
-
-				m_left = true;
-			}
+	if (intersect(rect)) {
+		if (movement.x > 0) {
+			x = rect.x - w;
+			m_right = true;
+		} else if (movement.x < 0) {
+			x = rect.x + rect.w;
+			m_left = true;
 		}
 	}
+}
 
-	// Y axis resolution
-	y += movement.y * dt;
+void Rect::resolve_y(const Rect& rect, const glm::vec2& movement) {
+	m_up = m_down = false;
 
-	for (auto r : rects) {
-		if (intersect(r)) {
-			if (movement.y > 0) {
-				f32 dy = y + h - r.y;
-				y -= dy;
+	if (!rect.is_collidable()) return;
 
-				m_up = true;
-			} else if (movement.y < 0) {
-				f32 dy = r.y + r.h - y;
-				y += dy;
-
-				m_down = true;
-			}
+	if (intersect(rect)) {
+		if (movement.y > 0) {
+			y = rect.y - h;
+			m_up = true;
+		} else if (movement.y < 0) {
+			y = rect.y + rect.h;
+			m_down = true;
 		}
 	}
 }
