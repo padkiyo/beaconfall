@@ -25,7 +25,7 @@ void BeaconScene::on_update(f64 dt) {
 	set_ambient_color(ambient_color);
 	set_light_pixel_size({pixel_size, pixel_size});
 
-	beacon->render(*m_gs.sprt_mgr, m_quads);
+	beacon->render(*m_gs.sprt_mgr, m_quads, m_lights);
 }
 
 void BeaconScene::on_ui_render(UI& ui) {

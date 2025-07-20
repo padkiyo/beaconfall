@@ -7,6 +7,7 @@ struct Light {
 	float intensity;
 	float dir;
 	float fov;
+	float fall_off;
 	vec4 color;
 };
 
@@ -33,16 +34,17 @@ vec2 rotate(vec2 v, float angle) {
 
 void main() {
 	vec4 final_color = vec4(ambient_color, 1);
+	vec2 aspect = vec2(dim.x / dim.y, 1.0);
 
 	for (int i = 0; i < light_count; i++) {
 		// Calculating pixelated uv
 		vec2 block_coord = floor(gl_FragCoord.xy / pixel_size) * pixel_size;
-		vec2 uv = (block_coord - 0.5 * dim) / dim * 2.0;
+		vec2 uv = ((block_coord - 0.5 * dim) / dim * 2.0) * aspect;
 
 		// Calculate the light position with camera perspective
 		vec4 nl = vec4(lights[i].pos, 0, 1);
 		vec4 tl = o_mvp * nl;
-		vec2 pos = tl.xy / tl.w;
+		vec2 pos = (tl.xy / tl.w) * aspect;
 
 		// Rotating the uv with light direction
 		vec2 frag_pos = uv - pos;
@@ -51,7 +53,12 @@ void main() {
 
 		// Calculating fall ofs
 		float dist = length(frag_pos);
-		float radial_fall_off = pow(clamp(1.0 - dist / lights[i].radius, 0.0, 1.0), 2);
+		float radius_ndc = (lights[i].radius / dim.y) * 2.0;
+		float radial_fall_off = pow(
+			clamp(1.0 - dist / radius_ndc, 0.0, 1.0),
+			lights[i].fall_off
+		);
+
 		float angle = abs(atan(uv.y - pos.y, uv.x - pos.x));
 		float angular_fall_off = smoothstep(lights[i].fov, 0, angle);
 

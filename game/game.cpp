@@ -184,8 +184,8 @@ void Game::init_core() {
 	m_gs.audio_mgr = new AudioManager;
 	m_gs.scene_mgr = new SceneManager;
 	m_gs.renderer = new Renderer;
-	m_gs.scene_renderer = new SceneRenderer(m_gs.renderer);
-	m_gs.camera = new Camera(glm::vec3(0,0,0), {
+	m_gs.scene_renderer = new SceneRenderer(m_gs.renderer, { WIN_WIDTH, WIN_HEIGHT });
+	m_gs.camera = new Camera(glm::vec3(0,100,0), {
 		.left = 0,
 		.right = WIN_WIDTH,
 		.top = WIN_HEIGHT,

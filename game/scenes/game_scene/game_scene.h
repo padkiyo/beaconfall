@@ -28,11 +28,20 @@ private:
 	// Player
 	Player* m_player;
 
+	// Beacon
+	Beacon* m_beacon;
+
 	// Entities
 	std::vector<Entity*> m_entities;
 
 	// Light
 	glm::vec3 ambient_color = { 0.5, 0.5, 0.5 };
 	f32 pixel_size = 2;
+
+	// Day Night cycle
+	f32 m_start_time;
+	f32 m_cycle_time = 10.0f; // In seconds
+	b32 m_is_day = true;
+	f32 m_day_color = 0.8f;
 };
 
