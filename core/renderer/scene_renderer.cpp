@@ -48,7 +48,7 @@ void SceneRenderer::render_scene(const Scene& scene, Camera& camera, const glm::
 
 	m_renderer->begin_pass({0,0}, res);
 	{
-		m_renderer->clear({0.5,0.5,0.5,1});
+		m_renderer->clear({0.93,0.97,0.99,1});
 
 		m_color_shader->bind();
 		m_color_shader->set_mat4f("mvp", view_proj, false);

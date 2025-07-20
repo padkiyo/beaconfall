@@ -246,6 +246,7 @@ void build_game() {
 			"./game/entity/entity.cpp",
 			"./game/entity/player.cpp",
 			"./game/entity/rock.cpp",
+			"./game/entity/zombie.cpp",
 			"./game/item/gem.cpp",
 			"./game/structure/beacon.cpp",
 			"./game/scenes/test/test.cpp",

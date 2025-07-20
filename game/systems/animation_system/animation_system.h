@@ -28,7 +28,7 @@ class Animator {
 
 		void add_animation(FrameId id, u64 duration, b32 loop);
 
-		glm::vec4 get_frame(SpriteManager& sm);
+		glm::vec4 get_frame(const SpriteManager& sm);
 
 		void switch_frame(FrameId id);
 

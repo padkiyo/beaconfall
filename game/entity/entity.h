@@ -8,6 +8,7 @@ enum EntityType {
 	ENT_ROCK,
 	ENT_GEM,
 	ENT_BEACON,
+	ENT_ZOMBIE,
 };
 
 class Entity {

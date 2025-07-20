@@ -24,7 +24,7 @@ void Rock::on_damage() {
 		);
 
 		// Spawn a gem
-		Gem* gem = new Gem(m_entities, GEM_EXP);
+		Gem* gem = new Gem(m_entities, GEM_POWER);
 		gem->set_pos({m_rect.x, m_rect.y});
 		m_entities.push_back(gem);
 

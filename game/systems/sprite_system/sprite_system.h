@@ -6,13 +6,16 @@ enum SpriteId {
 	PLAYER,
 	ROCK,
 	GEM,
-	BEACON
+	BEACON,
+	ZOMBIE
 };
 
 enum FrameId {
 	PLAYER_IDLE,
 	PLAYER_DIE,
-	BEACON_DEFAULT
+	BEACON_DEFAULT,
+	ZOMBIE_WALK,
+	ZOMBIE_ATTACK
 };
 
 struct Sprite {

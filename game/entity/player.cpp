@@ -133,12 +133,17 @@ void Player::handle_attack() {
 void Player::handle_collision(f64 dt) {
 	m_rect.x += m_move.x * dt;
 	for (auto ent: m_entities) {
-		m_rect.resolve_x(ent->rect(), m_move);
+		if(ent->type != ENT_ZOMBIE)
+		{
+			m_rect.resolve_x(ent->rect(), m_move);
+		}
 	}
 
 	m_rect.y += m_move.y * dt;
 	for (auto ent: m_entities) {
-		m_rect.resolve_y(ent->rect(), m_move);
+		if(ent->type != ENT_ZOMBIE) {
+			m_rect.resolve_y(ent->rect(), m_move);
+		}
 	}
 }
 
@@ -278,6 +283,15 @@ void Player::render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads, std
 		// Reset the attack
 		m_attack = false;
 	}
+
+//	quads.push_back(Quad {
+//		.pos = {m_reach_area.x, m_reach_area.y, 0},
+//		.size = {m_reach_area.w, m_reach_area.h},
+//		.rot = glm::mat4(1),
+//		.texture = nullptr,
+//		.uv = {0, 0, 1, 1},
+//		.color = {1,1,0,0.5},
+//	});
 
 	// Handling damage effect
 	if (is_stunned(m_gs.fc->dt()) && m_health < 50.0f && m_stun > m_stun_timeout / 2) {
