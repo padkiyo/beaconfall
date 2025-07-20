@@ -125,7 +125,7 @@ void Zombie::on_damage() {
 
 void Zombie::render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads, std::vector<Light>& lights) {
 	this->update(this->fc->dt());
-	if(is_stunned()) {
+	if(is_stunned(this->fc->dt())) {
 		m_overlay.a = 1.0f;
 	} else{
 		m_overlay.a = 0.0f;

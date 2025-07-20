@@ -3,11 +3,11 @@
 #include "core.h"
 
 #define SPAWN_TIMEOUT 10.0f
-#define SPAWN_DECAY 0.2f
-#define STORM_SPAWN_DECAY 0.5f
+#define SPAWN_DECAY 10.0f
+#define STORM_SPAWN_DECAY 25.0f
 #define SNOW_DECAY 0.1f
 #define SNOW_DIR_TIMEOUT 5.0f
-#define SNOW_DIR_DECAY 1.0f
+#define SNOW_DIR_DECAY 5.0f
 #define STORM_SPEED 300.0f
 #define NORMAL_SPEED 100.0f
 

@@ -1,4 +1,5 @@
 #include "game_scene.h"
+#include "scenes/scenes.h"
 
 #define MAX_ROCK_COUNT 100
 
@@ -80,15 +81,15 @@ GameScene::GameScene(const GameState& gs)
 	m_player = new Player(m_entities, *gs.camera, gs);
 	m_player->set_pos({0, 100});
 
-	Rock* rock = new Rock(m_entities);
+	Rock* rock = new Rock(m_entities, gs);
 	rock->set_pos({400, 300});
 	m_entities.push_back(rock);
 
-	Rock* rock2 = new Rock(m_entities);
+	Rock* rock2 = new Rock(m_entities, gs);
 	rock2->set_pos({300, 400});
 	m_entities.push_back(rock2);
 
-	m_beacon = new Beacon();
+	m_beacon = new Beacon(gs);
 	m_beacon->set_pos({350, 250});
 	m_entities.push_back(m_beacon);
 
@@ -111,6 +112,7 @@ void GameScene::on_enter() {
 	m_day_color = 0.8f;
 	m_night_count = 0;
 	m_cycle_complete = false;
+	m_beacon->start_time = SDL_GetTicks();
 }
 
 void GameScene::on_exit() {
@@ -144,15 +146,18 @@ void GameScene::on_update(f64 dt) {
 	if (time_passed >= m_cycle_time) {
 		m_start_time = SDL_GetTicks() / 1000.0f;
 		m_cycle_complete = !m_cycle_complete;
+		m_night_count++;
 	}
 
-	if (time_passed / m_cycle_time >= 0.9f) {
-		if (m_is_day) {
-			m_night_count++;
-		} else {
+	if (!m_cycle_complete) {
+		if (time_passed / m_cycle_time >= 0.8f) {
+			m_is_day = false;
+		}
+	} else {
+		if (time_passed / m_cycle_time >= 0.2f) {
+			m_is_day = true;
 			m_gs.snow_sys->storm(false);
 		}
-		m_is_day = !m_is_day;
 	}
 
 	// Enabling storm
@@ -161,8 +166,6 @@ void GameScene::on_update(f64 dt) {
 			m_gs.snow_sys->storm(true);
 		}
 	}
-	//std::cout << "SPAWN_RATE" << this->zombie_spawn_rate << std::endl;
-	//std::cout << m_gs.snow_sys->is_storm() << std::endl;
 
 	// Setting up the lights
 	set_ambient_color(ambient_color);
@@ -202,6 +205,12 @@ void GameScene::on_update(f64 dt) {
 	// Rendering player
 	m_player->update(m_beacon, m_gs.fc->dt());
 	m_player->render(*m_gs.sprt_mgr, m_quads, m_lights);
+
+
+	// DIE
+	if (m_player->health() <= 0.0f) {
+		m_gs.scene_mgr->switch_scene(SCENE_MENU);
+	}
 }
 
 void GameScene::on_ui_render(UI& ui) {
@@ -221,6 +230,12 @@ void GameScene::on_ui_render(UI& ui) {
 		m_beacon->get_power(), m_beacon->get_max_power(),
 		Style { .fg_color = { 0, 1, 1, 1 }}
 	);
+
+	std::string cnt_label = std::format("Night: {}", std::to_string(m_night_count));
+	glm::vec2 cnt_size = m_gs.font_regular->calculate_dim(cnt_label);
+	ui.text(cnt_label, {WIN_WIDTH - cnt_size.x - 10, WIN_HEIGHT - cnt_size.y - 10}, Style {
+		.font = m_gs.font_regular,
+	});
 }
 
 void GameScene::on_imgui_render() {

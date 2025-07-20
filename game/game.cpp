@@ -9,10 +9,10 @@ Game::Game() {
 	init_resources();
 
 	// Init game
-	m_running = true;
+	m_gs.running = true;
 
 	// Switching to the scene
-	m_gs.scene_mgr->switch_scene(SCENE_GAME);
+	m_gs.scene_mgr->switch_scene(SCENE_MENU);
 
 	// Adding snow spawn points
 	for (i32 i = 0; i <= WIN_WIDTH; i += 50) {
@@ -47,7 +47,7 @@ Game::~Game() {
  */
 
 void Game::run() {
-	while (m_running) {
+	while (m_gs.running) {
 		m_gs.fc->begin();
 
 		// Binds the game resources
@@ -82,7 +82,7 @@ void Game::event() {
 		m_gs.scene_mgr->handle_event(event, m_gs.fc->dt());
 
 		if(event.type == SDL_QUIT) {
-			m_running = false;
+			m_gs.running = false;
 		}
 	}
 }
@@ -114,8 +114,10 @@ void Game::render() {
 		m_gs.scene_renderer->render_scene(scene, *m_gs.camera, { WIN_WIDTH, WIN_HEIGHT });
 
 		// Snow System
-		m_gs.snow_sys->spawn();
-		m_gs.snow_sys->update(m_gs.renderer, m_gs.fc->dt());
+		if (m_gs.scene_mgr->get_current_scene_id() == SCENE_GAME) {
+			m_gs.snow_sys->spawn();
+			m_gs.snow_sys->update(m_gs.renderer, m_gs.fc->dt());
+		}
 
 		// UI rendering
 		m_gs.ui->begin();
@@ -149,6 +151,7 @@ void Game::overlay() {
  */
 
 void Game::imgui_render() {
+	/*
 	imgui_begin_frame();
 
 	// Updating imgui render of the scenes
@@ -183,7 +186,9 @@ void Game::imgui_render() {
 			m_gs.anim_mgr->switch_frame(PLAYER_DIE);
 		}
 	}
+
 	imgui_end_frame();
+	*/
 }
 
 
@@ -222,8 +227,10 @@ void Game::init_core() {
 void Game::init_scenes() {
 	m_gs.scene_mgr->add_scene<TestScene>(SCENE_TEST, m_gs);
 	m_gs.scene_mgr->add_scene<GameScene>(SCENE_GAME, m_gs);
-} /* Here we initialize our systems that are in the game */
+	m_gs.scene_mgr->add_scene<MainMenu>(SCENE_MENU, m_gs);
+}
 
+/* Here we initialize our systems that are in the game */
 void Game::init_systems() {
 	m_gs.sprt_mgr = new SpriteManager();
 

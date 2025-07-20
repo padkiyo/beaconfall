@@ -28,7 +28,7 @@ public:
 	void set_size(const glm::vec2& size);
 
 	void take_damage(f32 dmg);
-	b32 is_stunned();
+	b32 is_stunned(f64 dt);
 
 	// Virtual functions
 	virtual void render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads, std::vector<Light>& lights);
@@ -41,5 +41,5 @@ protected:
 	// Handling stun
 	f32 m_stun = 0.0f;
 	f32 m_stun_timeout = 10.0f;
-	f32 m_stun_decay = 0.8f;
+	f32 m_stun_decay = 20.0f;
 };

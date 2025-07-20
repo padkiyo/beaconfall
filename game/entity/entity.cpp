@@ -30,8 +30,8 @@ void Entity::take_damage(f32 dmg) {
 	on_damage();
 }
 
-b32 Entity::is_stunned() {
-	m_stun -= m_stun_decay;
+b32 Entity::is_stunned(f64 dt) {
+	m_stun -= m_stun_decay * dt;
 	if (m_stun <= 0.0f) m_stun = 0.0f;
 	return m_stun > 0.0f;
 }

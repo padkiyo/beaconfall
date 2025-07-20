@@ -1,7 +1,7 @@
 #include "beacon.h"
 
-Beacon::Beacon()
-	: Entity(ENT_BEACON) {
+Beacon::Beacon(const GameState& gs)
+	: Entity(ENT_BEACON), m_gs(gs) {
 	m_rect.x = 0;
 	m_rect.y = 0;
 	m_rect.w = 100;
@@ -53,6 +53,10 @@ i32 Beacon::get_level() {
 	return this->level;
 }
 
+f32 Beacon::get_healing() {
+	return (max_power / START_POWER) / 2.0f;
+}
+
 void Beacon::render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads, std::vector<Light>& lights) {
 	// Degrading power wrt time
 	f32 dt = (SDL_GetTicks() - this->start_time);
@@ -60,6 +64,11 @@ void Beacon::render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads, std
 
 	this->power -= (POWER_CONSUMPTION_RATE/ 1000.0f) * dt;
 	if (this->power <= 0.0f) this->power = 0.0f;
+
+	// Degrading power in storm
+	if (m_gs.snow_sys->is_storm()) {
+		this->power -= (POWER_CONSUMPTION_RATE/ 1000.0f) * dt;
+	}
 
 	// Updating the beacon light
 	f32 intensity = this->power / this->max_power;
