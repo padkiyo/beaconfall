@@ -102,6 +102,7 @@ void Game::render() {
 	m_gs.sprt_mgr->activate_spritesheet(ROCK);
 	m_gs.sprt_mgr->activate_spritesheet(GEM);
 	m_gs.sprt_mgr->activate_spritesheet(BEACON);
+	m_gs.sprt_mgr->activate_spritesheet(ZOMBIE);
 
 	m_gs.renderer->clear({0,0,0,1});
 
@@ -221,7 +222,7 @@ void Game::init_core() {
 void Game::init_scenes() {
 	m_gs.scene_mgr->add_scene<TestScene>(SCENE_TEST, m_gs);
 	m_gs.scene_mgr->add_scene<GameScene>(SCENE_GAME, m_gs);
-	m_gs.scene_mgr->add_scene<BeaconScene>(SCENE_BEACON, m_gs); } /* Here we initialize our systems that are in the game */
+} /* Here we initialize our systems that are in the game */
 
 void Game::init_systems() {
 	m_gs.sprt_mgr = new SpriteManager();
@@ -243,6 +244,16 @@ void Game::init_resources() {
 	m_gs.font_regular = new Font("./assets/Ac437_ToshibaSat_9x8.ttf", 25);
 
 	// loading sprites
+	// Zombie
+	Sprite zombie_sprite = {
+		.id = ZOMBIE,
+		.path = "./assets/zombie.png",
+		.x_cnt = 2,
+		.y_cnt = 2,
+	};
+	m_gs.sprt_mgr->add_sprite(zombie_sprite, ZOMBIE);
+	m_gs.sprt_mgr->create_frame(ZOMBIE, 0, 1, ZOMBIE_WALK);
+	m_gs.sprt_mgr->create_frame(ZOMBIE, 1, 1, ZOMBIE_ATTACK);
 
 	// Player
 	Sprite player_sprite = {
@@ -281,7 +292,6 @@ void Game::init_resources() {
 	m_gs.sprt_mgr->add_sprite(beacon_sprite, BEACON);
 	m_gs.sprt_mgr->create_frame(BEACON, 0, 2, BEACON_DEFAULT);
 }
-
 
 /*
  * This function binds the resources that the game gonna use

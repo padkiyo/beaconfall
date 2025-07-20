@@ -19,7 +19,7 @@ void Animator::add_animation(FrameId id, u64 duration, b32 loop) {
 		});
 }
 
-glm::vec4 Animator::get_frame(SpriteManager& sm) {
+glm::vec4 Animator::get_frame(const SpriteManager& sm) {
 	auto anim_entry = this->animations[this->curr_state];
 
 	u64 dt = (SDL_GetTicks() - this->start_time);

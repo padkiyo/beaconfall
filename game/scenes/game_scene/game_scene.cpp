@@ -1,5 +1,80 @@
 #include "game_scene.h"
 
+#define MAX_ROCK_COUNT 100
+
+void GameScene::gen_resources(f32& btime, f32 etime) {
+		if(((f32) SDL_GetTicks() - btime) >= (etime*1000)){
+			btime = (f32) SDL_GetTicks();
+
+			i32 randomxc = rand() % 2;
+			i32 randomx;
+
+			switch(randomxc) {
+				case 0:
+					randomx = rand() % 9;
+					break;
+				case 1:
+					randomx = rand() % 9 + 11;
+					break;
+			}
+
+			i32 randomyc = rand() % 2;
+			i32 randomy;
+
+			switch(randomyc) {
+				case 0:
+					randomy = rand() % 8;
+					break;
+				case 1:
+					randomy = rand() % 8 + 9;
+			}
+			Rock* rock = new Rock(m_entities);
+
+			randomx = (randomx*64) - 274;
+			randomy = (randomy*64) -212;
+
+			rock->set_pos({randomx, randomy});
+			m_entities.push_back(rock);
+		}
+}
+
+
+void GameScene::gen_zombies(f32& btime, f32 etime) {
+		if(((f32) SDL_GetTicks() - btime) >= (etime*1000)){
+			btime = (f32) SDL_GetTicks();
+
+			i32 randomxc = rand() % 2;
+			i32 randomx;
+
+			switch(randomxc) {
+				case 0:
+					randomx = rand() % 11;
+					break;
+				case 1:
+					randomx = rand() % 11 + 14;
+					break;
+			}
+
+			i32 randomyc = rand() % 2;
+			i32 randomy;
+
+			switch(randomyc) {
+				case 0:
+					randomy = rand() % 10;
+					break;
+				case 1:
+					randomy = rand() % 10 + 11;
+			}
+			Zombie* zom = new Zombie(m_player, m_beacon, m_entities, m_gs.fc);
+
+			randomx = (randomx*64) - 274;
+			randomy = (randomy*64) -212;
+
+			zom->set_pos({randomx, randomy});
+			m_entities.push_back(zom);
+		}
+}
+
 GameScene::GameScene(const GameState& gs)
 	: m_gs(gs) {
 	m_player = new Player(m_entities, *gs.camera, gs);
@@ -14,8 +89,12 @@ GameScene::GameScene(const GameState& gs)
 	m_entities.push_back(rock2);
 
 	m_beacon = new Beacon();
-	m_beacon->set_pos({0, 0});
+	m_beacon->set_pos({350, 250});
 	m_entities.push_back(m_beacon);
+
+	zombie = new Zombie(m_player, m_beacon, m_entities, m_gs.fc);
+	zombie->set_pos({200, 150});
+	m_entities.push_back(zombie);
 }
 
 GameScene::~GameScene() {
@@ -45,6 +124,10 @@ void GameScene::on_event(const SDL_Event& event, f64 dt) {
 void GameScene::on_update(f64 dt) {
 	f32 end_time = SDL_GetTicks() / 1000.0f;
 	f32 time_passed = end_time - m_start_time;
+
+	std::cout << m_night_count << std::endl;
+
+	this->zombie_spawn_rate = INIT_SPAWN_RATE_ZOMBIE -  m_night_count;
 
 	// Calculating day night ambience color
 	if (!m_cycle_complete) {
@@ -78,12 +161,29 @@ void GameScene::on_update(f64 dt) {
 			m_gs.snow_sys->storm(true);
 		}
 	}
-
-	std::cout << m_gs.snow_sys->is_storm() << std::endl;
+	//std::cout << "SPAWN_RATE" << this->zombie_spawn_rate << std::endl;
+	//std::cout << m_gs.snow_sys->is_storm() << std::endl;
 
 	// Setting up the lights
 	set_ambient_color(ambient_color);
 	set_light_pixel_size({pixel_size, pixel_size});
+	map_texture.bind();
+	add_quad(
+			Quad {
+			{400-674, 300-512, 0},
+			{674 * 2, 512 * 2},
+			glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), {0,0,1}),
+			&map_texture,
+			glm::vec4(0.0f, 0.0f, 1.0f, 1.0f),
+			{1, 1, 1, 1}
+			}
+			);
+
+	this->gen_resources(this->begin_time, this->resources_spawn_rate);
+
+	if(!m_is_day) {
+		this->gen_zombies(this->begin_time, this->zombie_spawn_rate);
+	}
 
 	// Camera following the player
 	Rect r = m_player->rect();
@@ -98,12 +198,19 @@ void GameScene::on_update(f64 dt) {
 		ent->render(*m_gs.sprt_mgr, m_quads, m_lights);
 	}
 
+
 	// Rendering player
 	m_player->update(m_beacon, m_gs.fc->dt());
 	m_player->render(*m_gs.sprt_mgr, m_quads, m_lights);
 }
 
 void GameScene::on_ui_render(UI& ui) {
+		std::string beacon_level_lable = std::format("BEACON LEVEL: {}", std::to_string(m_beacon->get_level()));
+    glm::vec2 cnt_size = m_gs.font_regular->calculate_dim(beacon_level_lable);
+    ui.text(beacon_level_lable, {WIN_WIDTH - cnt_size.x - 10, WIN_HEIGHT - cnt_size.y - 50}, Style {
+        .font = m_gs.font_regular,
+    });
+
 	ui.progress_bar(
 		Rect({10, WIN_HEIGHT - 30, 100, 20}),
 		m_player->health(), 100.0f,
