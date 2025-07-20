@@ -19,3 +19,7 @@ glm::vec2 pixel_to_gl_coords(glm::vec2 pos, u32 WIN_WIDTH, u32 WIN_HEIGHT);
 glm::vec2 dp_to_dgl_coords(glm::vec2 dp, u32 WIN_WIDTH, u32 WIN_HEIGHT);
 glm::vec2 gl_to_pixel_coords(glm::vec2 pos, u32 WIN_WIDTH, u32 WIN_HEIGHT);
 glm::vec2 dgl_to_dp_coords(glm::vec2 dp, u32 WIN_WIDTH, u32 WIN_HEIGHT);
+
+// Random
+#define rand_init(seed) srand(seed)
+#define rand_range(l, u) rand() % (u - l + 1) + l

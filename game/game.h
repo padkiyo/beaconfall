@@ -5,6 +5,7 @@
 #include "systems/sprite_system/sprite_system.h"
 #include "systems/animation_system/animation_system.h"
 #include "systems/map_system/map_system.h"
+#include "systems/snow_system/snow_system.h"
 
 
 /*
@@ -30,6 +31,7 @@ struct GameState {
 
 	SpriteManager* sprt_mgr;
 	Animator* anim_mgr;
+	SnowSystem* snow_sys;
 };
 
 
