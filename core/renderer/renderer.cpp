@@ -9,6 +9,7 @@ Renderer::Renderer() {
 	m_vao->push_layout<f32>(4); // Color
 	m_vao->push_layout<f32>(2); // UV
 	m_vao->push_layout<f32>(1); // Texture ID
+	m_vao->push_layout<f32>(4); // Overlay
 
 	// Constructing Vertex Buffer
 	ssize_t vbo_size = MAX_VERTEX_COUNT * m_vao->get_stride();
@@ -25,7 +26,7 @@ Renderer::Renderer() {
 	m_buffer.reserve(MAX_VERTEX_COUNT * m_vao->get_count());
 
 	// Constructing Shader
-	m_shader = new Shader("./shaders/plain.vert", "./shaders/color.frag", ShaderLoadType::FromFile);
+	m_shader = new Shader("./shaders/plain.vert", "./shaders/plain.frag", ShaderLoadType::FromFile);
 
 	// Constructing a white texture
 	u32 data = 0xffffffff;
@@ -180,8 +181,10 @@ void Renderer::push_quad(const Quad& quad) {
 	glm::vec2 size = quad.size;
 	glm::mat4 rot = quad.rot;
 	const Texture* texture = quad.texture;
+	if (texture == nullptr) texture = m_white_texture;
 	glm::vec4 uv = quad.uv;
 	glm::vec4 color = quad.color;
+	glm::vec4 overlay = quad.overlay;
 
 	// Calculating the transforms
 	glm::mat4 transform = glm::translate(glm::mat4(1.0f), pos)
@@ -205,6 +208,9 @@ void Renderer::push_quad(const Quad& quad) {
 
 	// Setting the color
 	v1.color = v2.color = v3.color = v4.color = color;
+
+	// Setting the overlay
+	v1.overlay = v2.overlay = v3.overlay = v4.overlay = overlay;
 
 	// Setting the uvs
 	v1.uv = { uv.x,        uv.y        };
@@ -238,4 +244,8 @@ void Renderer::push_vertex(const Vertex& v) {
 	m_buffer.push_back(v.uv.x);
 	m_buffer.push_back(v.uv.y);
 	m_buffer.push_back(v.tex_id);
+	m_buffer.push_back(v.overlay.r);
+	m_buffer.push_back(v.overlay.g);
+	m_buffer.push_back(v.overlay.b);
+	m_buffer.push_back(v.overlay.a);
 }

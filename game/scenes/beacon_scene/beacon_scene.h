@@ -24,17 +24,7 @@ private:
 
 	std::vector<Rect> m_boxes;
 
-	Beacon beacon = Beacon();
-
-	TextureFilter sprite_filter = {
-		.min_filter = GL_NEAREST,
-		.mag_filter = GL_NEAREST,
-		.wrap_s = GL_CLAMP_TO_EDGE,
-		.wrap_t = GL_CLAMP_TO_EDGE,
-		.flip = true
-	};
-
-	Texture map_texture = Texture("./assets/BASE_MAP.png", sprite_filter);
+	Beacon* beacon;
 
 	// Light
 	glm::vec3 ambient_color = { 1, 1, 1};

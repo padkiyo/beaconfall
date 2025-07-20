@@ -1,10 +1,11 @@
 #include "beacon.h"
-Beacon::Beacon() {
-}
 
-Beacon::Beacon(glm::vec2 pos, glm::vec2 size) {
-	this->pos = pos;
-	this->size = size;
+Beacon::Beacon()
+	: Entity(ENT_BEACON) {
+	m_rect.x = 0;
+	m_rect.y = 0;
+	m_rect.w = 100;
+	m_rect.h = 100;
 
 	this->level = START_LEVEL;
 	this->exp = 0.0f;
@@ -45,21 +46,19 @@ i32 Beacon::get_level() {
 	return this->level;
 }
 
-Quad Beacon::render(SpriteManager& sm ) {
-	sm.activate_spritesheet(BEACON);
-
+void Beacon::render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads) {
 	f32 dt = (SDL_GetTicks() - this->start_time);
 
 	this->power -= (POWER_CONSUMPTION_RATE/ 1000.0f) * dt;
 
 	this->start_time = SDL_GetTicks();
 
-	return Quad {
-		{pos.x, pos.y, 0},
-		{size.x, size.y},
-		glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), {0,0,1}),
-		&sm.get_spritesheet_texture(BEACON),
-		sm.get_frame(BEACON_DEFAULT)[this->level - 1],
+	quads.push_back(Quad {
+		{m_rect.x, m_rect.y, 0},
+		{m_rect.w, m_rect.h},
+		glm::mat4(1),
+		&sprt_mgr.get_spritesheet_texture(BEACON),
+		sprt_mgr.get_frame(BEACON_DEFAULT)[this->level - 1],
 		{1, 1, 1, 1}
-	};
+	});
 }

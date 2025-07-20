@@ -1,47 +1,45 @@
 #pragma once
 
 #include "core.h"
-// TODO add ts in config.h
-#define MAX_SPRITE 40
 
 enum SpriteId {
 	PLAYER,
-	BEACON
+	ROCK,
+	GEM,
+	BEACON,
+	ZOMBIE
 };
 
 enum FrameId {
 	PLAYER_IDLE,
 	PLAYER_DIE,
-	BEACON_DEFAULT
+	BEACON_DEFAULT,
+	ZOMBIE_WALK,
+	ZOMBIE_ATTACK
 };
 
 struct Sprite {
 	SpriteId id;
 	const char* path;
-
 	i32 x_cnt;
 	i32 y_cnt;
 };
 
 class SpriteManager {
 	public:
-		SpriteManager();
-		~SpriteManager();
-
-		void add_sprite(Sprite sprite, u32 id);
-
-		void load_sprites();
-
 		std::unordered_map<SpriteId, Sprite> sprites;
 		std::unordered_map<SpriteId, Texture*> sprite_textures;
 		std::unordered_map<FrameId, std::vector<glm::vec4>> frames;
 
+	public:
+		SpriteManager();
+		~SpriteManager();
+
 		void add_sprite(Sprite sprite, SpriteId sprite_id);
 		void create_frame(SpriteId sprite_id, u32 row, u32 col, FrameId frame_id);
-
 		void activate_spritesheet(SpriteId sprite_id);
-		std::vector<glm::vec4> get_frame(FrameId frame_id);
-		const Texture& get_spritesheet_texture(SpriteId sprite_id);
+		const std::vector<glm::vec4>& get_frame(FrameId frame_id) const;
+		const Texture& get_spritesheet_texture(SpriteId sprite_id) const;
 
 	private:
 		TextureFilter sprite_filter = {

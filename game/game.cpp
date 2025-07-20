@@ -11,15 +11,11 @@ Game::Game() {
 	// Init game
 	m_running = true;
 
-	m_gs.player = new Player();
-
 	// Switching to the scene
 	m_gs.scene_mgr->switch_scene(SCENE_GAME);
 }
 
 Game::~Game() {
-	delete m_gs.player;
-
 	// Freeing resources
 	delete m_gs.font_regular;
 
@@ -93,6 +89,10 @@ void Game::render() {
 
 	// Activating all the sprites
 	m_gs.sprt_mgr->activate_spritesheet(PLAYER);
+	m_gs.sprt_mgr->activate_spritesheet(ROCK);
+	m_gs.sprt_mgr->activate_spritesheet(GEM);
+	m_gs.sprt_mgr->activate_spritesheet(BEACON);
+	m_gs.sprt_mgr->activate_spritesheet(ZOMBIE);
 
 	m_gs.renderer->clear({0,0,0,1});
 
@@ -225,17 +225,53 @@ void Game::init_resources() {
 	m_gs.font_regular = new Font("./assets/Ac437_ToshibaSat_9x8.ttf", 25);
 
 	// loading sprites
+	// Zombie
+	Sprite zombie_sprite = {
+		.id = ZOMBIE,
+		.path = "./assets/zombie.png",
+		.x_cnt = 2,
+		.y_cnt = 2,
+	};
+	m_gs.sprt_mgr->add_sprite(zombie_sprite, ZOMBIE);
+	m_gs.sprt_mgr->create_frame(ZOMBIE, 0, 1, ZOMBIE_WALK);
+	m_gs.sprt_mgr->create_frame(ZOMBIE, 1, 1, ZOMBIE_ATTACK);
+
+	// Player
 	Sprite player_sprite = {
-		.path = "./assets/samurai.png",
-		.x_cnt = 14, // No of horizontal sprites
-		.y_cnt = 8 // No of vertical sprites
+		.id = PLAYER,
+		.path = "./assets/player.png",
+		.x_cnt = 1,
+		.y_cnt = 1,
+	};
+	m_gs.sprt_mgr->add_sprite(player_sprite, PLAYER);
+
+	// Rock
+	Sprite rock_sprite = {
+		.id = ROCK,
+		.path = "./assets/rock.png",
+		.x_cnt = 1,
+		.y_cnt = 1,
+	};
+	m_gs.sprt_mgr->add_sprite(rock_sprite, ROCK);
+
+	// Gem
+	Sprite gem_sprite = {
+		.id = GEM,
+		.path = "./assets/gem.png",
+		.x_cnt = 1,
+		.y_cnt = 1,
+	};
+	m_gs.sprt_mgr->add_sprite(gem_sprite, GEM);
+
+	// Beacon
+	Sprite beacon_sprite = {
+		.path="./assets/beacons.png",
+		.x_cnt=3,
+		.y_cnt=1
 	};
 
-	m_gs.sprt_mgr->add_sprite(player_sprite, PLAYER);
-	m_gs.sprt_mgr->create_frame(PLAYER, 7,7, PLAYER_IDLE);
-	m_gs.sprt_mgr->create_frame(PLAYER, 0, 13, PLAYER_DIE);
-	m_gs.anim_mgr->add_animation(PLAYER_IDLE, 100 * 8, true);
-	m_gs.anim_mgr->add_animation(PLAYER_DIE, 100 * 14, false);
+	m_gs.sprt_mgr->add_sprite(beacon_sprite, BEACON);
+	m_gs.sprt_mgr->create_frame(BEACON, 0, 2, BEACON_DEFAULT);
 }
 
 

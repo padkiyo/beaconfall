@@ -5,12 +5,18 @@ SpriteManager::SpriteManager() {
 }
 
 SpriteManager::~SpriteManager() {
+	for (auto [id, texture] : sprite_textures) {
+		delete texture;
+	}
 }
 
 void SpriteManager::add_sprite(Sprite sprite, SpriteId sprite_id) {
 	// Inserting the given sprite into hashmap
 	this->sprites.insert({sprite_id, sprite});
-	this->sprite_textures.insert({sprite_id, new Texture(sprite.path, this->sprite_filter)});
+	this->sprite_textures.insert({
+		sprite_id,
+		new Texture(sprite.path, this->sprite_filter)
+	});
 }
 
 void SpriteManager::create_frame(SpriteId sprite_id, u32 row, u32 col, FrameId frame_id){
@@ -36,13 +42,12 @@ void SpriteManager::create_frame(SpriteId sprite_id, u32 row, u32 col, FrameId f
 	}
 }
 
-std::vector<glm::vec4> SpriteManager::get_frame(FrameId frame_id){
-
-	if(this->frames.find(frame_id) != this->frames.end()){
-		return this->frames[frame_id];
-	}
-	else return {};
-
+const std::vector<glm::vec4>& SpriteManager::get_frame(FrameId frame_id) const {
+	panic(
+		this->frames.find(frame_id) != this->frames.end(),
+		"Invalid Frame ID: %d", frame_id
+	);
+	return this->frames.at(frame_id);
 }
 
 void SpriteManager::activate_spritesheet(SpriteId sprite_id) {
@@ -53,8 +58,8 @@ void SpriteManager::activate_spritesheet(SpriteId sprite_id) {
 	this->sprite_textures[sprite_id]->bind();
 }
 
-const Texture& SpriteManager::get_spritesheet_texture(SpriteId sprite_id) {
-	return *this->sprite_textures[sprite_id];
+const Texture& SpriteManager::get_spritesheet_texture(SpriteId sprite_id) const {
+	return *this->sprite_textures.at(sprite_id);
 }
 
 
