@@ -6,10 +6,11 @@
 #include "config.h"
 #include "structure/beacon.h"
 #include "item/gem.h"
+#include "game.h"
 
 class Player : public Entity {
 public:
-	Player(std::vector<Entity*>& entities, const Camera& camera);
+	Player(std::vector<Entity*>& entities, const Camera& camera, const GameState& gs);
 	~Player();
 
 	// Setters
@@ -27,6 +28,8 @@ private:
 	void calc_atk_hitbox(i32 x, i32 y);
 
 private:
+	const GameState& m_gs;
+
 	// Interactions
 	Rect m_reach_area;
 	b32 m_feed_beacon;

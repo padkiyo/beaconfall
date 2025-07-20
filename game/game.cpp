@@ -13,11 +13,21 @@ Game::Game() {
 
 	// Switching to the scene
 	m_gs.scene_mgr->switch_scene(SCENE_GAME);
+
+	// Adding snow spawn points
+	for (i32 i = 0; i <= WIN_WIDTH; i += 50) {
+		m_gs.snow_sys->add_spawn_point({i, WIN_HEIGHT + 31});
+	}
 }
 
 Game::~Game() {
 	// Freeing resources
 	delete m_gs.font_regular;
+
+	// System deinitialization
+	delete m_gs.snow_sys;
+	delete m_gs.sprt_mgr;
+	delete m_gs.anim_mgr;
 
 	// Core deinitializatioin
 	delete m_gs.camera;
@@ -101,6 +111,10 @@ void Game::render() {
 		// Rendering the scene
 		const Scene& scene = m_gs.scene_mgr->get_current_scene();
 		m_gs.scene_renderer->render_scene(scene, *m_gs.camera, { WIN_WIDTH, WIN_HEIGHT });
+
+		// Snow System
+		m_gs.snow_sys->spawn();
+		m_gs.snow_sys->update(m_gs.renderer, m_gs.fc->dt());
 
 		// UI rendering
 		m_gs.ui->begin();
@@ -194,6 +208,9 @@ void Game::init_core() {
 		.far = 1000,
 	});
 	m_gs.ui = new UI(m_gs.renderer, { WIN_WIDTH, WIN_HEIGHT });
+
+	// Init the random number
+	rand_init(time(NULL));
 }
 
 
@@ -213,6 +230,8 @@ void Game::init_systems() {
 	auto init_anim = PLAYER_IDLE;
 
 	m_gs.anim_mgr = new Animator(PLAYER, PLAYER_IDLE);
+
+	m_gs.snow_sys = new SnowSystem({WIN_WIDTH, WIN_HEIGHT});
 }
 
 

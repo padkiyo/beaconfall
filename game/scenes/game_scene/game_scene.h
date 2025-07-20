@@ -41,7 +41,9 @@ private:
 	// Day Night cycle
 	f32 m_start_time;
 	f32 m_cycle_time = 10.0f; // In seconds
+	b32 m_cycle_complete = false;
 	b32 m_is_day = true;
 	f32 m_day_color = 0.8f;
+	i32 m_night_count = 0;
 };
 

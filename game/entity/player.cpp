@@ -1,7 +1,7 @@
 #include "player.h"
 
-Player::Player(std::vector<Entity*>& entities, const Camera& camera)
-	: Entity(ENT_PLAYER), m_entities(entities), m_camera(camera) {
+Player::Player(std::vector<Entity*>& entities, const Camera& camera, const GameState& gs)
+	: Entity(ENT_PLAYER), m_entities(entities), m_camera(camera), m_gs(gs) {
 	m_rect.x = 0;
 	m_rect.y = 0;
 	m_rect.w = 32;
@@ -257,7 +257,7 @@ void Player::update(Beacon* beacon, f64 dt) {
 		if (m_health >= 100.0f)
 			m_health = 100.0f;
 	} else {
-		take_damage(1.0f);
+		take_damage(m_gs.snow_sys->get_damage());
 	}
 
 	// Reset the movement

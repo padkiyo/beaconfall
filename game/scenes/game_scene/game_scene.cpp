@@ -2,7 +2,7 @@
 
 GameScene::GameScene(const GameState& gs)
 	: m_gs(gs) {
-	m_player = new Player(m_entities, *gs.camera);
+	m_player = new Player(m_entities, *gs.camera, gs);
 	m_player->set_pos({0, 100});
 
 	Rock* rock = new Rock(m_entities);
@@ -30,6 +30,8 @@ void GameScene::on_enter() {
 	m_start_time = SDL_GetTicks() / 1000.0f;
 	m_is_day = true;
 	m_day_color = 0.8f;
+	m_night_count = 0;
+	m_cycle_complete = false;
 }
 
 void GameScene::on_exit() {
@@ -45,7 +47,7 @@ void GameScene::on_update(f64 dt) {
 	f32 time_passed = end_time - m_start_time;
 
 	// Calculating day night ambience color
-	if (m_is_day) {
+	if (!m_cycle_complete) {
 		m_day_color = (m_cycle_time - time_passed) / m_cycle_time;
 	} else {
 		m_day_color = time_passed / m_cycle_time;
@@ -58,8 +60,26 @@ void GameScene::on_update(f64 dt) {
 	// Switching day and night
 	if (time_passed >= m_cycle_time) {
 		m_start_time = SDL_GetTicks() / 1000.0f;
+		m_cycle_complete = !m_cycle_complete;
+	}
+
+	if (time_passed / m_cycle_time >= 0.9f) {
+		if (m_is_day) {
+			m_night_count++;
+		} else {
+			m_gs.snow_sys->storm(false);
+		}
 		m_is_day = !m_is_day;
 	}
+
+	// Enabling storm
+	if (!m_is_day && m_night_count > 2) {
+		if (rand_range(0, 10) < m_night_count) {
+			m_gs.snow_sys->storm(true);
+		}
+	}
+
+	std::cout << m_gs.snow_sys->is_storm() << std::endl;
 
 	// Setting up the lights
 	set_ambient_color(ambient_color);
