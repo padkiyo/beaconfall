@@ -53,10 +53,12 @@ void main() {
 
 		// Calculating fall ofs
 		float dist = length(frag_pos);
+		float radius_ndc = (lights[i].radius / dim.y) * 2.0;
 		float radial_fall_off = pow(
-			clamp(1.0 - dist / lights[i].radius, 0.0, 1.0),
+			clamp(1.0 - dist / radius_ndc, 0.0, 1.0),
 			lights[i].fall_off
 		);
+
 		float angle = abs(atan(uv.y - pos.y, uv.x - pos.x));
 		float angular_fall_off = smoothstep(lights[i].fov, 0, angle);
 

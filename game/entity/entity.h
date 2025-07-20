@@ -30,7 +30,7 @@ public:
 	b32 is_stunned();
 
 	// Virtual functions
-	virtual void render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads);
+	virtual void render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads, std::vector<Light>& lights);
 	virtual void on_damage();
 
 protected:

@@ -181,38 +181,36 @@ void Player::handle_item_pickup() {
 	}
 }
 
-void Player::handle_interaction() {
-	for (auto ent: m_entities) {
-		Rect e_rect = ent->rect();
-		if (m_reach_area.intersect(e_rect)) {
-			switch (ent->type) {
+void Player::handle_beacon_interaction(Beacon* beacon) {
+	if (!m_feed_beacon) return;
+	if (!m_picked_item) return;
 
-				case ENT_BEACON: {
-					if (!m_picked_item) break;
-					if (!m_feed_beacon) break;
-					Beacon* beacon = dynamic_cast<Beacon*>(ent);
+	Rect b_rect = beacon->rect();
+	if (m_reach_area.intersect(b_rect)) {
+		switch (m_picked_item->type) {
+			case ENT_GEM: {
+				Gem* gem = dynamic_cast<Gem*>(m_picked_item);
+				switch (gem->gem_type) {
+					case GEM_POWER:
+						beacon->add_power(gem->get_value());
+						break;
+					case GEM_EXP:
+						beacon->add_exp(gem->get_value());
+						break;
+				}
+				m_entities.erase(
+					std::remove(m_entities.begin(), m_entities.end(), m_picked_item),
+					m_entities.end()
+				);
 
-					switch (m_picked_item->type) {
-						case ENT_GEM: {
-							beacon->add_power(10); // TODO: Add power according to gem type
-							m_entities.erase(
-								std::remove(m_entities.begin(), m_entities.end(), m_picked_item),
-								m_entities.end()
-							);
-
-							delete m_picked_item;
-							m_picked_item = nullptr;
-						} break;
-					}
-
-				} break;
-
-			}
+				delete m_picked_item;
+				m_picked_item = nullptr;
+			} break;
 		}
 	}
 }
 
-void Player::update(f64 dt) {
+void Player::update(Beacon* beacon, f64 dt) {
 	// Movement
 	if (m_left)
 		m_move.x -= m_speed;
@@ -229,7 +227,7 @@ void Player::update(f64 dt) {
 
 	handle_attack();
 	handle_collision(dt);
-	handle_interaction();
+	handle_beacon_interaction(beacon);
 
 	// If we have picked the item, carry it in head
 	if (m_picked_item) {
@@ -240,11 +238,33 @@ void Player::update(f64 dt) {
 		});
 	}
 
+	// Take damage whenever we're outside of the zone
+	Rect b_rect = beacon->rect();
+	glm::vec2 c1 = {
+		m_rect.x + m_rect.w / 2,
+		m_rect.y + m_rect.h / 2
+	};
+	glm::vec2 c2 = {
+		b_rect.x + b_rect.w / 2,
+		b_rect.y + b_rect.h / 2
+	};
+
+	if (
+		glm::distance(c1, c2) < beacon->get_radius() &&   // Inside range
+		beacon->get_power() > 0.0f                        // Beacon got power
+	) {
+		m_health += 1.0f;
+		if (m_health >= 100.0f)
+			m_health = 100.0f;
+	} else {
+		take_damage(1.0f);
+	}
+
 	// Reset the movement
 	m_move = {0,0};
 }
 
-void Player::render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads) {
+void Player::render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads, std::vector<Light>& lights) {
 	if (m_attack) {
 		quads.push_back(Quad {
 			{ m_atk_hitbox.x, m_atk_hitbox.y, 0 },
@@ -268,6 +288,13 @@ void Player::render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads) {
 		.color = {1,1,0,0.5},
 	});
 
+	// Handling damage effect
+	if (is_stunned() && m_health < 50.0f && m_stun > m_stun_timeout / 2) {
+		m_overlay.a = 1.0f;
+	} else {
+		m_overlay.a = 0.0f;
+	}
+
 	// Rendering the player
 	quads.push_back(Quad {
 		.pos = {m_rect.x, m_rect.y, 0},
@@ -276,6 +303,7 @@ void Player::render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads) {
 		.texture = &sprt_mgr.get_spritesheet_texture(PLAYER),
 		.uv = {0, 0, 1, 1},
 		.color = {1,1,1,1},
+		.overlay = m_overlay
 	});
 }
 

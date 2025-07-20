@@ -24,7 +24,7 @@ void Rock::on_damage() {
 		);
 
 		// Spawn a gem
-		Gem* gem = new Gem(m_entities);
+		Gem* gem = new Gem(m_entities, GEM_EXP);
 		gem->set_pos({m_rect.x, m_rect.y});
 		m_entities.push_back(gem);
 
@@ -33,7 +33,7 @@ void Rock::on_damage() {
 	}
 }
 
-void Rock::render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads) {
+void Rock::render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads, std::vector<Light>& lights) {
 	if (is_stunned()) {
 		m_overlay.a = 1.0f;
 	} else {

@@ -5,6 +5,7 @@
 #include "entity.h"
 #include "config.h"
 #include "structure/beacon.h"
+#include "item/gem.h"
 
 class Player : public Entity {
 public:
@@ -15,14 +16,14 @@ public:
 	void set_speed(f32 speed);
 
 	void handle_event(const SDL_Event& event);
-	void update(f64 dt);
-	void render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads);
+	void update(Beacon* beacon, f64 dt);
+	void render(const SpriteManager& sprt_mgr, std::vector<Quad>& quads, std::vector<Light>& lights);
 
 private:
 	void handle_attack();
 	void handle_collision(f64 dt);
 	void handle_item_pickup();
-	void handle_interaction();
+	void handle_beacon_interaction(Beacon* beacon);
 	void calc_atk_hitbox(i32 x, i32 y);
 
 private:
@@ -44,6 +45,8 @@ private:
 	f32 m_atk_dmg;
 	Rect m_atk_hitbox;
 	f32 m_atk_cooldown;
+
+	glm::vec4 m_overlay = { 1, 1, 1, 0 };
 
 	std::vector<Entity*>& m_entities;
 	const Camera& m_camera;
