@@ -29,7 +29,7 @@ void GameScene::gen_resources(f32& btime, f32 etime) {
 				case 1:
 					randomy = rand() % 8 + 9;
 			}
-			Rock* rock = new Rock(m_entities);
+			Rock* rock = new Rock(m_entities, m_gs);
 
 			randomx = (randomx*64) - 274;
 			randomy = (randomy*64) -212;
@@ -80,14 +80,6 @@ GameScene::GameScene(const GameState& gs)
 	: m_gs(gs) {
 	m_player = new Player(m_entities, *gs.camera, gs);
 	m_player->set_pos({0, 100});
-
-	Rock* rock = new Rock(m_entities, gs);
-	rock->set_pos({400, 300});
-	m_entities.push_back(rock);
-
-	Rock* rock2 = new Rock(m_entities, gs);
-	rock2->set_pos({300, 400});
-	m_entities.push_back(rock2);
 
 	m_beacon = new Beacon(gs);
 	m_beacon->set_pos({350, 250});
@@ -232,7 +224,7 @@ void GameScene::on_ui_render(UI& ui) {
 	);
 
 	std::string cnt_label = std::format("Night: {}", std::to_string(m_night_count));
-	glm::vec2 cnt_size = m_gs.font_regular->calculate_dim(cnt_label);
+	cnt_size = m_gs.font_regular->calculate_dim(cnt_label);
 	ui.text(cnt_label, {WIN_WIDTH - cnt_size.x - 10, WIN_HEIGHT - cnt_size.y - 10}, Style {
 		.font = m_gs.font_regular,
 	});
